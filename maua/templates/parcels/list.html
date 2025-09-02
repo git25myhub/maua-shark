@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+    <div class="d-flex align-items-center mb-3">
+        <h2 class="mb-0 me-3">Parcels</h2>
+        <span class="badge badge-teal">Live</span>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Ref</th>
+                            <th>Sender</th>
+                            <th>Receiver</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for parcel in parcels %}
+                        <tr>
+                            <td class="fw-semibold">{{ parcel.ref_code }}</td>
+                            <td>{{ parcel.sender_name }}</td>
+                            <td>{{ parcel.receiver_name }}</td>
+                            <td>
+                                {% set status = parcel.status|lower %}
+                                <span class="badge {{ 'badge-green' if status == 'in transit' else '' }} {{ 'badge-yellow' if status == 'pending' else '' }} {{ 'badge-red' if status == 'cancelled' else '' }}">
+                                    {{ parcel.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ parcel.created_at.strftime('%Y-%m-%d') }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

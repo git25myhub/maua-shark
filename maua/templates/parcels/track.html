@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Track Parcel {{ parcel.ref_code }}</h2>
+<p>Status: {{ parcel.status }}</p>
+<ul>
+{% for event in parcel.events %}
+<li>{{ event.created_at }} – {{ event.event_type }} ({{ event.notes }})</li>
+{% endfor %}
+</ul>
+{% endblock %}

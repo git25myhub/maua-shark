@@ -1,0 +1,318 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section hero-gradient hero-banner text-white py-5 mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">Welcome to MAUA SHARK SACCO</h1>
+                <p class="lead mb-4">Your trusted partner for safe, reliable, and comfortable transportation services across Kenya.</p>
+                <a href="{{ url_for('booking.index') }}" class="btn btn-light btn-lg me-3">Book a Trip <i class="fas fa-arrow-right ms-2"></i></a>
+                <a href="{{ url_for('parcels.create') }}" class="btn btn-outline-light btn-lg">Send a Parcel</a>
+            </div>
+            <div class="col-lg-6 d-none d-lg-block">
+                <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" alt="Comfortable Bus Travel" class="img-fluid rounded shadow">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="mb-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Our Services</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-shadow">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-bus fs-3"></i>
+                        </div>
+                        <h3 class="h5">Comfortable Travel</h3>
+                        <p class="text-muted">Experience luxury and comfort with our modern fleet of buses equipped with air conditioning and ample legroom.</p>
+                        <a href="{{ url_for('booking.index') }}" class="btn btn-outline-primary mt-2">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-shadow">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-box bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-box fs-3"></i>
+                        </div>
+                        <h3 class="h5">Parcel Delivery</h3>
+                        <p class="text-muted">Fast, secure, and reliable parcel delivery services to all major towns in Kenya at competitive rates.</p>
+                        <a href="{{ url_for('parcels.create') }}" class="btn btn-outline-success mt-2">Send Parcel</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm hover-shadow">
+                    <div class="card-body text-center p-4">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                            <i class="fas fa-map-marker-alt fs-3"></i>
+                        </div>
+                        <h3 class="h5">Track &amp; Trace</h3>
+                        <p class="text-muted">Easily track your booking or parcel in real-time with our online tracking system.</p>
+                        <a href="#" class="btn btn-outline-warning mt-2">Track Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Routes -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Popular Routes</h2>
+            <p class="text-muted">Choose from our most popular travel routes</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" class="card-img-top" alt="Nairobi to Mombasa">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h3 class="h5 mb-0">Nairobi to Mombasa</h3>
+                            <span class="badge bg-primary">Popular</span>
+                        </div>
+                        <p class="text-muted"><i class="fas fa-clock me-2"></i> Daily departures</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h4 class="mb-0 text-primary">From KES 1,200</h4>
+                            <a href="{{ url_for('booking.index') }}" class="btn btn-sm btn-outline-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" class="card-img-top" alt="Nairobi to Kisumu">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h3 class="h5 mb-0">Nairobi to Kisumu</h3>
+                            <span class="badge bg-success">Frequent</span>
+                        </div>
+                        <p class="text-muted"><i class="fas fa-clock me-2"></i> Multiple daily trips</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h4 class="mb-0 text-primary">From KES 1,000</h4>
+                            <a href="{{ url_for('booking.index') }}" class="btn btn-sm btn-outline-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" class="card-img-top" alt="Nairobi to Nakuru">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h3 class="h5 mb-0">Nairobi to Nakuru</h3>
+                            <span class="badge bg-info">Frequent</span>
+                        </div>
+                        <p class="text-muted"><i class="fas fa-clock me-2"></i> Hourly departures</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <h4 class="mb-0 text-primary">From KES 500</h4>
+                            <a href="{{ url_for('booking.index') }}" class="btn btn-sm btn-outline-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('catalog.routes') }}" class="btn btn-outline-primary">View All Routes</a>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <h2>Why Choose MAUA SHARK SACCO?</h2>
+                <p class="lead">We are committed to providing the best travel experience with our exceptional services.</p>
+                
+                <div class="d-flex mb-3">
+                    <div class="me-4">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="h5">Safe &amp; Secure</h4>
+                        <p class="text-muted mb-0">Your safety is our top priority. Our vehicles are regularly serviced and our drivers are highly trained professionals.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex mb-3">
+                    <div class="me-4">
+                        <div class="icon-box bg-success bg-opacity-10 text-success rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="h5">On-time Service</h4>
+                        <p class="text-muted mb-0">We value your time. Our services are designed to ensure you reach your destination on schedule.</p>
+                    </div>
+                </div>
+                
+                <div class="d-flex">
+                    <div class="me-4">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning rounded-circle d-inline-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="h5">24/7 Customer Support</h4>
+                        <p class="text-muted mb-0">Our dedicated support team is available round the clock to assist you with any queries or concerns.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card border-0 shadow">
+                    <div class="card-body p-4">
+                        <h3 class="h4 mb-4">Book Your Trip Now</h3>
+                        <form>
+                            <div class="mb-3">
+                                <label for="from" class="form-label">From</label>
+                                <select class="form-select" id="from">
+                                    <option selected>Select City</option>
+                                    <option>Nairobi</option>
+                                    <option>Mombasa</option>
+                                    <option>Kisumu</option>
+                                    <option>Nakuru</option>
+                                    <option>Eldoret</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="to" class="form-label">To</label>
+                                <select class="form-select" id="to">
+                                    <option selected>Select City</option>
+                                    <option>Nairobi</option>
+                                    <option>Mombasa</option>
+                                    <option>Kisumu</option>
+                                    <option>Nakuru</option>
+                                    <option>Eldoret</option>
+                                </select>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="departure" class="form-label">Departure Date</label>
+                                    <input type="date" class="form-control" id="departure">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="passengers" class="form-label">Passengers</label>
+                                    <select class="form-select" id="passengers">
+                                        <option selected>1</option>
+                                        <option>2</option>
+                                        <option>3</option>
+                                        <option>4+</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">Search Buses</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>What Our Customers Say</h2>
+            <p class="text-muted">Hear from our valued customers about their experience with us</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex mb-3">
+                            <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="Customer">
+                            <div>
+                                <h5 class="mb-0">John Mwangi</h5>
+                                <div class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted">"The most comfortable bus ride I've ever had. The seats were spacious and the staff was very professional. Will definitely travel with MAUA SHARK SACCO again!"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex mb-3">
+                            <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="Customer">
+                            <div>
+                                <h5 class="mb-0">Sarah Auma</h5>
+                                <div class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted">"I regularly send parcels with MAUA SHARK SACCO and I'm always impressed by their reliability and affordable rates. Highly recommended!"</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex mb-3">
+                            <img src="https://via.placeholder.com/50" class="rounded-circle me-3" alt="Customer">
+                            <div>
+                                <h5 class="mb-0">David Ochieng</h5>
+                                <div class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted">"The online booking system is very user-friendly, and the customer service team was extremely helpful when I needed to make changes to my booking."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-5 bg-primary text-white">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Travel with Us?</h2>
+        <p class="lead mb-4">Book your next journey with MAUA SHARK SACCO and experience comfort like never before.</p>
+        <a href="{{ url_for('booking.index') }}" class="btn btn-light btn-lg me-3">Book a Trip</a>
+        <a href="{{ url_for('parcels.create') }}" class="btn btn-outline-light btn-lg">Send a Parcel</a>
+    </div>
+</section>
+{% endblock %}

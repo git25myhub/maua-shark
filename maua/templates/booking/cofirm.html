@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Confirm Booking</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="badge badge-teal me-2">Ref</span>
+                        <span class="fw-semibold">{{ booking.reference }}</span>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between"><span>Booking ID</span><span class="fw-semibold">{{ booking_id }}</span></li>
+                        <li class="list-group-item d-flex justify-content-between"><span>Seat</span><span class="fw-semibold">{{ booking.seat_number }}</span></li>
+                        <li class="list-group-item d-flex justify-content-between"><span>Status</span>
+                            <span class="badge {{ 'badge-green' if booking.status == 'confirmed' else 'badge-yellow' }}">{{ booking.status|title }}</span>
+                        </li>
+                    </ul>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <div>
+                            <div class="text-muted">Fare</div>
+                            <div class="h4 mb-0 text-primary">KES {{ booking.fare }}</div>
+                        </div>
+                        <a href="/payments/pay/{{ booking.id }}" class="btn btn-primary btn-lg"><i class="fas fa-credit-card me-2"></i>Pay Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

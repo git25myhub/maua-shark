@@ -1,0 +1,206 @@
+/* Global theme variables inspired by Maua Shark matatu livery */
+:root {
+    --brand-blue: #0056b3; /* deep blue */
+    --brand-red: #e53935;  /* vivid red */
+    --brand-yellow: #f6b400; /* warm golden yellow */
+    --brand-green: #2e7d32; /* rich green */
+    --brand-teal: #00897b;  /* teal accent */
+    --brand-dark: #0f172a;  /* near-navy for text */
+    --brand-light: #f5f7fb; /* app background */
+}
+
+/* Override Bootstrap primary and related utilities */
+.bg-primary { background-color: var(--brand-blue) !important; }
+.text-primary { color: var(--brand-blue) !important; }
+.border-primary { border-color: var(--brand-blue) !important; }
+.btn-primary {
+    background-color: var(--brand-blue);
+    border-color: var(--brand-blue);
+}
+.btn-primary:hover,
+.btn-primary:focus { filter: brightness(0.93); }
+
+body {
+    background: var(--brand-light);
+    color: var(--brand-dark);
+}
+
+.site-header {
+    background-color: #0d47a1;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* Professional navbar styling */
+.navbar {
+    transition: box-shadow .2s ease, background-color .2s ease;
+}
+.navbar-elevated {
+    box-shadow: 0 6px 18px rgba(2,6,23,.12);
+}
+.navbar .nav-link {
+    position: relative;
+    padding: .5rem .9rem;
+    color: rgba(255,255,255,.9) !important;
+}
+.navbar .nav-link:hover { color: #fff !important; }
+.navbar .nav-link::after {
+    content: "";
+    position: absolute;
+    left: .9rem;
+    right: .9rem;
+    bottom: .25rem;
+    height: 2px;
+    background: linear-gradient(90deg, var(--brand-red), var(--brand-yellow), var(--brand-green));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .2s ease-in-out;
+}
+.navbar .nav-link:hover::after,
+.navbar .nav-link[aria-current="page"]::after { transform: scaleX(1); }
+.navbar .btn-cta {
+    border-radius: 999px;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-width: 2px;
+}
+
+[data-theme="dark"] .navbar .nav-link { color: rgba(255,255,255,.85) !important; }
+
+.content-section {
+    background: #ffffff;
+    padding: 10px 20px;
+    border: 1px solid #dddddd;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+.account-img {
+    height: 125px;
+    width: 125px;
+    margin-right: 20px;
+    margin-bottom: 16px;
+}
+
+.article-metadata {
+    padding-bottom: 1px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #e3e3e3
+}
+
+.article-title {
+    color: #444444;
+}
+
+.article-title:hover {
+    color: var(--brand-blue);
+    text-decoration: none;
+}
+
+.article-content {
+    white-space: pre-line;
+}
+
+.article-img {
+    height: 65px;
+    width: 65px;
+    margin-right: 16px;
+}
+
+.article-metadata {
+    padding-bottom: 1px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #e3e3e3
+}
+
+.article-svg {
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+}
+
+.account-heading {
+    font-size: 2.5rem;
+}
+
+/* Rainbow stripe bar reflecting vehicle livery */
+.maua-stripe {
+    height: 6px;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    box-shadow: 0 1px 0 rgba(0,0,0,.05) inset;
+}
+.maua-stripe > span:nth-child(1) { background: var(--brand-blue); }
+.maua-stripe > span:nth-child(2) { background: var(--brand-red); }
+.maua-stripe > span:nth-child(3) { background: var(--brand-yellow); }
+.maua-stripe > span:nth-child(4) { background: var(--brand-green); }
+.maua-stripe > span:nth-child(5) { background: var(--brand-teal); }
+
+/* Cards and panels */
+.card {
+    border: none;
+    border-radius: .75rem;
+    box-shadow: 0 6px 16px rgba(2, 6, 23, 0.06);
+}
+.card-header {
+    border-top-left-radius: .75rem !important;
+    border-top-right-radius: .75rem !important;
+}
+
+/* Links */
+a { color: var(--brand-blue); }
+a:hover { color: #043f85; }
+
+/* Forms */
+.form-control:focus {
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 .2rem rgba(0,86,179,.15);
+}
+
+/* Badges matching brand colors */
+.badge-brand { background: var(--brand-blue); }
+.badge-red { background: var(--brand-red); }
+.badge-yellow { background: var(--brand-yellow); color: #222; }
+.badge-green { background: var(--brand-green); }
+.badge-teal { background: var(--brand-teal); }
+
+/* Utility gradient header (optional) */
+.hero-gradient {
+    background: linear-gradient(135deg,
+        var(--brand-blue) 0%,
+        var(--brand-red) 25%,
+        var(--brand-yellow) 50%,
+        var(--brand-green) 75%,
+        var(--brand-teal) 100%);
+    color: #fff;
+}
+
+/* Hero section with background image + brand gradient overlay */
+.hero-banner {
+    background-image:
+        linear-gradient(120deg, rgba(0,86,179,.85), rgba(229,57,53,.55), rgba(246,180,0,.45)),
+        url('https://www.pandashuttles.co.ke/images/maua-sharks.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Dark mode support */
+[data-theme="dark"] {
+    --brand-dark: #e5e7eb; /* flip text */
+    --brand-light: #0b1020; /* app bg */
+}
+[data-theme="dark"] body { background: var(--brand-light); color: var(--brand-dark); }
+[data-theme="dark"] .bg-primary { background-color: var(--brand-blue) !important; }
+[data-theme="dark"] .navbar.navbar-dark { background-color: #06102a !important; }
+[data-theme="dark"] .card { background-color: #0f172a; color: var(--brand-dark); box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+[data-theme="dark"] .list-group-item { background-color: #0f172a; color: var(--brand-dark); }
+[data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background-color: #0b132a; border-color: #243045; color: var(--brand-dark); }
+[data-theme="dark"] .form-control::placeholder { color: #9aa4b2; }
+[data-theme="dark"] .table { --bs-table-bg: #0f172a; --bs-table-color: var(--brand-dark); }
+[data-theme="dark"] a { color: #7cb5ff; }
+[data-theme="dark"] a:hover { color: #a9cdff; }
