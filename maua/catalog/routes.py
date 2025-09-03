@@ -1,6 +1,7 @@
 from flask import render_template, abort
 from maua.catalog import bp
 from maua.catalog.models import Trip
+from datetime import datetime
 
 
 @bp.route('/routes')
@@ -20,11 +21,11 @@ def trip_detail(trip_id: int):
     # default red (available)
     seat_status = {seat['seat']: 'red' for seat in seat_layout}
 
-    # Mark booked seats
+    # Mark booked seats, respecting hold expiry
     for booking in trip.bookings:
-        if booking.status in ['confirmed', 'reserved']:
-            seat_status[booking.seat_number] = 'blue'  # booked, not fetched
         if booking.status in ['checked_in', 'completed']:
             seat_status[booking.seat_number] = 'green'  # passenger on board
+        elif booking.status in ['confirmed']:
+            seat_status[booking.seat_number] = 'blue'  # booked
 
     return render_template('catalog/trip_detail.html', trip=trip, seat_layout=seat_layout, seat_status=seat_status)

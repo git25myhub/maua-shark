@@ -23,7 +23,7 @@
                     {% for booking in bookings %}
                     <tr>
                         <td>{{ booking.id }}</td>
-                        <td>{{ booking.trip.route.origin_depot.name }} to {{ booking.trip.route.destination_depot.name }}</td>
+                        <td>{{ booking.trip.route.origin.town }} - {{ booking.trip.route.origin.name }} to {{ booking.trip.route.destination.town }} - {{ booking.trip.route.destination.name }}</td>
                         <td>{{ booking.seat_number }}</td>
                         <td>
                             <span class="badge bg-{{ 'success' if booking.status == 'confirmed' else 'warning' }}">
@@ -32,12 +32,14 @@
                         </td>
                         <td>{{ booking.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
                         <td>
-                            <a href="{{ url_for('booking.view_booking', booking_id=booking.id) }}" class="btn btn-sm btn-info">View</a>
+                            <a href="{{ url_for('booking.booking_confirmation', booking_id=booking.id) }}" class="btn btn-sm btn-info">View</a>
                             {% if booking.status == 'confirmed' %}
-                                <a href="{{ url_for('booking.cancel', booking_id=booking.id) }}" class="btn btn-sm btn-danger" 
-                                   onclick="return confirm('Are you sure you want to cancel this booking?')">
-                                    Cancel
-                                </a>
+                                <form method="POST" action="{{ url_for('booking.cancel', booking_id=booking.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger" 
+                                            onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                        Cancel
+                                    </button>
+                                </form>
                             {% endif %}
                         </td>
                     </tr>

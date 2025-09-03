@@ -73,9 +73,10 @@ class Trip(db.Model):
         # Returns a list of available seat numbers
         if not self.vehicle or not self.vehicle.seat_layout:
             return []
-        
+        from datetime import datetime
+        now = datetime.utcnow()
         booked_seats = {booking.seat_number for booking in self.bookings 
-                       if booking.status in ['confirmed', 'reserved']}
+                       if booking.status in ['confirmed', 'reserved'] and (not getattr(booking, 'hold_expires_at', None) or booking.hold_expires_at > now)}
         
         return [seat['seat'] for seat in self.vehicle.seat_layout 
                if seat['seat'] not in booked_seats]

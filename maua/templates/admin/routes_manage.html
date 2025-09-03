@@ -1,21 +1,24 @@
 {% extends 'admin/_layout.html' %}
 {% block admin_content %}
   <h2 class="mb-3">Manage Routes</h2>
-  <form method="post" class="row g-2 mb-3">
-    <div class="col-md-3"><input class="form-control" name="code" placeholder="Code (e.g. NRB-NKU)" required></div>
-    <div class="col-md-4">
-      <select class="form-select" name="origin_id" required>
-        <option value="">Origin</option>
-        {% for d in depots %}<option value="{{ d.id }}">{{ d.town }} - {{ d.name }}</option>{% endfor %}
-      </select>
+  <form method="post" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <input class="form-control mb-2" name="code" placeholder="e.g. NRB-MSA" required>
+      <small class="text-muted">Route Code (e.g., NRB-MSA)</small>
     </div>
     <div class="col-md-4">
-      <select class="form-select" name="destination_id" required>
-        <option value="">Destination</option>
-        {% for d in depots %}<option value="{{ d.id }}">{{ d.town }} - {{ d.name }}</option>{% endfor %}
-      </select>
+      <input class="form-control mb-2" name="origin" placeholder="e.g. Nairobi - CBD" required>
+      <small class="text-muted">Origin (Town - Location)</small>
     </div>
-    <div class="col-md-1"><button class="btn btn-primary w-100" type="submit">Add</button></div>
+    <div class="col-md-4">
+      <input class="form-control mb-2" name="destination" placeholder="e.g. Mombasa - CBD" required>
+      <small class="text-muted">Destination (Town - Location)</small>
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+      <button class="btn btn-primary w-100" type="submit" title="Add Route">
+        <i class="fas fa-plus"></i> Add
+      </button>
+    </div>
   </form>
   <table class="table">
     <thead><tr><th>Code</th><th>Origin</th><th>Destination</th><th></th></tr></thead>

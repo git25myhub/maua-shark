@@ -22,26 +22,61 @@ def dashboard():
     return render_template('admin/dashboard.html')
 
 
+ 
+
+
 @admin_bp.route('/routes', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def routes_manage():
     if request.method == 'POST':
         code = request.form.get('code')
-        origin_id = request.form.get('origin_id', type=int)
-        destination_id = request.form.get('destination_id', type=int)
-        try:
-            r = Route(code=code, origin_depot_id=origin_id, destination_depot_id=destination_id, active=True)
-            db.session.add(r)
-            db.session.commit()
-            flash('Route created.', 'success')
-        except Exception:
-            db.session.rollback()
-            flash('Failed to create route.', 'danger')
-        return redirect(url_for('admin.routes_manage'))
+        origin = request.form.get('origin', '').strip()
+        destination = request.form.get('destination', '').strip()
+        
+        if not all([code, origin, destination]):
+            flash('All fields are required.', 'danger')
+        else:
+            try:
+                # Create new depots if they don't exist
+                origin_depot = Depot.query.filter_by(name=origin).first()
+                if not origin_depot:
+                    # Extract town and name from the format "Town - Name"
+                    parts = [p.strip() for p in origin.split('-', 1)]
+                    town = parts[0] if len(parts) > 0 else 'Unknown'
+                    name = parts[1] if len(parts) > 1 else origin
+                    origin_depot = Depot(town=town, name=name, address=origin)
+                    db.session.add(origin_depot)
+                    db.session.flush()  # Get the ID for the new depot
+                
+                destination_depot = Depot.query.filter_by(name=destination).first()
+                if not destination_depot:
+                    parts = [p.strip() for p in destination.split('-', 1)]
+                    town = parts[0] if len(parts) > 0 else 'Unknown'
+                    name = parts[1] if len(parts) > 1 else destination
+                    destination_depot = Depot(town=town, name=name, address=destination)
+                    db.session.add(destination_depot)
+                    db.session.flush()
+                
+                # Create the route
+                route = Route(
+                    code=code,
+                    origin_depot_id=origin_depot.id,
+                    destination_depot_id=destination_depot.id,
+                    active=True
+                )
+                db.session.add(route)
+                db.session.commit()
+                flash('Route created successfully!', 'success')
+                return redirect(url_for('admin.routes_manage'))
+                
+            except Exception as e:
+                db.session.rollback()
+                flash(f'Error creating route: {str(e)}', 'danger')
+    
+    # For GET requests or if there was an error in POST
     routes = Route.query.order_by(Route.id.desc()).all()
-    depots = Depot.query.order_by(Depot.town.asc()).all()
-    return render_template('admin/routes_manage.html', routes=routes, depots=depots)
+    return render_template('admin/routes_manage.html', routes=routes)
 
 
 @admin_bp.route('/routes/<int:route_id>/delete', methods=['POST'])

@@ -1,17 +1,15 @@
 {% extends 'staff/_layout.html' %}
 {% block staff_content %}
-  <h2 class="mb-3">Customers</h2>
+  <h2 class="mb-3">Customers (Passengers)</h2>
   <table class="table">
-    <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Phone</th><th>Joined</th><th>Admin</th></tr></thead>
+    <thead><tr><th>Passenger</th><th>Phone</th><th>Bookings</th><th>Last Booking</th></tr></thead>
     <tbody>
-      {% for u in customers %}
+      {% for p in passengers %}
       <tr>
-        <td>{{ u.id }}</td>
-        <td>{{ u.username }}</td>
-        <td>{{ u.email }}</td>
-        <td>{{ u.phone }}</td>
-        <td>{{ u.date_joined.strftime('%Y-%m-%d') }}</td>
-        <td>{{ 'Yes' if u.is_admin else 'No' }}</td>
+        <td>{{ p.name }}</td>
+        <td>{{ p.phone }}</td>
+        <td>{{ p.num_bookings }}</td>
+        <td>{{ p.last_booking_at.strftime('%Y-%m-%d %H:%M') if p.last_booking_at else '-' }}</td>
       </tr>
       {% endfor %}
     </tbody>

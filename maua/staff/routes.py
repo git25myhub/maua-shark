@@ -204,9 +204,25 @@ def vehicle_seat_layout(vehicle_id: int):
 @login_required
 @staff_required
 def customers_list():
-    from maua.auth.models import User
-    customers = User.query.order_by(User.date_joined.desc()).limit(200).all()
-    return render_template('staff/customers.html', customers=customers)
+    # Show passenger profiles derived from bookings, not login accounts
+    bookings = Booking.query.order_by(Booking.created_at.desc()).limit(2000).all()
+    key_to_passenger = {}
+    for b in bookings:
+        key = (b.passenger_name or 'Passenger', b.passenger_phone or 'N/A')
+        rec = key_to_passenger.get(key)
+        if not rec:
+            rec = {
+                'name': b.passenger_name,
+                'phone': b.passenger_phone,
+                'num_bookings': 0,
+                'last_booking_at': b.created_at,
+            }
+            key_to_passenger[key] = rec
+        rec['num_bookings'] += 1
+        if b.created_at and (rec['last_booking_at'] is None or b.created_at > rec['last_booking_at']):
+            rec['last_booking_at'] = b.created_at
+    passengers = sorted(key_to_passenger.values(), key=lambda r: r['last_booking_at'] or datetime.min, reverse=True)
+    return render_template('staff/customers.html', passengers=passengers)
 
 
 @staff_bp.route('/trips/<int:trip_id>/seats')
