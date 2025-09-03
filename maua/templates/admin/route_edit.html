@@ -1,0 +1,32 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Edit Route</h2>
+  <form method="post" class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Code</label>
+      <input class="form-control" name="code" value="{{ route.code }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Origin</label>
+      <select class="form-select" name="origin_id" required>
+        {% for d in depots %}
+          <option value="{{ d.id }}" {% if route.origin_depot_id==d.id %}selected{% endif %}>{{ d.town }} - {{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Destination</label>
+      <select class="form-select" name="destination_id" required>
+        {% for d in depots %}
+          <option value="{{ d.id }}" {% if route.destination_depot_id==d.id %}selected{% endif %}>{{ d.town }} - {{ d.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('admin.routes_manage') }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
+
+

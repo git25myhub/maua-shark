@@ -4,7 +4,7 @@ from datetime import timedelta
 
 class Config:
     # App settings
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-key-12345-change-in-production'
+    SECRET_KEY = 'be8b97bc83215c5b8b661e27a8f2e2635eba3e6d7b2b387812e170f221fdb393'  # Generated secure key
     
     # Database settings
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://postgres:postgres@localhost/maua-db'
@@ -23,12 +23,12 @@ class Config:
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     
     # Email settings
-    MAIL_SERVER = os.environ.get('MAIL_SERVER')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT') or 587)
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() in ['true', 'on', '1']
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
+    MAIL_SERVER = 'smtp.gmail.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'kariukistephen964@gmail.com'
+    MAIL_PASSWORD = 'lszd yuds pgry pesv'  # App password
+    MAIL_DEFAULT_SENDER = 'kariukistephen964@gmail.com'
 
 
 class DevelopmentConfig(Config):

@@ -1,0 +1,14 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2 class="mb-3">Edit Seat Layout - {{ vehicle.plate_no }}</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label">Seats (space-separated)</label>
+      <textarea class="form-control" name="seats" rows="4" placeholder="1A 1B 2A 2B 3A 3B">{{ seats_text }}</textarea>
+    </div>
+    <button class="btn btn-primary" type="submit">Save</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('staff.vehicles_list') }}">Back</a>
+  </form>
+{% endblock %}
+
+

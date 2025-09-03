@@ -1,11 +1,42 @@
-{% extends 'base.html' %}
-{% block content %}
-<h2>Admin Dashboard</h2>
-<ul>
-<li><a href="/admin/routes">Manage Routes</a></li>
-<li><a href="/admin/vehicles">Manage Vehicles</a></li>
-<li><a href="/admin/trips">Manage Trips</a></li>
-<li><a href="/admin/bookings">View Bookings</a></li>
-<li><a href="/admin/parcels">View Parcels</a></li>
-</ul>
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Admin Dashboard</h2>
+  <div class="row g-3">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Depots</h5>
+          <p class="card-text">Register origin and destination depots.</p>
+          <a class="btn btn-primary" href="{{ url_for('admin.depots_manage') }}">Manage Depots</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Routes</h5>
+          <p class="card-text">Create and manage travel routes.</p>
+          <a class="btn btn-primary" href="{{ url_for('admin.routes_manage') }}">Manage Routes</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Vehicles</h5>
+          <p class="card-text">Register vehicles and seat layouts.</p>
+          <a class="btn btn-primary" href="{{ url_for('admin.vehicles_manage') }}">Manage Vehicles</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-sm h-100">
+        <div class="card-body">
+          <h5 class="card-title">Staff</h5>
+          <p class="card-text">Operational views for bookings, trips, and parcels.</p>
+          <a class="btn btn-outline-primary" href="{{ url_for('staff.dashboard') }}">Open Staff</a>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

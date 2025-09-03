@@ -1,7 +1,6 @@
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
-from maua.extensions import db, login_manager
+from maua.extensions import db, login_manager, bcrypt
 
 # This is a workaround for SQLAlchemy's handling of reserved words
 # We'll use 'user_' as a prefix for all column names to avoid conflicts
@@ -28,10 +27,11 @@ class User(UserMixin, db.Model):
     payments = db.relationship('Payment', backref='user_payments', lazy=True)
     
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        # Use bcrypt to match authentication
+        self.password_hash = bcrypt.generate_password_hash(password).decode('utf-8')
         
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return bcrypt.check_password_hash(self.password_hash, password)
     
     def __repr__(self):
         return f'<User {self.username}>'

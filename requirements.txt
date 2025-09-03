@@ -27,6 +27,9 @@ Pillow>=10.0.0  # Updated for Python 3.13 compatibility
 requests==2.31.0
 pytz==2023.3
 
+# Production
+gunicorn==21.2.0
+
 # Development
 Werkzeug==2.3.7
 greenlet>=3.0.0

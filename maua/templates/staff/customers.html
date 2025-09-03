@@ -1,0 +1,21 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2 class="mb-3">Customers</h2>
+  <table class="table">
+    <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Phone</th><th>Joined</th><th>Admin</th></tr></thead>
+    <tbody>
+      {% for u in customers %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.username }}</td>
+        <td>{{ u.email }}</td>
+        <td>{{ u.phone }}</td>
+        <td>{{ u.date_joined.strftime('%Y-%m-%d') }}</td>
+        <td>{{ 'Yes' if u.is_admin else 'No' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

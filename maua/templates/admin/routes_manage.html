@@ -1,0 +1,40 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Manage Routes</h2>
+  <form method="post" class="row g-2 mb-3">
+    <div class="col-md-3"><input class="form-control" name="code" placeholder="Code (e.g. NRB-NKU)" required></div>
+    <div class="col-md-4">
+      <select class="form-select" name="origin_id" required>
+        <option value="">Origin</option>
+        {% for d in depots %}<option value="{{ d.id }}">{{ d.town }} - {{ d.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-4">
+      <select class="form-select" name="destination_id" required>
+        <option value="">Destination</option>
+        {% for d in depots %}<option value="{{ d.id }}">{{ d.town }} - {{ d.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-md-1"><button class="btn btn-primary w-100" type="submit">Add</button></div>
+  </form>
+  <table class="table">
+    <thead><tr><th>Code</th><th>Origin</th><th>Destination</th><th></th></tr></thead>
+    <tbody>
+      {% for r in routes %}
+      <tr>
+        <td>{{ r.code }}</td>
+        <td>{{ r.origin.town }} - {{ r.origin.name }}</td>
+        <td>{{ r.destination.town }} - {{ r.destination.name }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.routes_edit', route_id=r.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin.routes_delete', route_id=r.id) }}" onsubmit="return confirm('Delete route?')">
+            <button class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

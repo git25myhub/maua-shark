@@ -1,0 +1,57 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Parcels</h2>
+    <form method="get" class="d-flex gap-2">
+      <select name="status" class="form-select form-select-sm" style="width:auto">
+        <option value="">All</option>
+        {% for s in ['pending','in_transit','delivered','cancelled'] %}
+        <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+    </form>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Trip</th>
+        <th>Sender</th>
+        <th>Recipient</th>
+        <th>Status</th>
+        <th>Tracking</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in parcels %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>#{{ p.trip_id }}</td>
+        <td>{{ p.sender_id }}</td>
+        <td>{{ p.recipient_name }} ({{ p.recipient_phone }})</td>
+        <td>{{ p.status }}</td>
+        <td>{{ p.tracking_number or '—' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('staff.parcels_update_status', parcel_id=p.id) }}" style="display:inline-block">
+            <select name="status">
+              {% for s in ['pending','in_transit','delivered','cancelled'] %}
+              <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-sm btn-success" type="submit">Update</button>
+          </form>
+          <form method="post" action="{{ url_for('staff.parcels_assign_tracking', parcel_id=p.id) }}" style="display:inline-block; margin-left:8px;">
+            <input name="tracking_number" placeholder="Tracking" value="{{ p.tracking_number or '' }}" />
+            <button class="btn btn-sm btn-secondary" type="submit">Assign</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <a href="{{ url_for('staff.dashboard') }}">Back</a>
+{% endblock %}
+
+

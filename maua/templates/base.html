@@ -50,8 +50,17 @@
                     <ul class="navbar-nav ms-auto">
                         {% if current_user.is_authenticated %}
                             {% if current_user.is_admin %}
-                                <li class="nav-item">
-                                    <a class="nav-link" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-tools me-1"></i> Staff
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                        <li><a class="dropdown-item" href="{{ url_for('staff.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Staff Dashboard</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('staff.bookings_list') }}"><i class="fas fa-ticket-alt me-1"></i> Bookings</a></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('staff.parcels_list') }}"><i class="fas fa-box me-1"></i> Parcels</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-user-shield me-1"></i> Admin</a></li>
+                                    </ul>
                                 </li>
                             {% endif %}
                             <li class="nav-item">
@@ -114,6 +123,27 @@
                             </a>
                         </div>
                     </div>
+                    {% if current_user.is_authenticated and current_user.is_admin %}
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Staff & Admin</h5>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a href="{{ url_for('staff.dashboard') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-tachometer-alt me-2"></i>Staff Dashboard
+                            </a>
+                            <a href="{{ url_for('staff.bookings_list') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-ticket-alt me-2"></i>Manage Bookings
+                            </a>
+                            <a href="{{ url_for('staff.parcels_list') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-box me-2"></i>Manage Parcels
+                            </a>
+                            <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-user-shield me-2"></i>Admin Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>

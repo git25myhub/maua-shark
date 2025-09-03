@@ -25,6 +25,7 @@ def create_app(config_class='config.DevelopmentConfig'):
     from maua.admin.routes import admin_bp
     from maua.payment.routes import payment_bp
     from maua.catalog.routes import bp as catalog_bp
+    from maua.staff import staff_bp
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
@@ -33,6 +34,7 @@ def create_app(config_class='config.DevelopmentConfig'):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(payment_bp)
     app.register_blueprint(catalog_bp, url_prefix='/catalog')
+    app.register_blueprint(staff_bp, url_prefix='/staff')
     
     # Create upload folder if it doesn't exist
     os.makedirs(os.path.join(app.instance_path, 'uploads'), exist_ok=True)
