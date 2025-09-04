@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container">
+<div class="container contrast-scope">
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <div class="card shadow-sm">
@@ -8,7 +8,7 @@
                     <h5 class="mb-0"><i class="fas fa-box me-2"></i>Create Parcel</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post" action="{{ url_for('parcels.create') }}" class="needs-validation" novalidate>
+                    <form method="post" action="{{ url_for('parcels.create') }}" enctype="multipart/form-data" class="needs-validation" novalidate>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label class="form-label">Sender Name</label>
@@ -27,12 +27,12 @@
                                 <input type="text" name="receiver_phone" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Origin Depot ID</label>
-                                <input type="number" name="origin_depot_id" class="form-control" required>
+                                <label class="form-label">Origin Name</label>
+                                <input type="text" name="origin_name" class="form-control" required>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Destination Depot ID</label>
-                                <input type="number" name="destination_depot_id" class="form-control" required>
+                                <label class="form-label">Destination Name</label>
+                                <input type="text" name="destination_name" class="form-control" required>
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Weight (kg)</label>
@@ -41,6 +41,11 @@
                             <div class="col-md-6">
                                 <label class="form-label">Price (KES)</label>
                                 <input type="number" name="price" class="form-control" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Parcel Photo (optional)</label>
+                                <input type="file" name="parcel_photo" class="form-control" accept="image/*" capture="environment">
+                                <div class="form-text">Add a picture to help the receiver avoid picking the wrong parcel.</div>
                             </div>
                         </div>
                         <div class="d-flex justify-content-end mt-4">

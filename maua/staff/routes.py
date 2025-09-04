@@ -4,7 +4,8 @@ from functools import wraps
 from maua.extensions import db
 from . import staff_bp
 from maua.booking.models import Booking
-from maua.catalog.models import Parcel, Trip, Vehicle, Route
+from maua.catalog.models import Trip, Vehicle, Route
+from maua.parcels.models import Parcel
 from datetime import datetime
 from maua.booking.models import Booking
 

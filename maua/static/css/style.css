@@ -182,11 +182,19 @@ a:hover { color: #043f85; }
 /* Hero section with background image + brand gradient overlay */
 .hero-banner {
     background-image:
-        linear-gradient(120deg, rgba(0,86,179,.85), rgba(229,57,53,.55), rgba(246,180,0,.45)),
+        linear-gradient(120deg, rgba(0,86,179,.55), rgba(229,57,53,.35), rgba(246,180,0,.25)),
         url('https://www.pandashuttles.co.ke/images/maua-sharks.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+}
+
+/* Improve contrast for hero section text over image */
+.hero-section h1,
+.hero-section .display-4,
+.hero-section .lead {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
 }
 
 /* Dark mode support */
@@ -204,3 +212,193 @@ a:hover { color: #043f85; }
 [data-theme="dark"] .table { --bs-table-bg: #0f172a; --bs-table-color: var(--brand-dark); }
 [data-theme="dark"] a { color: #7cb5ff; }
 [data-theme="dark"] a:hover { color: #a9cdff; }
+
+/* Fullscreen, role-based background behind content */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: none;
+}
+
+/* Add a subtle brand-tinted overlay for readability */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(120deg, rgba(0,86,179,.25), rgba(229,57,53,.15), rgba(246,180,0,.08));
+}
+
+/* Default/guest background */
+body.role-guest::before {
+    background-image: url('https://images.unsplash.com/photo-1564668836804-05a2de350bb6?w=1600&auto=format&fit=crop&q=70&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGhpZ2h3YXl8ZW58MHx8MHx8fDA%3D');
+}
+
+/* Customer background (logged-in non-admin) */
+body.role-customer::before {
+    background-image: url('https://images.unsplash.com/photo-1564668836804-05a2de350bb6?w=1600&auto=format&fit=crop&q=70&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGhpZ2h3YXl8ZW58MHx8MHx8fDA%3D');
+}
+
+/* Staff/Admin background */
+body.role-staff::before {
+    background-image: url('https://images.unsplash.com/photo-1564668836804-05a2de350bb6?w=1600&auto=format&fit=crop&q=70&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTZ8fGhpZ2h3YXl8ZW58MHx8MHx8fDA%3D');
+}
+
+/* Dark theme overlay tweak for readability */
+[data-theme="dark"] body::after {
+    background: linear-gradient(120deg, rgba(0,86,179,.6), rgba(0,0,0,.35));
+}
+
+/* Content surface styling */
+.content-surface {
+    border-radius: .75rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    background: transparent;
+}
+[data-theme="dark"] .content-surface {
+    background: transparent;
+}
+
+/* Why Choose Us Section */
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.icon-wrapper {
+    transition: all 0.3s ease;
+}
+
+.hover-lift:hover .icon-wrapper {
+    transform: scale(1.1);
+}
+
+/* Headings and lead text contrast tweaks */
+.content-surface h1, .content-surface h2, .content-surface h3, .content-surface h4, .content-surface h5, .content-surface h6 {
+    color: var(--brand-dark);
+}
+[data-theme="dark"] .content-surface h1, [data-theme="dark"] .content-surface h2,
+[data-theme="dark"] .content-surface h3, [data-theme="dark"] .content-surface h4,
+[data-theme="dark"] .content-surface h5, [data-theme="dark"] .content-surface h6 {
+    color: var(--brand-dark);
+}
+
+/* Improve contrast for the Why Choose section over background image */
+.why-choose .why-choose-text h2,
+.why-choose .why-choose-text h3,
+.why-choose .why-choose-text h4,
+.why-choose .why-choose-text .lead,
+.why-choose .why-choose-text p,
+.why-choose .why-choose-text li {
+    color: #ffffff !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.why-choose .why-choose-text .text-muted { color: rgba(255,255,255,0.85) !important; }
+
+[data-theme="dark"] .why-choose .why-choose-text h2,
+[data-theme="dark"] .why-choose .why-choose-text h3,
+[data-theme="dark"] .why-choose .why-choose-text h4,
+[data-theme="dark"] .why-choose .why-choose-text .lead,
+[data-theme="dark"] .why-choose .why-choose-text p {
+    color: #ffffff !important;
+}
+
+/* Generic section heading contrast helper (for headings over images) */
+.section-heading-contrast {
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.55);
+}
+
+.section-text-contrast {
+    color: rgba(255,255,255,0.92) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure badges/legends are legible on image backgrounds */
+.section-text-contrast .badge,
+.section-heading-contrast .badge {
+    box-shadow: 0 1px 2px rgba(0,0,0,.35);
+}
+
+/* Prominent CTA button for visibility over images */
+.btn-cta-contrast {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, var(--brand-blue), #003d80);
+    border-color: rgba(255,255,255,0.9) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,255,255,0.2) inset;
+}
+.btn-cta-contrast:hover,
+.btn-cta-contrast:focus {
+    filter: brightness(1.05);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 0 3px rgba(255,255,255,0.25) inset;
+}
+
+/* Outline buttons that remain visible over dark images */
+.btn-contrast-outline {
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.85) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+}
+.btn-contrast-outline:hover,
+.btn-contrast-outline:focus {
+    background-color: rgba(255,255,255,0.12) !important;
+    border-color: #ffffff !important;
+}
+
+/* Slight spacing for button groups on staff pages */
+.contrast-scope .btn { margin-right: .25rem; }
+.contrast-scope .btn:last-child { margin-right: 0; }
+
+/* Scoped contrast wrapper for admin/staff/parcels areas */
+.contrast-scope h1,
+.contrast-scope h2,
+.contrast-scope h3,
+.contrast-scope h4,
+.contrast-scope h5,
+.contrast-scope h6,
+.contrast-scope p,
+.contrast-scope .lead,
+.contrast-scope label,
+.contrast-scope .form-text {
+    color: rgba(255,255,255,0.95) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+}
+
+.contrast-scope .list-group-item {
+    background-color: rgba(15,23,42,0.55);
+    color: rgba(255,255,255,0.92);
+    border-color: rgba(255,255,255,0.15);
+}
+.contrast-scope .list-group-item.active {
+    background-color: rgba(0,86,179,0.85);
+    border-color: rgba(255,255,255,0.25);
+}
+
+.contrast-scope .card { 
+    box-shadow: 0 6px 18px rgba(0,0,0,.35);
+    background-color: rgba(15,23,42,0.6);
+    color: #ffffff;
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(2px);
+}
+.contrast-scope .card-header { background-color: rgba(0,86,179,0.9); color: #fff; }
+.contrast-scope .card-title, .contrast-scope .card-text { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.contrast-scope .btn.btn-primary { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+
+.table-contrast thead th { color: #fff; border-bottom-color: rgba(255,255,255,0.25); }
+.table-contrast tbody td, .table-contrast tbody th { color: #e9edf5; }
+.table-contrast tr { background-color: rgba(15,23,42,0.55); }
+.table-contrast tr + tr { border-top-color: rgba(255,255,255,0.1); }

@@ -63,7 +63,6 @@ class Trip(db.Model):
     
     # Relationships
     bookings = db.relationship('Booking', backref='trip', lazy=True)
-    parcels = db.relationship('Parcel', backref='trip', lazy=True)
     
     def __repr__(self):
         return f'<Trip {self.id}: {self.route} on {self.depart_at}>'
@@ -81,29 +80,4 @@ class Trip(db.Model):
         return [seat['seat'] for seat in self.vehicle.seat_layout 
                if seat['seat'] not in booked_seats]
 
-class Parcel(db.Model):
-    __tablename__ = "parcels"
-    id = db.Column(db.Integer, primary_key=True)
-    trip_id = db.Column(db.Integer, db.ForeignKey("trips.id"), nullable=False)
-    sender_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    recipient_name = db.Column(db.String(100), nullable=False)
-    recipient_phone = db.Column(db.String(20), nullable=False)
-    recipient_id_number = db.Column(db.String(20))
-    description = db.Column(db.Text)
-    weight_kg = db.Column(db.Float, nullable=False)
-    length_cm = db.Column(db.Float)
-    width_cm = db.Column(db.Float)
-    height_cm = db.Column(db.Float)
-    status = db.Column(db.String(20), default='pending')  # pending, in_transit, delivered, cancelled
-    tracking_number = db.Column(db.String(20), unique=True)
-    fare = db.Column(db.Numeric(10, 2))
-    payment_status = db.Column(db.String(20), default='pending')  # pending, paid, failed
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
-    # Relationships
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    # One-to-one relationship with Payment
-    payment = db.relationship('Payment', backref='parcel', uselist=False, foreign_keys='Payment.parcel_id')
-    
-    def __repr__(self):
-        return f'<Parcel {self.tracking_number}: {self.status}>'

@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container">
-  <h2>Available Trips</h2>
-  <p class="text-muted">Select a trip to view seat availability and vehicle details.</p>
+  <h2 class="section-heading-contrast">Available Trips</h2>
+  <p class="section-text-contrast">Select a trip to view seat availability and vehicle details.</p>
   <div class="list-group">
     {% for trip in trips %}
       <a class="list-group-item list-group-item-action" href="{{ url_for('catalog.trip_detail', trip_id=trip.id) }}">

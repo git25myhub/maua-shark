@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container">
-  <h2>Trip #{{ trip.id }} - {{ trip.vehicle.plate_no }}</h2>
-  <p><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>
+  <h2 class="section-heading-contrast">Trip #{{ trip.id }} - {{ trip.vehicle.plate_no }}</h2>
+  <p class="section-text-contrast"><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>
   <div class="mb-3">
     <span class="badge bg-success">Green = Checked-in/On board</span>
     <span class="badge bg-primary">Blue = Booked (not fetched)</span>
@@ -16,7 +16,7 @@
     {% endfor %}
   </div>
   <div class="mt-3">
-    <a class="btn btn-outline-primary" href="{{ url_for('booking.book', trip_id=trip.id) }}">Book a Seat</a>
+    <a class="btn btn-primary btn-lg btn-cta-contrast" href="{{ url_for('booking.book', trip_id=trip.id) }}">Book a Seat</a>
   </div>
 </div>
 {% endblock %}

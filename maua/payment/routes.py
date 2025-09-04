@@ -4,7 +4,7 @@ from datetime import datetime
 from maua.extensions import db
 from maua.payment.models import Payment
 from maua.booking.models import Booking
-from maua.catalog.models import Parcel
+from maua.parcels.models import Parcel
 import json
 
 payment_bp = Blueprint('payment', __name__, url_prefix='/payments')
