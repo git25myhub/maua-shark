@@ -388,20 +388,75 @@ body.role-staff::before {
 }
 
 .contrast-scope .card { 
-    box-shadow: 0 6px 18px rgba(0,0,0,.35);
-    background-color: rgba(15,23,42,0.6);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+    background-color: rgba(15,23,42,0.72);
     color: #ffffff;
-    border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255,255,255,0.16);
+    backdrop-filter: blur(6px);
 }
 .contrast-scope .card-header { background-color: rgba(0,86,179,0.9); color: #fff; }
 .contrast-scope .card-title, .contrast-scope .card-text { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .contrast-scope .btn.btn-primary { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
 
-.table-contrast thead th { color: #fff; border-bottom-color: rgba(255,255,255,0.25); }
-.table-contrast tbody td, .table-contrast tbody th { color: #e9edf5; }
-.table-contrast tr { background-color: rgba(15,23,42,0.55); }
-.table-contrast tr + tr { border-top-color: rgba(255,255,255,0.1); }
+/* Staff & Admin panel heading */
+.staff-admin-title {
+    background: linear-gradient(135deg, rgba(6,12,28,0.9), rgba(0,86,179,0.85));
+    color: #ffffff !important;
+    padding: .75rem 1rem;
+    border-radius: .5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,.35);
+    text-shadow: 0 1px 2px rgba(0,0,0,.6);
+}
+
+/* High-visibility Back button */
+.btn-back {
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #0d6efd, #003d80);
+    border: 2px solid rgba(255,255,255,0.85) !important;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35), 0 0 0 2px rgba(255,255,255,0.2) inset;
+}
+.btn-back:hover, .btn-back:focus {
+    filter: brightness(1.05);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.45), 0 0 0 3px rgba(255,255,255,0.25) inset;
+}
+
+.table-contrast thead {
+    background-color: rgba(6,12,28,0.85);
+}
+.table-contrast thead th {
+    color: #ffffff;
+    border-bottom-color: rgba(255,255,255,0.25);
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    font-size: .8rem;
+    font-weight: 600;
+}
+.table-contrast { 
+    --bs-table-bg: transparent; 
+    --bs-table-color: #e9edf5;
+    border-radius: .5rem;
+    overflow: hidden;
+}
+.contrast-scope .table-contrast { 
+    background-color: rgba(10,16,32,0.82);
+}
+.table-contrast tbody td, .table-contrast tbody th {
+    color: #eef2f9;
+    border-top-color: rgba(255,255,255,0.14);
+    text-shadow: 0 1px 2px rgba(0,0,0,.45);
+}
+.table-contrast tbody tr { background-color: rgba(18,26,48,0.58); }
+.table-contrast tbody tr:nth-child(even) { background-color: rgba(18,26,48,0.72); }
+.table-contrast tbody tr:hover { background-color: rgba(24,34,62,0.85); }
+.table-contrast .cell-muted { color: rgba(233,237,245,0.75); }
+.table-contrast .cell-strong { color: #ffffff; font-weight: 600; }
+
+/* Status badge mapping for parcels */
+.badge-status { padding: .35rem .5rem; font-weight: 600; letter-spacing: .02em; }
+.badge-created { background-color: #6c757d; }
+.badge-in_transit { background-color: #0d6efd; }
+.badge-delivered { background-color: #198754; }
+.badge-cancelled { background-color: #dc3545; }
 
 /* ===== Auth pages: high-contrast over background image ===== */
 .auth-page { min-height: calc(100vh - 200px); }

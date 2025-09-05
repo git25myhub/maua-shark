@@ -8,6 +8,7 @@ from maua.catalog.models import Trip, Vehicle, Route
 from maua.parcels.models import Parcel
 from datetime import datetime
 from maua.booking.models import Booking
+from maua.notifications.sms import send_sms
 
 
 def staff_required(f):
@@ -54,6 +55,27 @@ def bookings_update_status(booking_id: int):
     try:
         booking.status = new_status
         db.session.commit()
+        # SMS: If checked in or completed, notify passenger
+        try:
+            if new_status == 'checked_in':
+                msg = (
+                    f"Maua Shark: Thank you {booking.passenger_name} for boarding. "
+                    f"Trip {booking.trip.route.origin.town}->{booking.trip.route.destination.town}. "
+                    f"Seat {booking.seat_number}. We wish you a safe journey."
+                )
+                # Get user email from booking if available
+                user_email = booking.user.email if booking.user and hasattr(booking.user, 'email') else None
+                send_sms(booking.passenger_phone, msg, user_email=user_email)
+            elif new_status == 'completed':
+                msg = (
+                    f"Maua Shark: Trip completed. Thank you for traveling with us, {booking.passenger_name}. "
+                    f"We appreciate you and welcome you to ride with MAUA SHARK again."
+                )
+                # Get user email from booking if available
+                user_email = booking.user.email if booking.user and hasattr(booking.user, 'email') else None
+                send_sms(booking.passenger_phone, msg, user_email=user_email)
+        except Exception:
+            pass
         flash('Booking status updated.', 'success')
     except Exception:
         db.session.rollback()
@@ -85,6 +107,42 @@ def parcels_update_status(parcel_id: int):
     try:
         parcel.status = new_status
         db.session.commit()
+        # SMS: Notify sender/receiver on parcel status changes
+        try:
+            # Get user email from parcel creator if available
+            user_email = None
+            if parcel.created_by:
+                from maua.auth.models import User
+                user = User.query.get(parcel.created_by)
+                if user and hasattr(user, 'email'):
+                    user_email = user.email
+            
+            if new_status == 'pending':
+                msg = (
+                    f"Maua Shark: Parcel {parcel.ref_code} is pending dispatch from {parcel.origin_name}."
+                )
+                send_sms(parcel.sender_phone, msg, user_email=user_email)
+            elif new_status == 'in_transit':
+                msg_sender = (
+                    f"Maua Shark: Parcel {parcel.ref_code} now in transit to {parcel.destination_name}."
+                )
+                msg_receiver = (
+                    f"Maua Shark: You will receive parcel {parcel.ref_code} from {parcel.sender_name}. "
+                    f"It is now in transit to {parcel.destination_name}."
+                )
+                send_sms(parcel.sender_phone, msg_sender, user_email=user_email)
+                send_sms(parcel.receiver_phone, msg_receiver, user_email=user_email)
+            elif new_status == 'delivered':
+                msg_sender = (
+                    f"Maua Shark: Parcel {parcel.ref_code} delivered to {parcel.receiver_name}. Thank you!"
+                )
+                msg_receiver = (
+                    f"Maua Shark: Parcel {parcel.ref_code} received. Thank you for choosing Maua Shark."
+                )
+                send_sms(parcel.sender_phone, msg_sender, user_email=user_email)
+                send_sms(parcel.receiver_phone, msg_receiver, user_email=user_email)
+        except Exception:
+            pass
         flash('Parcel status updated.', 'success')
     except Exception:
         db.session.rollback()

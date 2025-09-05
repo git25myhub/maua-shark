@@ -5,6 +5,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 import os
 from .models import Parcel
+from maua.notifications.sms import send_sms
 
 parcels_bp = Blueprint('parcels', __name__)
 
@@ -17,6 +18,22 @@ def index():
     except Exception:
         parcels = []
     return render_template('parcels/index.html', parcels=parcels)
+
+
+@parcels_bp.route('/track')
+def track():
+    """Public parcel tracking by reference code.
+    Example: /parcels/track?ref=P123456789
+    """
+    ref = request.args.get('ref', type=str)
+    parcel = None
+    if ref:
+        try:
+            parcel = Parcel.query.filter_by(ref_code=ref.strip()).first()
+        except Exception:
+            parcel = None
+    not_found = bool(ref and not parcel)
+    return render_template('parcels/track.html', parcel=parcel, ref=ref or '', not_found=not_found)
 
 @parcels_bp.route('/create', methods=['GET', 'POST'])
 @login_required
@@ -57,6 +74,20 @@ def create():
         )
         db.session.add(parcel)
         db.session.commit()
+        # SMS: notify both sender and receiver on creation
+        try:
+            msg_sender = (
+                f"Maua Shark: Parcel {ref_code} created from {origin_name} to {destination_name}. "
+                f"Receiver: {receiver_name} ({receiver_phone}). Price KES {price}."
+            )
+            msg_receiver = (
+                f"Maua Shark: A parcel for you ({receiver_name}) has been created. Ref {ref_code}. "
+                f"From {sender_name} ({sender_phone}) to be sent to {destination_name}."
+            )
+            send_sms(sender_phone, msg_sender, user_email=current_user.email)
+            send_sms(receiver_phone, msg_receiver, user_email=current_user.email)
+        except Exception:
+            pass
         flash('Parcel created successfully!', 'success')
         return redirect(url_for('parcels.index'))
     return render_template('parcels/create.html')

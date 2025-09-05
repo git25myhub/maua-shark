@@ -1,10 +1,50 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Track Parcel {{ parcel.ref_code }}</h2>
-<p>Status: {{ parcel.status }}</p>
-<ul>
-{% for event in parcel.events %}
-<li>{{ event.created_at }} – {{ event.event_type }} ({{ event.notes }})</li>
-{% endfor %}
-</ul>
+<div class="container py-4 contrast-scope">
+  <h2 class="mb-3 section-heading-contrast"><i class="fas fa-search me-2"></i>Track Parcel</h2>
+
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-6">
+      <label for="ref" class="form-label section-text-contrast">Reference Code</label>
+      <input type="text" class="form-control" id="ref" name="ref" value="{{ ref }}" placeholder="e.g. P1757066066" />
+    </div>
+    <div class="col-md-6 d-flex align-items-end">
+      <button class="btn btn-contrast-outline" type="submit"><i class="fas fa-search me-2"></i>Track</button>
+    </div>
+  </form>
+
+  {% if not_found %}
+    <div class="alert alert-warning">No parcel found with reference code <strong>{{ ref }}</strong>.</div>
+  {% endif %}
+
+  {% if parcel %}
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="text-muted">Reference</div>
+          <div class="fs-5">{{ parcel.ref_code }}</div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-muted">Status</div>
+          <div><span class="badge bg-secondary">{{ parcel.status }}</span></div>
+        </div>
+        <div class="col-md-4">
+          <div class="text-muted">Created</div>
+          <div>{{ parcel.created_at.strftime('%Y-%m-%d %H:%M') if parcel.created_at }}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted">From</div>
+          <div>{{ parcel.origin_name }}</div>
+        </div>
+        <div class="col-md-6">
+          <div class="text-muted">To</div>
+          <div>{{ parcel.destination_name }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
 {% endblock %}

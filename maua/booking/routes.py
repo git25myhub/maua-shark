@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, Response, stream_with_context, send_file
 from flask_login import login_required, current_user
 from maua.extensions import db
+from maua.notifications.sms import send_sms
 from .models import Booking, Ticket
 from .services import broker
 from .forms import PassengerDetailsForm
@@ -136,6 +137,17 @@ def passenger_details(trip_id):
             ticket = Ticket(booking_id=booking.id, status='confirmed')
             db.session.add(ticket)
             db.session.commit()
+            # SMS: Booking confirmation to passenger
+            try:
+                msg = (
+                    f"Maua Shark: Booking confirmed. Ref {booking.reference}. "
+                    f"Trip {booking.trip.route.origin.town} -> {booking.trip.route.destination.town} on "
+                    f"{booking.trip.depart_at.strftime('%Y-%m-%d %H:%M')}. Seat {booking.seat_number}. "
+                    f"Fare KES {booking.fare:.2f}. Thank you!"
+                )
+                send_sms(booking.passenger_phone, msg, user_email=current_user.email)
+            except Exception:
+                pass
             flash('Booking confirmed!', 'success')
             return redirect(url_for('booking.booking_confirmation', booking_id=booking.id))
         except Exception as e:

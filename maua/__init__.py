@@ -1,6 +1,7 @@
 from flask import Flask
 import os
 from .extensions import db, bcrypt, login_manager, migrate
+from flask_mail import Mail
 
 
 def create_app(config_class='config.DevelopmentConfig'):
@@ -12,6 +13,13 @@ def create_app(config_class='config.DevelopmentConfig'):
     bcrypt.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db, directory=os.path.join(os.path.dirname(__file__), '..', 'migrations'))
+    
+    # Initialize Flask-Mail
+    mail = Mail()
+    mail.init_app(app)
+    
+    # Make mail available globally
+    app.mail = mail
     
     # Create database directory if it doesn't exist
     db_dir = os.path.join(app.instance_path, 'database')

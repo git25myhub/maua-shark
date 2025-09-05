@@ -27,6 +27,7 @@ Pillow>=10.0.0  # Updated for Python 3.13 compatibility
 requests==2.31.0
 pytz==2023.3
 reportlab==4.2.2
+twilio==9.0.0
 
 # Production
 gunicorn==21.2.0
