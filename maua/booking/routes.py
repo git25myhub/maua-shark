@@ -116,11 +116,12 @@ def passenger_details(trip_id):
             flash('This seat has just been taken. Please select another.', 'danger')
             return redirect(url_for('booking.book', trip_id=trip_id))
 
+        # Create booking with pending status (requires payment)
         booking = Booking(
             trip_id=trip_id,
             user_id=current_user.id,
             seat_number=seat_number,
-            status='confirmed',
+            status='pending_payment',  # Changed from 'confirmed' to 'pending_payment'
             fare=trip.base_fare,
             reference=f"BK-{uuid.uuid4().hex[:8].upper()}",
             hold_expires_at=None,
@@ -132,24 +133,22 @@ def passenger_details(trip_id):
         try:
             db.session.add(booking)
             db.session.commit()
-            broker.publish(trip_id, {"type": "seat_confirmed", "seat": booking.seat_number, "status": "confirmed"})
-            # Create ticket
-            ticket = Ticket(booking_id=booking.id, status='confirmed')
-            db.session.add(ticket)
+            
+            # Create payment record
+            from maua.payment.models import Payment
+            payment = Payment(
+                amount=trip.base_fare,
+                payment_method='pending',
+                status='pending',
+                user_id=current_user.id,
+                booking_id=booking.id
+            )
+            db.session.add(payment)
             db.session.commit()
-            # SMS: Booking confirmation to passenger
-            try:
-                msg = (
-                    f"Maua Shark: Booking confirmed. Ref {booking.reference}. "
-                    f"Trip {booking.trip.route.origin.town} -> {booking.trip.route.destination.town} on "
-                    f"{booking.trip.depart_at.strftime('%Y-%m-%d %H:%M')}. Seat {booking.seat_number}. "
-                    f"Fare KES {booking.fare:.2f}. Thank you!"
-                )
-                send_sms(booking.passenger_phone, msg, user_email=current_user.email)
-            except Exception:
-                pass
-            flash('Booking confirmed!', 'success')
-            return redirect(url_for('booking.booking_confirmation', booking_id=booking.id))
+            
+            # Redirect to payment page
+            return redirect(url_for('booking.payment', booking_id=booking.id))
+            
         except Exception as e:
             db.session.rollback()
             current_app.logger.error(f"Error creating booking: {str(e)}")
@@ -159,6 +158,97 @@ def passenger_details(trip_id):
                          form=form,
                          trip=trip,
                          seat_number=seat_number)
+
+@booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
+@login_required
+def payment(booking_id):
+    """Handle payment for booking"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Ensure user owns this booking
+    if booking.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('booking.index'))
+    
+    # Check if booking is in pending payment status
+    if booking.status != 'pending_payment':
+        flash('This booking is not pending payment.', 'warning')
+        return redirect(url_for('booking.booking_confirmation', booking_id=booking_id))
+    
+    # Get the payment record
+    payment = booking.payment
+    if not payment:
+        flash('Payment record not found.', 'danger')
+        return redirect(url_for('booking.index'))
+    
+    if request.method == 'POST':
+        # Handle payment form submission
+        phone = request.form.get('phone')
+        if not phone:
+            flash('Phone number is required.', 'danger')
+            return redirect(url_for('booking.payment', booking_id=booking_id))
+        
+        # Process M-Pesa STK push directly
+        try:
+            from maua.payment.mpesa_service import MpesaService
+            
+            # Initialize M-Pesa service
+            mpesa_service = MpesaService()
+            
+            # Generate account reference
+            account_reference = f"BOOKING-{payment.id}"
+            transaction_desc = f"Booking payment for {booking.reference}"
+            
+            # Initiate STK push
+            stk_response = mpesa_service.initiate_stk_push(
+                phone_number=phone,
+                amount=float(payment.amount),
+                account_reference=account_reference,
+                transaction_desc=transaction_desc
+            )
+            
+            if stk_response['success']:
+                # Update payment with checkout request ID
+                payment.payment_method = 'mpesa_stk'
+                payment.transaction_id = stk_response.get('checkout_request_id')
+                payment.status = 'pending'
+                db.session.commit()
+                
+                flash('Payment request sent to your phone. Please check your M-Pesa app.', 'info')
+                return redirect(url_for('booking.payment_status', booking_id=booking_id))
+            else:
+                flash(f'Payment failed: {stk_response.get("message", "Unknown error")}', 'danger')
+                
+        except Exception as e:
+            current_app.logger.error(f"Payment request error: {str(e)}")
+            flash('Payment request failed. Please try again.', 'danger')
+    
+    return render_template('booking/payment.html', 
+                         booking=booking, 
+                         payment=payment,
+                         trip=booking.trip)
+
+@booking_bp.route('/payment/status/<int:booking_id>')
+@login_required
+def payment_status(booking_id):
+    """Check payment status"""
+    booking = Booking.query.get_or_404(booking_id)
+    
+    # Ensure user owns this booking
+    if booking.user_id != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('booking.index'))
+    
+    # Get the payment record
+    payment = booking.payment
+    if not payment:
+        flash('Payment record not found.', 'danger')
+        return redirect(url_for('booking.index'))
+    
+    return render_template('booking/payment_status.html', 
+                         booking=booking, 
+                         payment=payment,
+                         trip=booking.trip)
 
 @booking_bp.route('/confirmation/<int:booking_id>')
 @login_required

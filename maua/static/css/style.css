@@ -363,6 +363,14 @@ body.role-staff::before {
 .contrast-scope .btn:last-child { margin-right: 0; }
 
 /* Scoped contrast wrapper for admin/staff/parcels areas */
+.contrast-scope {
+    background-color: rgba(6,12,28,0.58);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: .75rem;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,.45);
+    backdrop-filter: blur(4px);
+}
 .contrast-scope h1,
 .contrast-scope h2,
 .contrast-scope h3,
@@ -397,6 +405,36 @@ body.role-staff::before {
 .contrast-scope .card-header { background-color: rgba(0,86,179,0.9); color: #fff; }
 .contrast-scope .card-title, .contrast-scope .card-text { color: #ffffff !important; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .contrast-scope .btn.btn-primary { box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+
+/* Inputs and selects readable over image backgrounds */
+.contrast-scope .form-control,
+.contrast-scope .form-select {
+    background-color: rgba(6,12,28,0.85);
+    border-color: rgba(255,255,255,0.35);
+    color: #ffffff;
+}
+.contrast-scope .form-control::placeholder { color: rgba(255,255,255,0.8); }
+.contrast-scope .form-control:focus,
+.contrast-scope .form-select:focus {
+    background-color: rgba(6,12,28,0.9);
+    border-color: #9ec5fe;
+    box-shadow: 0 0 0 .2rem rgba(158,197,254,.25);
+    color: #ffffff;
+}
+
+/* Force dropdown list colors for native selects on dark surfaces */
+.contrast-scope select option,
+.contrast-scope select optgroup {
+    background-color: #0f172a;
+    color: #ffffff;
+}
+
+/* Make helper labels (text-muted) legible on dark contrast surfaces */
+.contrast-scope .text-muted {
+    color: rgba(255,255,255,0.9) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.5);
+    letter-spacing: .02em;
+}
 
 /* Staff & Admin panel heading */
 .staff-admin-title {
@@ -445,6 +483,10 @@ body.role-staff::before {
     border-top-color: rgba(255,255,255,0.14);
     text-shadow: 0 1px 2px rgba(0,0,0,.45);
 }
+.table-contrast td, .table-contrast th { vertical-align: middle; }
+.table-contrast .small { font-size: .9rem; }
+.table-contrast .text-nowrap { white-space: nowrap; }
+.table-contrast .form-select-sm, .table-contrast .form-control-sm { min-width: 120px; }
 .table-contrast tbody tr { background-color: rgba(18,26,48,0.58); }
 .table-contrast tbody tr:nth-child(even) { background-color: rgba(18,26,48,0.72); }
 .table-contrast tbody tr:hover { background-color: rgba(24,34,62,0.85); }

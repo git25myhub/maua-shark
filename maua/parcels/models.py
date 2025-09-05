@@ -14,10 +14,17 @@ class Parcel(db.Model):
     destination_name = db.Column(db.String(120), nullable=False)
     weight_kg = db.Column(db.Float)
     price = db.Column(db.Numeric(10,2), nullable=False)
-    status = db.Column(db.String(20), default="created")
+    status = db.Column(db.String(20), default="pending_payment")  # Changed from "created" to "pending_payment"
+    payment_status = db.Column(db.String(20), default="pending")  # pending, paid, failed
+    # Operational assignment (set by staff)
+    vehicle_plate = db.Column(db.String(20))  # e.g., KDA 123A
+    driver_phone = db.Column(db.String(30))   # e.g., +2547...
     created_by = db.Column(db.Integer, db.ForeignKey("user.id"))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     photo_filename = db.Column(db.String(255))
+    
+    # Relationship with Payment
+    payment = db.relationship('Payment', backref=db.backref('parcel', uselist=False), uselist=False)
 
 
 class ParcelEvent(db.Model):

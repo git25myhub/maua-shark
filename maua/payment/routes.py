@@ -5,6 +5,7 @@ from maua.extensions import db
 from maua.payment.models import Payment
 from maua.booking.models import Booking
 from maua.parcels.models import Parcel
+from maua.payment.mpesa_service import MpesaService
 import json
 
 payment_bp = Blueprint('payment', __name__, url_prefix='/payments')
@@ -63,7 +64,7 @@ def initiate_payment():
 @payment_bp.route('/process/mpesa', methods=['POST'])
 @login_required
 def process_mpesa():
-    """Process M-Pesa payment"""
+    """Process M-Pesa STK push payment"""
     data = request.get_json()
     payment_id = data.get('payment_id')
     phone = data.get('phone')
@@ -71,47 +72,43 @@ def process_mpesa():
     try:
         payment = Payment.query.get_or_404(payment_id)
         
-        # TODO: Implement actual M-Pesa API integration
-        # This is a placeholder for the M-Pesa payment processing logic
-        mpesa_response = {
-            'status': 'success',
-            'transaction_id': f'MPESA{datetime.utcnow().strftime("%Y%m%d%H%M%S")}',
-            'amount': str(payment.amount),
-            'phone': phone
-        }
+        # Initialize M-Pesa service
+        mpesa_service = MpesaService()
         
-        # Update payment status
-        payment.status = 'completed'
-        payment.payment_method = 'mpesa'
-        payment.transaction_id = mpesa_response['transaction_id']
-        payment.payment_date = datetime.utcnow()
+        # Generate account reference
+        account_reference = f"BOOKING-{payment.id}"
+        transaction_desc = f"Booking payment for {payment.booking.reference if payment.booking else 'Parcel'}"
         
-        # Update related booking or parcel status
-        if payment.booking_id:
-            booking = Booking.query.get(payment.booking_id)
-            if booking:
-                booking.status = 'confirmed'
-        elif payment.parcel_id:
-            parcel = Parcel.query.get(payment.parcel_id)
-            if parcel:
-                parcel.payment_status = 'paid'
+        # Initiate STK push
+        stk_response = mpesa_service.initiate_stk_push(
+            phone_number=phone,
+            amount=float(payment.amount),
+            account_reference=account_reference,
+            transaction_desc=transaction_desc
+        )
         
-        db.session.commit()
-        
-        return jsonify({
-            'status': 'success',
-            'message': 'Payment processed successfully',
-            'payment': {
-                'id': payment.id,
-                'amount': str(payment.amount),
-                'transaction_id': payment.transaction_id,
-                'status': payment.status
-            }
-        })
+        if stk_response['success']:
+            # Update payment with checkout request ID
+            payment.payment_method = 'mpesa_stk'
+            payment.transaction_id = stk_response.get('checkout_request_id')
+            payment.status = 'pending'
+            db.session.commit()
+            
+            return jsonify({
+                'status': 'success',
+                'message': stk_response.get('customer_message', 'STK push sent successfully'),
+                'checkout_request_id': stk_response.get('checkout_request_id'),
+                'payment_id': payment.id
+            })
+        else:
+            return jsonify({
+                'status': 'error',
+                'message': stk_response.get('message', 'STK push failed')
+            }), 400
         
     except Exception as e:
         db.session.rollback()
-        current_app.logger.error(f'M-Pesa payment failed: {str(e)}')
+        current_app.logger.error(f'M-Pesa STK push failed: {str(e)}')
         return jsonify({
             'status': 'error',
             'message': 'Payment processing failed'
@@ -124,14 +121,162 @@ def mpesa_callback():
         data = request.get_json()
         current_app.logger.info(f'M-Pesa callback received: {json.dumps(data)}')
         
-        # TODO: Implement M-Pesa callback processing
-        # This should validate the callback and update the payment status
+        # Initialize M-Pesa service
+        mpesa_service = MpesaService()
+        
+        # Process callback
+        callback_result = mpesa_service.process_callback(data)
+        
+        if callback_result['success']:
+            # Find payment by checkout request ID
+            checkout_request_id = callback_result['checkout_request_id']
+            payment = Payment.query.filter_by(transaction_id=checkout_request_id).first()
+            
+            if payment:
+                # Update payment status
+                payment_data = callback_result.get('payment_data', {})
+                payment.status = 'completed'
+                payment.payment_method = 'mpesa'
+                payment.transaction_id = payment_data.get('receipt_number', checkout_request_id)
+                payment.payment_date = datetime.utcnow()
+                
+                # Update related booking or parcel status
+                if payment.booking_id:
+                    booking = Booking.query.get(payment.booking_id)
+                    if booking:
+                        booking.status = 'confirmed'
+                        # Create ticket
+                        from maua.booking.models import Ticket
+                        ticket = Ticket(booking_id=booking.id, status='confirmed')
+                        db.session.add(ticket)
+                elif payment.parcel_id:
+                    parcel = Parcel.query.get(payment.parcel_id)
+                    if parcel:
+                        parcel.status = 'created'  # Change from pending_payment to created
+                        parcel.payment_status = 'paid'
+                        
+                        # Send SMS notifications
+                        try:
+                            from maua.notifications.sms import send_sms
+                            msg_sender = (
+                                f"Maua Shark: Parcel {parcel.ref_code} payment confirmed from {parcel.origin_name} to {parcel.destination_name}. "
+                                f"Receiver: {parcel.receiver_name} ({parcel.receiver_phone}). Price KES {parcel.price}."
+                            )
+                            msg_receiver = (
+                                f"Maua Shark: A parcel for you ({parcel.receiver_name}) payment confirmed. Ref {parcel.ref_code}. "
+                                f"From {parcel.sender_name} ({parcel.sender_phone}) to be sent to {parcel.destination_name}."
+                            )
+                            send_sms(parcel.sender_phone, msg_sender, user_email=payment.user.email)
+                            send_sms(parcel.receiver_phone, msg_receiver, user_email=payment.user.email)
+                        except Exception:
+                            pass
+                
+                db.session.commit()
+                current_app.logger.info(f'Payment {payment.id} completed successfully')
+            else:
+                current_app.logger.warning(f'Payment not found for checkout request ID: {checkout_request_id}')
+        else:
+            # Payment failed
+            checkout_request_id = callback_result.get('checkout_request_id')
+            if checkout_request_id:
+                payment = Payment.query.filter_by(transaction_id=checkout_request_id).first()
+                if payment:
+                    payment.status = 'failed'
+                    db.session.commit()
+                    current_app.logger.info(f'Payment {payment.id} failed: {callback_result.get("result_desc")}')
         
         return jsonify({'ResultCode': 0, 'ResultDesc': 'Success'})
         
     except Exception as e:
         current_app.logger.error(f'Error processing M-Pesa callback: {str(e)}')
         return jsonify({'ResultCode': 1, 'ResultDesc': 'Error'}), 500
+
+@payment_bp.route('/status/<int:payment_id>', methods=['GET'])
+@login_required
+def check_payment_status(payment_id):
+    """Check payment status"""
+    try:
+        payment = Payment.query.get_or_404(payment_id)
+        
+        # Ensure the user has permission to view this payment
+        if payment.user_id != current_user.id and not current_user.is_admin:
+            return jsonify({
+                'status': 'error',
+                'message': 'Unauthorized'
+            }), 403
+        
+        # If payment is still pending and using STK push, check status
+        if payment.status == 'pending' and payment.payment_method == 'mpesa_stk':
+            mpesa_service = MpesaService()
+            status_response = mpesa_service.query_stk_push_status(payment.transaction_id)
+            
+            if status_response['success']:
+                result_code = status_response.get('result_code')
+                if result_code == 0:
+                    # Payment completed
+                    payment.status = 'completed'
+                    payment.payment_method = 'mpesa'
+                    payment.payment_date = datetime.utcnow()
+                    
+                    # Update related booking or parcel status
+                    if payment.booking_id:
+                        booking = Booking.query.get(payment.booking_id)
+                        if booking:
+                            booking.status = 'confirmed'
+                            # Create ticket
+                            from maua.booking.models import Ticket
+                            ticket = Ticket(booking_id=booking.id, status='confirmed')
+                            db.session.add(ticket)
+                    elif payment.parcel_id:
+                        parcel = Parcel.query.get(payment.parcel_id)
+                        if parcel:
+                            parcel.status = 'created'  # Change from pending_payment to created
+                            parcel.payment_status = 'paid'
+                            
+                            # Send SMS notifications
+                            try:
+                                from maua.notifications.sms import send_sms
+                                msg_sender = (
+                                    f"Maua Shark: Parcel {parcel.ref_code} payment confirmed from {parcel.origin_name} to {parcel.destination_name}. "
+                                    f"Receiver: {parcel.receiver_name} ({parcel.receiver_phone}). Price KES {parcel.price}."
+                                )
+                                msg_receiver = (
+                                    f"Maua Shark: A parcel for you ({parcel.receiver_name}) payment confirmed. Ref {parcel.ref_code}. "
+                                    f"From {parcel.sender_name} ({parcel.sender_phone}) to be sent to {parcel.destination_name}."
+                                )
+                                send_sms(parcel.sender_phone, msg_sender, user_email=payment.user.email)
+                                send_sms(parcel.receiver_phone, msg_receiver, user_email=payment.user.email)
+                            except Exception:
+                                pass
+                    
+                    db.session.commit()
+                elif result_code == 1032:
+                    # User cancelled
+                    payment.status = 'failed'
+                    db.session.commit()
+                elif result_code == 2001:
+                    # Wrong PIN
+                    payment.status = 'failed'
+                    db.session.commit()
+        
+        return jsonify({
+            'status': 'success',
+            'payment': {
+                'id': payment.id,
+                'amount': str(payment.amount),
+                'status': payment.status,
+                'payment_method': payment.payment_method,
+                'transaction_id': payment.transaction_id,
+                'created_at': payment.payment_date.isoformat() if payment.payment_date else None
+            }
+        })
+        
+    except Exception as e:
+        current_app.logger.error(f'Error checking payment status: {str(e)}')
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to check payment status'
+        }), 500
 
 @payment_bp.route('/<int:payment_id>', methods=['GET'])
 @login_required

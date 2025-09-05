@@ -1,50 +1,68 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container py-4 contrast-scope">
-  <h2 class="mb-3 section-heading-contrast"><i class="fas fa-search me-2"></i>Track Parcel</h2>
+<div class="container contrast-scope py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-search me-2"></i>Track Parcel</h5>
+          <div class="d-flex gap-2">
+            <a href="{{ url_for('parcels.index') }}" class="btn btn-light btn-sm"><i class="fas fa-list me-1"></i> View My Parcels</a>
+            <a href="{{ url_for('parcels.create') }}" class="btn btn-outline-light btn-sm"><i class="fas fa-box me-1"></i> Create Parcel</a>
+          </div>
+        </div>
+        <div class="card-body">
+          <form method="get" class="row g-3 mb-2">
+            <div class="col-md-8">
+              <label for="ref" class="form-label">Reference Code</label>
+              <input type="text" class="form-control" id="ref" name="ref" value="{{ ref }}" placeholder="e.g. P1757066066" />
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-primary w-100" type="submit"><i class="fas fa-search me-2"></i>Track</button>
+            </div>
+          </form>
 
-  <form method="get" class="row g-3 mb-4">
-    <div class="col-md-6">
-      <label for="ref" class="form-label section-text-contrast">Reference Code</label>
-      <input type="text" class="form-control" id="ref" name="ref" value="{{ ref }}" placeholder="e.g. P1757066066" />
-    </div>
-    <div class="col-md-6 d-flex align-items-end">
-      <button class="btn btn-contrast-outline" type="submit"><i class="fas fa-search me-2"></i>Track</button>
-    </div>
-  </form>
+          {% if not_found %}
+            <div class="alert alert-warning mb-0">No parcel found with reference code <strong>{{ ref }}</strong>.</div>
+          {% endif %}
 
-  {% if not_found %}
-    <div class="alert alert-warning">No parcel found with reference code <strong>{{ ref }}</strong>.</div>
-  {% endif %}
-
-  {% if parcel %}
-  <div class="card shadow-sm mb-4">
-    <div class="card-body">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <div class="text-muted">Reference</div>
-          <div class="fs-5">{{ parcel.ref_code }}</div>
-        </div>
-        <div class="col-md-4">
-          <div class="text-muted">Status</div>
-          <div><span class="badge bg-secondary">{{ parcel.status }}</span></div>
-        </div>
-        <div class="col-md-4">
-          <div class="text-muted">Created</div>
-          <div>{{ parcel.created_at.strftime('%Y-%m-%d %H:%M') if parcel.created_at }}</div>
-        </div>
-        <div class="col-md-6">
-          <div class="text-muted">From</div>
-          <div>{{ parcel.origin_name }}</div>
-        </div>
-        <div class="col-md-6">
-          <div class="text-muted">To</div>
-          <div>{{ parcel.destination_name }}</div>
+          {% if parcel %}
+          <div class="row g-3 mt-1">
+            <div class="col-md-4">
+              <div class="text-muted">Reference</div>
+              <div class="fs-5">{{ parcel.ref_code }}</div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted">Status</div>
+              <div>
+                <span class="badge badge-status badge-{{ parcel.status|replace(' ','_') }} text-uppercase">{{ parcel.status }}</span>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="text-muted">Created</div>
+              <div>{{ parcel.created_at.strftime('%Y-%m-%d %H:%M') if parcel.created_at }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted">From</div>
+              <div>{{ parcel.origin_name }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted">To</div>
+              <div>{{ parcel.destination_name }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted">Vehicle</div>
+              <div>{{ parcel.vehicle_plate or 'TBD' }}</div>
+            </div>
+            <div class="col-md-6">
+              <div class="text-muted">Driver Phone</div>
+              <div>{{ parcel.driver_phone or 'TBD' }}</div>
+            </div>
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
   </div>
-
-  {% endif %}
 </div>
 {% endblock %}

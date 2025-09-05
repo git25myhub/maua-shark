@@ -29,6 +29,16 @@ class Config:
     MAIL_USERNAME = 'kariukistephen964@gmail.com'
     MAIL_PASSWORD = 'lszd yuds pgry pesv'  # App password
     MAIL_DEFAULT_SENDER = 'kariukistephen964@gmail.com'
+    
+    # M-Pesa settings
+    BASE_URL = os.environ.get('BASE_URL') or 'http://localhost:5000'
+    
+    # M-Pesa API Credentials
+    MPESA_CONSUMER_KEY = os.environ.get('MPESA_CONSUMER_KEY')
+    MPESA_CONSUMER_SECRET = os.environ.get('MPESA_CONSUMER_SECRET')
+    MPESA_BUSINESS_SHORT_CODE = os.environ.get('MPESA_BUSINESS_SHORT_CODE')
+    MPESA_PASSKEY = os.environ.get('MPESA_PASSKEY')
+    MPESA_ENVIRONMENT = os.environ.get('MPESA_ENVIRONMENT', 'sandbox')
 
 
 class DevelopmentConfig(Config):

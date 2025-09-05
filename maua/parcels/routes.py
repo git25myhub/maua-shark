@@ -14,7 +14,29 @@ parcels_bp = Blueprint('parcels', __name__)
 def index():
     parcels = []
     try:
-        parcels = Parcel.query.order_by(Parcel.created_at.desc()).limit(200).all()
+        # Show all user's parcels once paid, regardless of current status
+        # (created, in_transit, delivered, cancelled). Excludes only unpaid drafts.
+        parcels = (
+            Parcel.query
+            .filter(
+                Parcel.created_by == current_user.id,
+                Parcel.payment_status == 'paid'
+            )
+            .order_by(Parcel.created_at.desc())
+            .limit(200)
+            .all()
+        )
+        # If none are paid yet, fall back to showing pending_payment created by the user
+        if not parcels:
+            parcels = (
+                Parcel.query
+                .filter(
+                    Parcel.created_by == current_user.id
+                )
+                .order_by(Parcel.created_at.desc())
+                .limit(200)
+                .all()
+            )
     except Exception:
         parcels = []
     return render_template('parcels/index.html', parcels=parcels)
@@ -71,23 +93,113 @@ def create():
             price=price,
             created_by=current_user.id,
             photo_filename=photo_filename,
+            status="pending_payment",  # Changed to pending_payment
+            payment_status="pending"
         )
         db.session.add(parcel)
         db.session.commit()
-        # SMS: notify both sender and receiver on creation
-        try:
-            msg_sender = (
-                f"Maua Shark: Parcel {ref_code} created from {origin_name} to {destination_name}. "
-                f"Receiver: {receiver_name} ({receiver_phone}). Price KES {price}."
-            )
-            msg_receiver = (
-                f"Maua Shark: A parcel for you ({receiver_name}) has been created. Ref {ref_code}. "
-                f"From {sender_name} ({sender_phone}) to be sent to {destination_name}."
-            )
-            send_sms(sender_phone, msg_sender, user_email=current_user.email)
-            send_sms(receiver_phone, msg_receiver, user_email=current_user.email)
-        except Exception:
-            pass
-        flash('Parcel created successfully!', 'success')
-        return redirect(url_for('parcels.index'))
+        
+        # Create payment record
+        from maua.payment.models import Payment
+        payment = Payment(
+            amount=float(price),
+            payment_method='pending',
+            status='pending',
+            user_id=current_user.id,
+            parcel_id=parcel.id
+        )
+        db.session.add(payment)
+        db.session.commit()
+        
+        # Redirect to payment page
+        return redirect(url_for('parcels.payment', parcel_id=parcel.id))
     return render_template('parcels/create.html')
+
+@parcels_bp.route('/payment/<int:parcel_id>', methods=['GET', 'POST'])
+@login_required
+def payment(parcel_id):
+    """Handle payment for parcel"""
+    parcel = Parcel.query.get_or_404(parcel_id)
+    
+    # Ensure user owns this parcel
+    if parcel.created_by != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('parcels.index'))
+    
+    # Check if parcel is in pending payment status
+    if parcel.status != 'pending_payment':
+        flash('This parcel is not pending payment.', 'warning')
+        return redirect(url_for('parcels.index'))
+    
+    # Get the payment record
+    payment = parcel.payment
+    if not payment:
+        flash('Payment record not found.', 'danger')
+        return redirect(url_for('parcels.index'))
+    
+    if request.method == 'POST':
+        # Handle payment form submission
+        phone = request.form.get('phone')
+        if not phone:
+            flash('Phone number is required.', 'danger')
+            return redirect(url_for('parcels.payment', parcel_id=parcel_id))
+        
+        # Process M-Pesa STK push directly
+        try:
+            from maua.payment.mpesa_service import MpesaService
+            
+            # Initialize M-Pesa service
+            mpesa_service = MpesaService()
+            
+            # Generate account reference
+            account_reference = f"PARCEL-{payment.id}"
+            transaction_desc = f"Parcel payment for {parcel.ref_code}"
+            
+            # Initiate STK push
+            stk_response = mpesa_service.initiate_stk_push(
+                phone_number=phone,
+                amount=float(payment.amount),
+                account_reference=account_reference,
+                transaction_desc=transaction_desc
+            )
+            
+            if stk_response['success']:
+                # Update payment with checkout request ID
+                payment.payment_method = 'mpesa_stk'
+                payment.transaction_id = stk_response.get('checkout_request_id')
+                payment.status = 'pending'
+                db.session.commit()
+                
+                flash('Payment request sent to your phone. Please check your M-Pesa app.', 'info')
+                return redirect(url_for('parcels.payment_status', parcel_id=parcel_id))
+            else:
+                flash(f'Payment failed: {stk_response.get("message", "Unknown error")}', 'danger')
+                
+        except Exception as e:
+            current_app.logger.error(f"Payment request error: {str(e)}")
+            flash('Payment request failed. Please try again.', 'danger')
+    
+    return render_template('parcels/payment.html', 
+                         parcel=parcel, 
+                         payment=payment)
+
+@parcels_bp.route('/payment/status/<int:parcel_id>')
+@login_required
+def payment_status(parcel_id):
+    """Check payment status"""
+    parcel = Parcel.query.get_or_404(parcel_id)
+    
+    # Ensure user owns this parcel
+    if parcel.created_by != current_user.id:
+        flash('Unauthorized access.', 'danger')
+        return redirect(url_for('parcels.index'))
+    
+    # Get the payment record
+    payment = parcel.payment
+    if not payment:
+        flash('Payment record not found.', 'danger')
+        return redirect(url_for('parcels.index'))
+    
+    return render_template('parcels/payment_status.html', 
+                         parcel=parcel, 
+                         payment=payment)

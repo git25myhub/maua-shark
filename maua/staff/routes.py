@@ -155,17 +155,51 @@ def parcels_update_status(parcel_id: int):
 @staff_required
 def parcels_assign_tracking(parcel_id: int):
     parcel = Parcel.query.get_or_404(parcel_id)
+    # Backward-compat: accept tracking_number but prefer vehicle assignments
     tracking_number = request.form.get('tracking_number')
-    if not tracking_number:
-        flash('Tracking number is required.', 'danger')
+    vehicle_plate = request.form.get('vehicle_plate')
+    driver_phone = request.form.get('driver_phone')
+    if not any([tracking_number, vehicle_plate, driver_phone]):
+        flash('Provide vehicle plate/driver phone (or tracking number).', 'danger')
         return redirect(url_for('staff.parcels_list'))
     try:
-        parcel.tracking_number = tracking_number
+        if tracking_number:
+            parcel.tracking_number = tracking_number
+        if vehicle_plate:
+            parcel.vehicle_plate = vehicle_plate
+        if driver_phone:
+            parcel.driver_phone = driver_phone
         db.session.commit()
-        flash('Tracking number assigned.', 'success')
+        # Notify customer of vehicle assignment
+        try:
+            details = []
+            if parcel.vehicle_plate:
+                details.append(f"Vehicle {parcel.vehicle_plate}")
+            if parcel.driver_phone:
+                details.append(f"Driver {parcel.driver_phone}")
+            if details:
+                info = ", ".join(details)
+                msg_sender = (
+                    f"Maua Shark: Parcel {parcel.ref_code} assigned to {info}. Track with your reference code."
+                )
+                user_email = None
+                if parcel.created_by:
+                    from maua.auth.models import User
+                    u = User.query.get(parcel.created_by)
+                    if u and hasattr(u, 'email'):
+                        user_email = u.email
+                send_sms(parcel.sender_phone, msg_sender, user_email=user_email)
+                # Inform receiver as well
+                try:
+                    send_sms(parcel.receiver_phone, msg_sender, user_email=user_email)
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        flash('Assignment saved.', 'success')
     except Exception:
         db.session.rollback()
-        flash('Failed to assign tracking number.', 'danger')
+        flash('Failed to save assignment.', 'danger')
     return redirect(url_for('staff.parcels_list'))
 
 
