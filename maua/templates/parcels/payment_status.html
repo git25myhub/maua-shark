@@ -43,6 +43,10 @@
                                 <p class="mb-0"><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
                             </div>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="{{ url_for('parcels.receipt', parcel_id=parcel.id) }}" 
+                                   class="btn btn-primary btn-lg me-md-2">
+                                    <i class="fas fa-download me-2"></i>Download Receipt
+                                </a>
                                 <a href="{{ url_for('parcels.index') }}" 
                                    class="btn btn-success btn-lg">
                                     <i class="fas fa-box me-2"></i>View My Parcels

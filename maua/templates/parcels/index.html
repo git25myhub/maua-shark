@@ -42,7 +42,16 @@
                                 {% endif %}
                             </td>
                             <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at }}</td>
-                            <td class="text-end"><a class="btn btn-sm btn-outline-light" href="{{ url_for('parcels.track') }}?ref={{ p.ref_code }}">Track</a></td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-outline-light" href="{{ url_for('parcels.track') }}?ref={{ p.ref_code }}">Track</a>
+                                    {% if p.payment_status == 'paid' %}
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('parcels.receipt', parcel_id=p.id) }}">
+                                        <i class="fas fa-download me-1"></i>Receipt
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
