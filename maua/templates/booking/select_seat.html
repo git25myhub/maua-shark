@@ -29,35 +29,71 @@
                                 <div class="driver-text text-muted">Driver's Cabin</div>
                             </div>
                             
-                            <div class="d-flex flex-wrap gap-3 justify-content-center seat-grid" role="radiogroup" aria-label="Seat selection">
-                                {% for seat in seat_layout %}
-                                    {% set code = seat['seat'] %}
-                                    {% set is_taken = code in taken %}
-                                    
-                                    <div class="seat-container">
-                                        <input type="radio" 
-                                               name="seat_number" 
-                                               value="{{ code }}" 
-                                               id="seat-{{ code }}" 
-                                               class="seat-radio" 
-                                               {% if is_taken %}disabled{% endif %}>
-                                        <label for="seat-{{ code }}" 
-                                               class="seat-label {% if is_taken %}taken{% else %}available{% endif %}"
-                                               data-seat="{{ code }}"
-                                               aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
-                                            <span class="seat-number">{{ code }}</span>
-                                            {% if is_taken %}
-                                                <span class="seat-status"><i class="fas fa-times"></i></span>
-                                            {% else %}
-                                                <span class="seat-status"><i class="fas fa-check"></i></span>
-                                            {% endif %}
-                                        </label>
-                                    </div>
-                                    
-                                    {% if loop.index % 4 == 0 %}
-                                        <div class="w-100"></div>
+                            <div class="bus-layout-kenya" role="radiogroup" aria-label="Seat selection">
+                                {% set total = seat_layout|length %}
+                                {% set back_count = 4 if total >= 10 else (total % 3) %}
+                                {% set front_count = total - back_count %}
+                                {% set rows = seat_layout[:front_count] | batch(3, None) %}
+                                {% set back_row = seat_layout[front_count:] %}
+
+                                {% for row in rows %}
+                                <div class="bus-row">
+                                    {% for s in row[:2] %}
+                                        {% if s is not none %}
+                                            {% set code = s['seat'] %}
+                                            {% set is_taken = code in taken %}
+                                            <div class="seat-container">
+                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                    <span class="seat-number">{{ code }}</span>
+                                                    {% if is_taken %}
+                                                        <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                    {% else %}
+                                                        <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <div class="aisle" aria-hidden="true"></div>
+                                    {% set s = (row[2] if (row|length) > 2 else None) %}
+                                    {% if s is not none %}
+                                        {% set code = s['seat'] %}
+                                        {% set is_taken = code in taken %}
+                                        <div class="seat-container">
+                                            <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                            <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                <span class="seat-number">{{ code }}</span>
+                                                {% if is_taken %}
+                                                    <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                {% else %}
+                                                    <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
                                     {% endif %}
+                                </div>
                                 {% endfor %}
+
+                                {% if back_row %}
+                                <div class="bus-row back-row justify-content-center">
+                                    {% for s in back_row %}
+                                        {% set code = s['seat'] %}
+                                        {% set is_taken = code in taken %}
+                                        <div class="seat-container">
+                                            <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                            <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                <span class="seat-number">{{ code }}</span>
+                                                {% if is_taken %}
+                                                    <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                {% else %}
+                                                    <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                             
                             <div class="bus-exit text-center mt-4 pt-3 border-top" aria-hidden="true">

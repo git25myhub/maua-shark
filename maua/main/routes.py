@@ -17,6 +17,22 @@ def about():
 def contact():
     return render_template('contact.html', title='Contact Us')
 
+@main_bp.route('/terms')
+def terms():
+    return render_template('legal/terms.html', title='Terms of Service', now=datetime.utcnow())
+
+@main_bp.route('/privacy')
+def privacy():
+    return render_template('legal/privacy.html', title='Privacy Policy', now=datetime.utcnow())
+
+@main_bp.route('/faq')
+def faq():
+    return render_template('help/faq.html', title='FAQs')
+
+@main_bp.route('/announcements')
+def announcements():
+    return render_template('news/announcements.html', title='Announcements')
+
 @main_bp.route('/dashboard')
 @login_required
 def dashboard():

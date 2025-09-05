@@ -402,3 +402,88 @@ body.role-staff::before {
 .table-contrast tbody td, .table-contrast tbody th { color: #e9edf5; }
 .table-contrast tr { background-color: rgba(15,23,42,0.55); }
 .table-contrast tr + tr { border-top-color: rgba(255,255,255,0.1); }
+
+/* ===== Auth pages: high-contrast over background image ===== */
+.auth-page { min-height: calc(100vh - 200px); }
+.auth-card {
+    background: rgba(15, 23, 42, 0.7); /* dark translucent */
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.12);
+}
+.text-white-90 { color: rgba(255,255,255,0.9) !important; }
+.text-white-80 { color: rgba(255,255,255,0.8) !important; }
+.link-contrast { color: #ffffff !important; text-decoration: underline; text-underline-offset: 2px; }
+.link-contrast:hover { color: #e6f0ff !important; }
+
+.auth-input {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.25);
+    color: #ffffff;
+}
+.auth-input::placeholder { color: rgba(255,255,255,0.75); }
+.auth-input:focus {
+    background: rgba(255,255,255,0.12);
+    border-color: #9ec5fe;
+    box-shadow: 0 0 0 .2rem rgba(158,197,254,.25);
+    color: #ffffff;
+}
+.auth-check { border-color: rgba(255,255,255,0.6); }
+.auth-check:checked { background-color: var(--brand-blue); border-color: var(--brand-blue); }
+
+[data-theme="dark"] .auth-card { background: rgba(6, 16, 42, 0.7); }
+[data-theme="dark"] .auth-input { background: rgba(255,255,255,0.08); color: #fff; }
+[data-theme="dark"] .auth-input:focus { border-color: #9ec5fe; }
+
+/* Why Choose icons styling */
+.why-icon {
+    width: 56px; height: 56px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 6px 16px rgba(2,6,23,.2);
+    isolation: isolate;
+}
+.why-icon i { font-size: 1.1rem; }
+.why-icon::after {
+    content: "";
+    position: absolute; inset: -4px;
+    border-radius: 50%;
+    z-index: -1;
+    filter: blur(8px);
+    opacity: .65;
+}
+.why-icon-primary { background: rgba(13,110,253,.12); color: #0d6efd; }
+.why-icon-primary::after { background: rgba(13,110,253,.45); }
+.why-icon-success { background: rgba(25,135,84,.12); color: #198754; }
+.why-icon-success::after { background: rgba(25,135,84,.45); }
+.why-icon-warning { background: rgba(255,193,7,.12); color: #ffc107; }
+.why-icon-warning::after { background: rgba(255,193,7,.45); }
+
+/* Initials avatar for testimonials */
+.avatar-initials {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    font-weight: 600; color: #fff;
+    background: #6c757d;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    user-select: none;
+    text-transform: uppercase;
+}
+
+/* Bus layout: Kenyan standard (2 + aisle + 1) with back row */
+.bus-layout-kenya { max-width: 540px; margin: 0 auto; }
+.bus-row { display: flex; align-items: center; justify-content: center; gap: .5rem; margin-bottom: .5rem; }
+.bus-row .aisle { width: 1.75rem; }
+.bus-row.back-row .aisle { display: none; }
+
+.bus-layout-kenya .seat-label { width: 60px; height: 60px; }
+.bus-layout-kenya .seat-number { font-size: .9rem; }
+
+/* Mini map for trip detail */
+.bus-layout-kenya-mini { max-width: 480px; }
+.bus-layout-kenya-mini .bus-row { display: flex; align-items: center; gap: .35rem; margin-bottom: .35rem; }
+.bus-layout-kenya-mini .aisle { width: 1.25rem; }
+.mini-seat { display: inline-block; min-width: 44px; text-align: center; padding: .25rem .4rem; border-radius: .35rem; color: #fff; }

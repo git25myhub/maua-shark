@@ -65,6 +65,26 @@ document.addEventListener('DOMContentLoaded', function() {
             menuItems[i].setAttribute('aria-current', 'page');
         }
     }
+
+    // Render initials avatars for elements with .avatar-initials
+    const avatarNodes = document.querySelectorAll('.avatar-initials');
+    avatarNodes.forEach((node) => {
+        const name = (node.getAttribute('data-name') || '').trim();
+        if (!name) return;
+        const initials = name.split(/\s+/).slice(0,2).map(n => n.charAt(0)).join('');
+        node.textContent = initials;
+        // Hash name to color from a fixed palette for consistency
+        const palette = [
+            '#0d6efd', '#6610f2', '#6f42c1', '#d63384', '#dc3545',
+            '#fd7e14', '#ffc107', '#198754', '#20c997', '#0dcaf0'
+        ];
+        let hash = 0;
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const color = palette[Math.abs(hash) % palette.length];
+        node.style.backgroundColor = color;
+    });
 });
 
 // Function to show toast notifications
