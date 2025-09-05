@@ -10,6 +10,15 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'postgresql://postgres:postgres@localhost/maua-db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # Database connection pooling for memory optimization
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_size': 5,           # Number of connections to maintain in pool
+        'max_overflow': 10,       # Additional connections beyond pool_size
+        'pool_timeout': 30,       # Seconds to wait for connection from pool
+        'pool_recycle': 3600,     # Recycle connections after 1 hour
+        'pool_pre_ping': True,    # Validate connections before use
+    }
+    
     # Session settings
     PERMANENT_SESSION_LIFETIME = timedelta(days=30)
     REMEMBER_COOKIE_DURATION = timedelta(days=30)

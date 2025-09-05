@@ -24,6 +24,13 @@ class MpesaService:
         else:
             self.base_url = "https://sandbox.safaricom.co.ke"
         
+        # Log configuration for debugging (without exposing secrets)
+        current_app.logger.info(f"M-Pesa configured for {environment} environment")
+        current_app.logger.info(f"Consumer key present: {bool(self.consumer_key)}")
+        current_app.logger.info(f"Consumer secret present: {bool(self.consumer_secret)}")
+        current_app.logger.info(f"Business short code: {self.business_short_code}")
+        current_app.logger.info(f"Base URL: {self.base_url}")
+        
     def get_access_token(self):
         """Get M-Pesa access token"""
         try:
@@ -57,6 +64,9 @@ class MpesaService:
                 MpesaService._cached_token_expiry_epoch = time.time() + int(expires_in)
             return access_token
             
+        except requests.exceptions.HTTPError as e:
+            current_app.logger.error(f"HTTP Error getting M-Pesa access token: {e.response.status_code} - {e.response.text}")
+            return None
         except Exception as e:
             current_app.logger.error(f"Error getting M-Pesa access token: {str(e)}")
             return None

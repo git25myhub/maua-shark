@@ -4,15 +4,16 @@ import multiprocessing
 # Server socket
 bind = '0.0.0.0:10000'  # Use the PORT environment variable if set, otherwise default to 10000
 
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = 'sync'  # Use 'gthread' for I/O-bound applications
+# Worker processes - Optimized for 512MB memory limit
+workers = 1  # Only 1 worker for free tier
+worker_class = 'gthread'  # Use threads for I/O-bound applications
+threads = 2  # 2 threads per worker
 worker_connections = 1000
-max_requests = 1000  # Restart workers after this many requests to prevent memory leaks
+max_requests = 500  # Restart workers more frequently to prevent memory leaks
 max_requests_jitter = 50  # Add jitter to prevent all workers from restarting simultaneously
 
 # Timeouts
-timeout = 30  # Workers silent for more than this many seconds are killed and restarted
+timeout = 120  # Increased timeout for better stability
 keepalive = 2  # Seconds to wait for requests on a Keep-Alive connection
 
 # Logging

@@ -150,11 +150,16 @@ def parcels_update_status(parcel_id: int):
     return redirect(url_for('staff.parcels_list'))
 
 
-@staff_bp.route('/parcels/<int:parcel_id>/tracking', methods=['POST'])
+@staff_bp.route('/parcels/<int:parcel_id>/tracking', methods=['POST', 'HEAD'])
 @login_required
 @staff_required
 def parcels_assign_tracking(parcel_id: int):
     parcel = Parcel.query.get_or_404(parcel_id)
+    
+    # Handle HEAD requests (for uptime monitoring)
+    if request.method == 'HEAD':
+        return '', 200
+    
     # Backward-compat: accept tracking_number but prefer vehicle assignments
     tracking_number = request.form.get('tracking_number')
     vehicle_plate = request.form.get('vehicle_plate')
