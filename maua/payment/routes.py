@@ -6,6 +6,7 @@ from maua.payment.models import Payment
 from maua.booking.models import Booking
 from maua.parcels.models import Parcel
 from maua.payment.mpesa_service import MpesaService
+from maua.payment.cache import PaymentStatusCache
 import json
 
 payment_bp = Blueprint('payment', __name__, url_prefix='/payments')
@@ -207,6 +208,15 @@ def check_payment_status(payment_id):
         
         # If payment is still pending and using STK push, check status
         if payment.status == 'pending' and payment.payment_method == 'mpesa_stk':
+            # Check cache first to avoid unnecessary API calls
+            cached_status = PaymentStatusCache.get_status(payment.id)
+            if cached_status:
+                return jsonify({
+                    'status': 'success',
+                    'payment': cached_status
+                })
+            
+            # Use singleton instance to avoid re-initialization
             mpesa_service = MpesaService()
             status_response = mpesa_service.query_stk_push_status(payment.transaction_id)
             
@@ -250,14 +260,54 @@ def check_payment_status(payment_id):
                                 pass
                     
                     db.session.commit()
+                    
+                    # Cache the updated status
+                    PaymentStatusCache.set_status(payment.id, {
+                        'id': payment.id,
+                        'status': payment.status,
+                        'amount': float(payment.amount),
+                        'payment_method': payment.payment_method,
+                        'transaction_id': payment.transaction_id,
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None
+                    })
                 elif result_code == 1032:
                     # User cancelled
                     payment.status = 'failed'
                     db.session.commit()
+                    
+                    # Cache the failed status
+                    PaymentStatusCache.set_status(payment.id, {
+                        'id': payment.id,
+                        'status': payment.status,
+                        'amount': float(payment.amount),
+                        'payment_method': payment.payment_method,
+                        'transaction_id': payment.transaction_id,
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None
+                    })
                 elif result_code == 2001:
                     # Wrong PIN
                     payment.status = 'failed'
                     db.session.commit()
+                    
+                    # Cache the failed status
+                    PaymentStatusCache.set_status(payment.id, {
+                        'id': payment.id,
+                        'status': payment.status,
+                        'amount': float(payment.amount),
+                        'payment_method': payment.payment_method,
+                        'transaction_id': payment.transaction_id,
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None
+                    })
+            else:
+                # API call failed, cache the current status to avoid repeated calls
+                PaymentStatusCache.set_status(payment.id, {
+                    'id': payment.id,
+                    'status': payment.status,
+                    'amount': float(payment.amount),
+                    'payment_method': payment.payment_method,
+                    'transaction_id': payment.transaction_id,
+                    'payment_date': payment.payment_date.isoformat() if payment.payment_date else None
+                })
         
         return jsonify({
             'status': 'success',

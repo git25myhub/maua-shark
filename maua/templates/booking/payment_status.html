@@ -133,8 +133,8 @@ function checkPaymentStatus() {
         });
 }
 
-// Auto-check payment status every 5 seconds
-setInterval(checkPaymentStatus, 5000);
+// Auto-check payment status every 15 seconds (reduced frequency)
+setInterval(checkPaymentStatus, 15000);
 
 // Check status on page load
 document.addEventListener('DOMContentLoaded', function() {

@@ -5,16 +5,16 @@ import multiprocessing
 bind = '0.0.0.0:10000'  # Use the PORT environment variable if set, otherwise default to 10000
 
 # Worker processes - Optimized for 512MB memory limit
-workers = 1  # Only 1 worker for free tier
+workers = 2  # Increased to 2 workers for better concurrency
 worker_class = 'gthread'  # Use threads for I/O-bound applications
-threads = 2  # 2 threads per worker
+threads = 3  # Increased to 3 threads per worker
 worker_connections = 1000
-max_requests = 500  # Restart workers more frequently to prevent memory leaks
-max_requests_jitter = 50  # Add jitter to prevent all workers from restarting simultaneously
+max_requests = 1000  # Increased to reduce restart frequency
+max_requests_jitter = 100  # Add jitter to prevent all workers from restarting simultaneously
 
 # Timeouts
-timeout = 120  # Increased timeout for better stability
-keepalive = 2  # Seconds to wait for requests on a Keep-Alive connection
+timeout = 60  # Reduced timeout for faster failure detection
+keepalive = 5  # Increased keepalive for better connection reuse
 
 # Logging
 accesslog = '-'  # Log to stdout

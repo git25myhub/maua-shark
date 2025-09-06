@@ -6,8 +6,7 @@ from .models import Booking, Ticket
 from .services import broker
 from .forms import PassengerDetailsForm
 from maua.catalog.models import Trip
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timedelta
 import uuid
 
 booking_bp = Blueprint('booking', __name__)
@@ -36,10 +35,10 @@ def book(trip_id):
             flash('Please select a seat.', 'warning')
             return redirect(url_for('booking.book', trip_id=trip_id))
         
-        # Check if seat is available (only confirmed/checked_in block selection)
+        # Check if seat is available (any active booking blocks selection)
         now = datetime.utcnow()
         booked_seats = {b.seat_number for b in trip.bookings 
-                       if b.status in ['confirmed', 'checked_in']}
+                       if b.status in ['pending_payment', 'confirmed', 'checked_in']}
         
         if seat_number in booked_seats:
             flash('This seat is already taken. Please select another seat.', 'danger')
@@ -53,7 +52,7 @@ def book(trip_id):
     # For GET request, show seat selection
     now = datetime.utcnow()
     booked_seats = {b.seat_number for b in trip.bookings 
-                   if b.status in ['confirmed', 'checked_in']}
+                   if b.status in ['pending_payment', 'confirmed', 'checked_in']}
     seat_layout = trip.vehicle.seat_layout or []
     
     form = PassengerDetailsForm()
@@ -97,7 +96,7 @@ def passenger_details(trip_id):
     # Check if seat is still available (no holds logic)
     now = datetime.utcnow()
     booked_seats = {b.seat_number for b in trip.bookings 
-                   if b.status in ['confirmed', 'checked_in']}
+                   if b.status in ['pending_payment', 'confirmed', 'checked_in']}
     
     if seat_number in booked_seats:
         flash('This seat is no longer available. Please select another seat.', 'danger')
@@ -106,11 +105,21 @@ def passenger_details(trip_id):
     # No hold logic: just render form on GET; on POST, attempt to create confirmed booking
 
     if form.validate_on_submit():
+        # Clean up expired pending_payment bookings (older than 10 minutes)
+        expired_cutoff = datetime.utcnow() - timedelta(minutes=10)
+        expired_bookings = Booking.query.filter(
+            Booking.status == 'pending_payment',
+            Booking.created_at < expired_cutoff
+        ).all()
+        for booking in expired_bookings:
+            db.session.delete(booking)
+        db.session.commit()
+        
         # Final seat availability check just before confirmation
         exists = Booking.query.filter(
             Booking.trip_id == trip_id,
             Booking.seat_number == seat_number,
-            Booking.status.in_(['confirmed','checked_in'])
+            Booking.status.in_(['pending_payment', 'confirmed', 'checked_in'])
         ).first()
         if exists:
             flash('This seat has just been taken. Please select another.', 'danger')

@@ -30,6 +30,7 @@ def create_app(config_class='config.DevelopmentConfig'):
     # Register blueprints
     from maua.auth.routes import auth_bp
     from maua.main.routes import main_bp
+    from maua.main.health import health_bp
     from maua.booking.routes import booking_bp
     from maua.parcels.routes import parcels_bp
     from maua.admin.routes import admin_bp
@@ -39,6 +40,7 @@ def create_app(config_class='config.DevelopmentConfig'):
     
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
+    app.register_blueprint(health_bp)
     app.register_blueprint(booking_bp, url_prefix='/booking')
     app.register_blueprint(parcels_bp, url_prefix='/parcels')
     app.register_blueprint(admin_bp, url_prefix='/admin')

@@ -10,7 +10,19 @@ class MpesaService:
     _cached_access_token = None
     _cached_token_expiry_epoch = 0
     _last_query_epoch_by_checkout_id = {}
+    _instance = None
+    
+    def __new__(cls):
+        """Singleton pattern to ensure only one instance exists"""
+        if cls._instance is None:
+            cls._instance = super(MpesaService, cls).__new__(cls)
+        return cls._instance
+    
     def __init__(self):
+        # Only initialize once
+        if hasattr(self, '_initialized'):
+            return
+            
         import os
         self.consumer_key = os.environ.get('MPESA_CONSUMER_KEY', 'sRJfXqDpeoDGlJPACEFKmTTkdSOndbUy964qXLbRo6YUPylf')
         self.consumer_secret = os.environ.get('MPESA_CONSUMER_SECRET', 'Xgro9DdR82NEK19ijOMmbEsNDQvJc3W0ocwSCHayZGoWgBhyAyiDoi5oBxkSAZcC')
@@ -24,12 +36,16 @@ class MpesaService:
         else:
             self.base_url = "https://sandbox.safaricom.co.ke"
         
-        # Log configuration for debugging (without exposing secrets)
-        current_app.logger.info(f"M-Pesa configured for {environment} environment")
-        current_app.logger.info(f"Consumer key present: {bool(self.consumer_key)}")
-        current_app.logger.info(f"Consumer secret present: {bool(self.consumer_secret)}")
-        current_app.logger.info(f"Business short code: {self.business_short_code}")
-        current_app.logger.info(f"Base URL: {self.base_url}")
+        # Only log configuration once
+        if not hasattr(MpesaService, '_config_logged'):
+            current_app.logger.info(f"M-Pesa configured for {environment} environment")
+            current_app.logger.info(f"Consumer key present: {bool(self.consumer_key)}")
+            current_app.logger.info(f"Consumer secret present: {bool(self.consumer_secret)}")
+            current_app.logger.info(f"Business short code: {self.business_short_code}")
+            current_app.logger.info(f"Base URL: {self.base_url}")
+            MpesaService._config_logged = True
+            
+        self._initialized = True
         
     def get_access_token(self):
         """Get M-Pesa access token"""
@@ -152,8 +168,8 @@ class MpesaService:
             import time
             now = time.time()
             last = MpesaService._last_query_epoch_by_checkout_id.get(checkout_request_id, 0)
-            # enforce 10s minimum interval per CheckoutRequestID
-            if now - last < 10:
+            # enforce 15s minimum interval per CheckoutRequestID (increased from 10s)
+            if now - last < 15:
                 return {
                     'success': False,
                     'message': 'Query throttled locally to respect rate limits',
