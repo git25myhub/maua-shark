@@ -4,6 +4,7 @@ Health check endpoints for monitoring server status
 from flask import Blueprint, jsonify, current_app
 from maua.extensions import db
 from maua.payment.cache import PaymentStatusCache
+from sqlalchemy import text
 import time
 
 health_bp = Blueprint('health', __name__, url_prefix='/health')
@@ -13,7 +14,7 @@ def health_check():
     """Basic health check endpoint"""
     try:
         # Test database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         
         # Get cache statistics
         cache_stats = {
@@ -41,7 +42,7 @@ def readiness_check():
     """Readiness check for load balancers"""
     try:
         # Test database connection
-        db.session.execute('SELECT 1')
+        db.session.execute(text('SELECT 1'))
         
         return jsonify({
             'status': 'ready',
