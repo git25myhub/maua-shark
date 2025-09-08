@@ -64,6 +64,14 @@
                                 <strong><i class="fas fa-chair me-2"></i>Seat Number:</strong> 
                                 <span class="badge bg-primary">{{ booking.seat_number }}</span>
                             </p>
+                            <p class="mb-2">
+                                <strong><i class="fas fa-bus me-2"></i>Vehicle:</strong>
+                                {{ booking.trip.vehicle.plate_no }} ({{ booking.trip.vehicle.make }} {{ booking.trip.vehicle.model }})
+                            </p>
+                            <p class="mb-2">
+                                <strong><i class="fas fa-id-badge me-2"></i>Driver:</strong>
+                                {{ booking.trip.driver_name or '—' }}{% if booking.trip.driver_phone %} — {{ booking.trip.driver_phone }}{% endif %}
+                            </p>
                             <p class="mb-0">
                                 <strong><i class="fas fa-tag me-2"></i>Booking Reference:</strong> 
                                 <code>{{ booking.reference }}</code>

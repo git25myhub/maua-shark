@@ -58,6 +58,9 @@ class Trip(db.Model):
     arrive_eta = db.Column(db.DateTime(timezone=True))
     base_fare = db.Column(db.Numeric(10,2), nullable=False)
     status = db.Column(db.String(20), default='scheduled')  # scheduled, in_progress, completed, cancelled
+    # Operational fields
+    driver_name = db.Column(db.String(120))
+    driver_phone = db.Column(db.String(30))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

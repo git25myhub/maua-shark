@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request
+from flask import render_template, redirect, url_for, flash, request, jsonify
 from flask_login import login_required, current_user
 from functools import wraps
 from maua.extensions import db
@@ -229,9 +229,11 @@ def trips_create():
         vehicle_id = request.form.get('vehicle_id', type=int)
         depart_at = request.form.get('depart_at')
         base_fare = request.form.get('base_fare', type=float)
+        driver_name = request.form.get('driver_name')
+        driver_phone = request.form.get('driver_phone')
         try:
             depart_dt = datetime.fromisoformat(depart_at)
-            trip = Trip(route_id=route_id, vehicle_id=vehicle_id, depart_at=depart_dt, base_fare=base_fare, status='scheduled')
+            trip = Trip(route_id=route_id, vehicle_id=vehicle_id, depart_at=depart_dt, base_fare=base_fare, status='scheduled', driver_name=driver_name, driver_phone=driver_phone)
             db.session.add(trip)
             db.session.commit()
             flash('Trip created.', 'success')
@@ -354,4 +356,24 @@ def trip_seat_checkin(trip_id: int, seat: str):
         flash('Failed to check in.', 'danger')
     return redirect(url_for('staff.trip_seat_map', trip_id=trip.id))
 
+
+# JSON endpoint to fetch booking details for a specific seat on a trip
+@staff_bp.route('/trips/<int:trip_id>/seats/<seat>/booking.json')
+@login_required
+@staff_required
+def trip_seat_booking_json(trip_id: int, seat: str):
+    trip = Trip.query.get_or_404(trip_id)
+    booking = Booking.query.filter_by(trip_id=trip.id, seat_number=seat).first()
+    if not booking:
+        return jsonify({'found': False}), 404
+    b = booking.to_dict()
+    # Attach trip-level details under the booking object for simpler client usage
+    b['route'] = f"{trip.route.origin.town} → {trip.route.destination.town}"
+    b['depart_at'] = trip.depart_at.isoformat() if trip.depart_at else None
+    b['vehicle_plate'] = getattr(trip.vehicle, 'plate_no', None)
+    b['vehicle_make'] = getattr(trip.vehicle, 'make', None)
+    b['vehicle_model'] = getattr(trip.vehicle, 'model', None)
+    b['driver_name'] = getattr(trip, 'driver_name', None)
+    b['driver_phone'] = getattr(trip, 'driver_phone', None)
+    return jsonify({'found': True, 'booking': b})
 

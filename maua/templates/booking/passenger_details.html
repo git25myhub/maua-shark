@@ -16,6 +16,9 @@
                             <p class="mb-1"><strong>Seat:</strong> {{ seat_number }}</p>
                             <p class="mb-1"><strong>Date:</strong> {{ trip.depart_at.strftime('%A, %B %d, %Y') }}</p>
                             <p class="mb-0"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
+                            <hr class="my-2">
+                            <p class="mb-1"><strong>Vehicle:</strong> {{ trip.vehicle.plate_no }} ({{ trip.vehicle.make }} {{ trip.vehicle.model }})</p>
+                            <p class="mb-0"><strong>Driver:</strong> {{ trip.driver_name or '—' }}{% if trip.driver_phone %} — {{ trip.driver_phone }}{% endif %}</p>
                         </div>
                         
                     </div>
@@ -72,6 +75,16 @@
                                     {% endfor %}
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.pickup_location.label(class="form-label") }}
+                                    {{ form.pickup_location(class="form-control" + (' is-invalid' if form.pickup_location.errors else ''), placeholder="e.g. Shell Petrol Station, Thika Road") }}
+                                    {% for error in form.pickup_location.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                             
                             <div class="col-12 mt-4 d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">
@@ -95,10 +108,13 @@
                             <p class="mb-1"><strong>National ID:</strong> {{ form.id_number.data or '—' }}</p>
                             <p class="mb-1"><strong>Seat:</strong> <span class="badge bg-primary">{{ seat_number }}</span></p>
                             <p class="mb-1"><strong>Fare:</strong> KES {{ "%0.2f"|format(trip.base_fare) }}</p>
+                            <p class="mb-1"><strong>Pickup:</strong> {{ form.pickup_location.data or '—' }}</p>
                             <hr>
                             <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>
                             <p class="mb-1"><strong>Date:</strong> {{ trip.depart_at.strftime('%A, %B %d, %Y') }}</p>
-                            <p class="mb-0"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
+                            <p class="mb-1"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
+                            <p class="mb-1"><strong>Vehicle:</strong> {{ trip.vehicle.plate_no }} ({{ trip.vehicle.make }} {{ trip.vehicle.model }})</p>
+                            <p class="mb-0"><strong>Driver:</strong> {{ trip.driver_name or '—' }}{% if trip.driver_phone %} — {{ trip.driver_phone }}{% endif %}</p>
                         </div>
                     </div>
                 </div>

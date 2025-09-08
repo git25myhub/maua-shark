@@ -138,7 +138,8 @@ def passenger_details(trip_id):
             passenger_sex=form.sex.data,
             passenger_age=form.age.data,
             passenger_phone=form.phone.data,
-            passenger_id_number=form.id_number.data
+            passenger_id_number=form.id_number.data,
+            pickup_location=form.pickup_location.data or None
         )
         try:
             db.session.add(booking)

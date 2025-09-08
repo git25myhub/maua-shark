@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, IntegerField, SelectField
-from wtforms.validators import DataRequired, Length, NumberRange, Regexp
+from wtforms.validators import DataRequired, Length, NumberRange, Regexp, Optional
 
 class PassengerDetailsForm(FlaskForm):
     name = StringField('Full Name', validators=[
@@ -29,4 +29,9 @@ class PassengerDetailsForm(FlaskForm):
         DataRequired(message='Phone number is required'),
         Length(min=10, max=15, message='Phone number must be between 10 and 15 digits'),
         Regexp(r'^[0-9+]+$', message='Phone number can only contain numbers and +')
+    ])
+
+    pickup_location = StringField('Pickup Location (optional)', validators=[
+        Optional(),
+        Length(max=255, message='Pickup location must be at most 255 characters')
     ])
