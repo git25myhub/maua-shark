@@ -137,7 +137,8 @@ def passenger_details(trip_id):
             passenger_name=form.name.data,
             passenger_sex=form.sex.data,
             passenger_age=form.age.data,
-            passenger_phone=form.phone.data
+            passenger_phone=form.phone.data,
+            passenger_id_number=form.id_number.data
         )
         try:
             db.session.add(booking)
@@ -314,6 +315,8 @@ def download_receipt(booking_id: int):
     c.drawString(22*mm, y, f"Name: {booking.passenger_name}")
     y -= 5*mm
     c.drawString(22*mm, y, f"Phone: {booking.passenger_phone}")
+    y -= 5*mm
+    c.drawString(22*mm, y, f"National ID: {booking.passenger_id_number}")
     y -= 5*mm
     c.drawString(22*mm, y, f"Gender: {booking.passenger_sex.title()}  Age: {booking.passenger_age}")
     y -= 8*mm

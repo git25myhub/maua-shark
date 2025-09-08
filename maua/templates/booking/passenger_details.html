@@ -62,6 +62,16 @@
                                     {% endfor %}
                                 </div>
                             </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    {{ form.id_number.label(class="form-label") }}
+                                    {{ form.id_number(class="form-control" + (' is-invalid' if form.id_number.errors else ''), placeholder="Enter National ID Number") }}
+                                    {% for error in form.id_number.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
                             
                             <div class="col-12 mt-4 d-flex gap-2">
                                 <button type="submit" class="btn btn-primary">
@@ -82,6 +92,7 @@
                         </div>
                         <div class="card-body">
                             <p class="mb-1"><strong>Passenger:</strong> {{ form.name.data or '—' }}</p>
+                            <p class="mb-1"><strong>National ID:</strong> {{ form.id_number.data or '—' }}</p>
                             <p class="mb-1"><strong>Seat:</strong> <span class="badge bg-primary">{{ seat_number }}</span></p>
                             <p class="mb-1"><strong>Fare:</strong> KES {{ "%0.2f"|format(trip.base_fare) }}</p>
                             <hr>

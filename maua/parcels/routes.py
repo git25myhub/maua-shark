@@ -70,8 +70,10 @@ def create():
     if request.method == 'POST':
         sender_name = request.form.get('sender_name')
         sender_phone = request.form.get('sender_phone')
+        sender_id_number = request.form.get('sender_id_number')
         receiver_name = request.form.get('receiver_name')
         receiver_phone = request.form.get('receiver_phone')
+        receiver_id_number = request.form.get('receiver_id_number')
         origin_name = request.form.get('origin_name')
         destination_name = request.form.get('destination_name')
         weight_kg = request.form.get('weight_kg', type=float)
@@ -92,8 +94,10 @@ def create():
             ref_code=ref_code,
             sender_name=sender_name,
             sender_phone=sender_phone,
+            sender_id_number=sender_id_number,
             receiver_name=receiver_name,
             receiver_phone=receiver_phone,
+            receiver_id_number=receiver_id_number,
             origin_name=origin_name,
             destination_name=destination_name,
             weight_kg=weight_kg,
@@ -322,6 +326,7 @@ def receipt(parcel_id):
     contact_data = [
         ['Sender Name:', parcel.sender_name, 'Receiver Name:', parcel.receiver_name],
         ['Sender Phone:', parcel.sender_phone, 'Receiver Phone:', parcel.receiver_phone],
+        ['Sender ID:', parcel.sender_id_number, 'Receiver ID:', parcel.receiver_id_number],
     ]
     
     contact_table = Table(contact_data, colWidths=[1.5*inch, 2*inch, 1.5*inch, 2*inch])

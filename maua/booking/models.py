@@ -20,6 +20,8 @@ class Booking(db.Model):
     passenger_sex = db.Column(db.String(10), nullable=False, default='other')  # 'male', 'female', 'other'
     passenger_age = db.Column(db.Integer, nullable=False, default=18)
     passenger_phone = db.Column(db.String(20), nullable=False, default='N/A')
+    # National ID Number
+    passenger_id_number = db.Column(db.String(30), nullable=False, default='N/A')
     
     # Relationships
     ticket = db.relationship('Ticket', backref='booking', uselist=False, lazy=True)
@@ -43,6 +45,7 @@ class Booking(db.Model):
             'passenger_sex': self.passenger_sex,
             'passenger_age': self.passenger_age,
             'passenger_phone': self.passenger_phone,
+            'passenger_id_number': self.passenger_id_number,
             'created_at': self.created_at.isoformat() if self.created_at else None
         }
 

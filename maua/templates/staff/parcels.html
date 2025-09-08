@@ -21,15 +21,17 @@
           <th>Reference</th>
           <th>Sender</th>
           <th>Recipient</th>
+          <th>IDs</th>
           <th>Status</th>
           <th>Vehicle/Driver</th>
+          <th>Created</th>
           <th style="min-width:220px">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for p in parcels %}
         <tr>
-          <td>{{ p.id }}</td>
+          <td class="text-nowrap">{{ p.id }}</td>
           <td class="small text-nowrap">{{ p.origin_name }} → {{ p.destination_name }}</td>
           <td class="text-nowrap">{{ p.ref_code }}</td>
           <td class="small">
@@ -40,6 +42,10 @@
             <div class="fw-semibold">{{ p.receiver_name or p.recipient_name or '—' }}</div>
             <div class="text-muted">{{ p.receiver_phone or p.recipient_phone or '—' }}</div>
           </td>
+          <td class="small">
+            <div class="text-muted">Sender ID: {{ p.sender_id_number or '—' }}</div>
+            <div class="text-muted">Receiver ID: {{ p.receiver_id_number or '—' }}</div>
+          </td>
           <td class="text-nowrap">
             <span class="badge badge-status badge-{{ (p.status or '').replace(' ','_') | safe }}">{{ p.status }}</span>
           </td>
@@ -47,6 +53,7 @@
             <div class="fw-semibold">{{ p.vehicle_plate or '—' }}</div>
             <div class="text-muted">{{ p.driver_phone or '—' }}</div>
           </td>
+          <td class="text-nowrap">{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '—' }}</td>
           <td>
             <div class="d-flex flex-column flex-lg-row gap-2">
               <form method="post" action="{{ url_for('staff.parcels_update_status', parcel_id=p.id) }}" class="d-flex gap-2">

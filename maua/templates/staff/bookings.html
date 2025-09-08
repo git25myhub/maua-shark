@@ -15,27 +15,32 @@
   <form method="get" class="mb-3">
     
   </form>
-  <table class="table">
+  <div class="table-responsive">
+  <table class="table table-sm align-middle table-contrast">
     <thead>
       <tr>
         <th>ID</th>
         <th>Trip</th>
         <th>Passenger</th>
         <th>Phone</th>
+        <th>ID Number</th>
         <th>Seat</th>
         <th>Status</th>
+        <th>Created</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
       {% for b in bookings %}
       <tr>
-        <td>{{ b.id }}</td>
-        <td>#{{ b.trip_id }}</td>
-        <td>{{ b.passenger_name }}</td>
-        <td>{{ b.passenger_phone }}</td>
-        <td>{{ b.seat_number }}</td>
-        <td>{{ b.status }}</td>
+        <td class="text-nowrap">{{ b.id }}</td>
+        <td class="text-nowrap">#{{ b.trip_id }}</td>
+        <td class="small">{{ b.passenger_name }}</td>
+        <td class="text-nowrap">{{ b.passenger_phone }}</td>
+        <td class="text-nowrap">{{ b.passenger_id_number }}</td>
+        <td class="text-nowrap">{{ b.seat_number }}</td>
+        <td class="text-nowrap">{{ b.status }}</td>
+        <td class="text-nowrap">{{ b.created_at.strftime('%Y-%m-%d %H:%M') if b.created_at else '—' }}</td>
         <td>
           <form method="post" action="{{ url_for('staff.bookings_update_status', booking_id=b.id) }}">
             <select name="status">
@@ -50,6 +55,7 @@
       {% endfor %}
     </tbody>
   </table>
+  </div>
   <a href="{{ url_for('staff.dashboard') }}" class="btn btn-back mt-3"><i class="fas fa-arrow-left me-2"></i>Back</a>
 {% endblock %}
 

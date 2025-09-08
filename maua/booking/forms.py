@@ -8,6 +8,12 @@ class PassengerDetailsForm(FlaskForm):
         Length(min=3, max=100, message='Name must be between 3 and 100 characters')
     ])
     
+    id_number = StringField('National ID Number', validators=[
+        DataRequired(message='National ID is required'),
+        Length(min=5, max=30, message='ID number must be between 5 and 30 characters'),
+        Regexp(r'^[0-9A-Za-z-]+$', message='ID can contain letters, numbers and dashes')
+    ])
+    
     sex = SelectField('Sex', choices=[
         ('male', 'Male'),
         ('female', 'Female'),
