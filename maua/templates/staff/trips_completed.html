@@ -1,0 +1,40 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Completed Trips</h2>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-secondary" href="{{ url_for('staff.trips_list') }}">Back to Trips</a>
+      <form method="post" action="{{ url_for('staff.trips_completed_export_pdf') }}">
+        <button class="btn btn-danger"><i class="fas fa-file-pdf me-1"></i> Export as PDF & Clear</button>
+      </form>
+    </div>
+  </div>
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Route</th>
+        <th>Vehicle</th>
+        <th>Driver</th>
+        <th>Departs</th>
+        <th>ETA</th>
+        <th>Base Fare</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in trips %}
+      <tr>
+        <td>{{ t.id }}</td>
+        <td>{{ t.route.origin.town }} &rarr; {{ t.route.destination.town }}</td>
+        <td>{{ t.vehicle.plate_no }}<div class="small text-muted">{{ t.vehicle.make }} {{ t.vehicle.model }}</div></td>
+        <td>{{ t.driver_name or '-' }}<div class="small text-muted">{{ t.driver_phone or '' }}</div></td>
+        <td>{{ t.depart_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>{{ t.arrive_eta.strftime('%Y-%m-%d %H:%M') if t.arrive_eta else '-' }}</td>
+        <td>{{ t.base_fare }}</td>
+        <td>{{ t.status }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

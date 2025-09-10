@@ -7,6 +7,7 @@ from maua.booking.models import Booking
 from maua.parcels.models import Parcel
 from maua.payment.mpesa_service import MpesaService
 from maua.payment.cache import PaymentStatusCache
+from maua.booking.services import broker
 import json
 
 payment_bp = Blueprint('payment', __name__, url_prefix='/payments')
@@ -183,6 +184,15 @@ def mpesa_callback():
                 payment = Payment.query.filter_by(transaction_id=checkout_request_id).first()
                 if payment:
                     payment.status = 'failed'
+                    # Cancel related booking and free seat if exists
+                    if payment.booking_id:
+                        booking = Booking.query.get(payment.booking_id)
+                        if booking and booking.status == 'pending_payment':
+                            booking.status = 'cancelled'
+                            try:
+                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                            except Exception:
+                                pass
                     db.session.commit()
                     current_app.logger.info(f'Payment {payment.id} failed: {callback_result.get("result_desc")}')
         
@@ -273,6 +283,15 @@ def check_payment_status(payment_id):
                 elif result_code == 1032:
                     # User cancelled
                     payment.status = 'failed'
+                    # Cancel related booking and free seat if exists
+                    if payment.booking_id:
+                        booking = Booking.query.get(payment.booking_id)
+                        if booking and booking.status == 'pending_payment':
+                            booking.status = 'cancelled'
+                            try:
+                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                            except Exception:
+                                pass
                     db.session.commit()
                     
                     # Cache the failed status
@@ -282,11 +301,21 @@ def check_payment_status(payment_id):
                         'amount': float(payment.amount),
                         'payment_method': payment.payment_method,
                         'transaction_id': payment.transaction_id,
-                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None,
+                        'message': 'Payment was cancelled on your phone.'
                     })
                 elif result_code == 2001:
                     # Wrong PIN
                     payment.status = 'failed'
+                    # Cancel related booking and free seat if exists
+                    if payment.booking_id:
+                        booking = Booking.query.get(payment.booking_id)
+                        if booking and booking.status == 'pending_payment':
+                            booking.status = 'cancelled'
+                            try:
+                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                            except Exception:
+                                pass
                     db.session.commit()
                     
                     # Cache the failed status
@@ -296,7 +325,30 @@ def check_payment_status(payment_id):
                         'amount': float(payment.amount),
                         'payment_method': payment.payment_method,
                         'transaction_id': payment.transaction_id,
-                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None,
+                        'message': 'Incorrect M-Pesa PIN entered.'
+                    })
+                else:
+                    # Other failure codes
+                    payment.status = 'failed'
+                    if payment.booking_id:
+                        booking = Booking.query.get(payment.booking_id)
+                        if booking and booking.status == 'pending_payment':
+                            booking.status = 'cancelled'
+                            try:
+                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                            except Exception:
+                                pass
+                    db.session.commit()
+
+                    PaymentStatusCache.set_status(payment.id, {
+                        'id': payment.id,
+                        'status': payment.status,
+                        'amount': float(payment.amount),
+                        'payment_method': payment.payment_method,
+                        'transaction_id': payment.transaction_id,
+                        'payment_date': payment.payment_date.isoformat() if payment.payment_date else None,
+                        'message': 'Your payment could not be completed. Please try again.'
                     })
             else:
                 # API call failed, cache the current status to avoid repeated calls
@@ -317,7 +369,8 @@ def check_payment_status(payment_id):
                 'status': payment.status,
                 'payment_method': payment.payment_method,
                 'transaction_id': payment.transaction_id,
-                'created_at': payment.payment_date.isoformat() if payment.payment_date else None
+                'created_at': payment.payment_date.isoformat() if payment.payment_date else None,
+                'message': (PaymentStatusCache.get_status(payment.id) or {}).get('message')
             }
         })
         

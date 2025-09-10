@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from maua.extensions import db
 from maua.notifications.sms import send_sms
+from maua.payment.cache import PaymentStatusCache
 from .models import Booking, Ticket
 from .services import broker
 from .forms import PassengerDetailsForm
@@ -256,10 +257,17 @@ def payment_status(booking_id):
         flash('Payment record not found.', 'danger')
         return redirect(url_for('booking.index'))
     
+    # Pull a friendly failure message from cache if present
+    cached = PaymentStatusCache.get_status(payment.id)
+    failure_message = None
+    if cached and cached.get('status') == 'failed':
+        failure_message = cached.get('message')
+    
     return render_template('booking/payment_status.html', 
                          booking=booking, 
                          payment=payment,
-                         trip=booking.trip)
+                         trip=booking.trip,
+                         failure_message=failure_message)
 
 @booking_bp.route('/confirmation/<int:booking_id>')
 @login_required

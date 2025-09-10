@@ -12,12 +12,13 @@
             <strong>{{ trip.route.origin.town }} → {{ trip.route.destination.town }}</strong>
             <div class="text-muted">{{ trip.vehicle.plate_no }} • departs {{ trip.depart_at.strftime('%Y-%m-%d %H:%M') }}</div>
           </div>
-          <div class="text-nowrap">Seats: {{ trip.vehicle.seat_count }}</div>
+          <div class="text-nowrap">Seats Available: {{ trip.available_seats|length }}</div>
         </div>
       </a>
     {% else %}
       <div class="alert alert-info">No trips available yet.</div>
     {% endfor %}
   </div>
+
 </div>
 {% endblock %}

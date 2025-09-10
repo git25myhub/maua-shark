@@ -13,6 +13,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
 from io import BytesIO
+from maua.payment.cache import PaymentStatusCache
 
 parcels_bp = Blueprint('parcels', __name__)
 
@@ -211,9 +212,16 @@ def payment_status(parcel_id):
         flash('Payment record not found.', 'danger')
         return redirect(url_for('parcels.index'))
     
+    # Pull a friendly failure message from cache if present
+    cached = PaymentStatusCache.get_status(payment.id)
+    failure_message = None
+    if cached and cached.get('status') == 'failed':
+        failure_message = cached.get('message')
+    
     return render_template('parcels/payment_status.html', 
                          parcel=parcel, 
-                         payment=payment)
+                         payment=payment,
+                         failure_message=failure_message)
 
 @parcels_bp.route('/receipt/<int:parcel_id>')
 @login_required

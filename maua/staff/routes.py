@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, request, jsonify
+from flask import render_template, redirect, url_for, flash, request, jsonify, send_file
 from flask_login import login_required, current_user
 from functools import wraps
 from maua.extensions import db
@@ -9,6 +9,9 @@ from maua.parcels.models import Parcel
 from datetime import datetime
 from maua.booking.models import Booking
 from maua.notifications.sms import send_sms
+import io
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
 
 
 def staff_required(f):
@@ -31,16 +34,38 @@ def dashboard():
     return render_template('staff/dashboard.html', booking_count=booking_count, parcel_count=parcel_count, active_trips=active_trips)
 
 
+@staff_bp.route('/bookings/routes')
+@login_required
+@staff_required
+def bookings_routes():
+    routes = Route.query.order_by(Route.code.asc()).all()
+    return render_template('staff/bookings_routes.html', routes=routes)
+
+
+@staff_bp.route('/bookings/routes/<int:route_id>/trips')
+@login_required
+@staff_required
+def bookings_route_trips(route_id: int):
+    route = Route.query.get_or_404(route_id)
+    # Show recent/scheduled trips for this route
+    trips = Trip.query.filter_by(route_id=route_id).order_by(Trip.depart_at.desc()).limit(200).all()
+    return render_template('staff/bookings_route_trips.html', route=route, trips=trips)
+
+
 @staff_bp.route('/bookings')
 @login_required
 @staff_required
 def bookings_list():
     status = request.args.get('status')
-    query = Booking.query.order_by(Booking.created_at.desc())
+    trip_id = request.args.get('trip_id', type=int)
+    if not trip_id:
+        return redirect(url_for('staff.bookings_routes'))
+    query = Booking.query.filter(Booking.trip_id == trip_id).order_by(Booking.created_at.desc())
     if status:
-        query = query.filter_by(status=status)
+        query = query.filter(Booking.status == status)
     bookings = query.limit(200).all()
-    return render_template('staff/bookings.html', bookings=bookings)
+    selected_trip = Trip.query.get_or_404(trip_id)
+    return render_template('staff/bookings.html', bookings=bookings, selected_trip=selected_trip)
 
 
 @staff_bp.route('/bookings/<int:booking_id>/status', methods=['POST'])
@@ -216,6 +241,9 @@ def trips_list():
     query = Trip.query.order_by(Trip.depart_at.desc())
     if status:
         query = query.filter_by(status=status)
+    else:
+        # By default, show only active trips (exclude completed)
+        query = query.filter(Trip.status.in_(['scheduled', 'in_progress']))
     trips = query.limit(200).all()
     return render_template('staff/trips.html', trips=trips)
 
@@ -258,11 +286,115 @@ def trips_update_status(trip_id: int):
     try:
         trip.status = new_status
         db.session.commit()
+        # When trip is completed, mark relevant bookings as completed
+        if new_status == 'completed':
+            try:
+                bookings_to_complete = Booking.query.filter(
+                    Booking.trip_id == trip.id,
+                    Booking.status.in_(['confirmed', 'checked_in'])
+                ).all()
+                for b in bookings_to_complete:
+                    b.status = 'completed'
+                    try:
+                        msg = (
+                            f"Maua Shark: Trip completed. Thank you for traveling with us, {b.passenger_name}. "
+                            f"We appreciate you and welcome you to ride with MAUA SHARK again."
+                        )
+                        user_email = b.user.email if b.user and hasattr(b.user, 'email') else None
+                        send_sms(b.passenger_phone, msg, user_email=user_email)
+                    except Exception:
+                        pass
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+                # Swallow error but log it
+                try:
+                    from flask import current_app
+                    current_app.logger.error('Failed to auto-complete bookings for trip %s', trip.id)
+                except Exception:
+                    pass
         flash('Trip status updated.', 'success')
     except Exception:
         db.session.rollback()
         flash('Failed to update trip.', 'danger')
+    # If marked completed, take user to completed trips page
+    if new_status == 'completed':
+        return redirect(url_for('staff.trips_completed'))
     return redirect(url_for('staff.trips_list'))
+
+
+@staff_bp.route('/trips/completed')
+@login_required
+@staff_required
+def trips_completed():
+    trips = Trip.query.filter_by(status='completed').order_by(Trip.depart_at.desc()).limit(500).all()
+    return render_template('staff/trips_completed.html', trips=trips)
+
+
+@staff_bp.route('/trips/completed/export_pdf', methods=['POST'])
+@login_required
+@staff_required
+def trips_completed_export_pdf():
+    # Fetch completed trips to export
+    trips = Trip.query.filter_by(status='completed').order_by(Trip.depart_at.asc()).all()
+    if not trips:
+        flash('No completed trips to export.', 'info')
+        return redirect(url_for('staff.trips_completed'))
+
+    # Generate PDF in-memory
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+
+    margin_left = 40
+    margin_top = height - 40
+    line_height = 16
+
+    pdf.setTitle('Completed Trips')
+    pdf.setFont('Helvetica-Bold', 14)
+    pdf.drawString(margin_left, margin_top, 'Completed Trips Export')
+    pdf.setFont('Helvetica', 10)
+    y = margin_top - 24
+
+    for idx, t in enumerate(trips, start=1):
+        lines = [
+            f"#{idx} Trip ID: {t.id}",
+            f"Route: {t.route.origin.town} -> {t.route.destination.town}",
+            f"Departs: {t.depart_at.strftime('%Y-%m-%d %H:%M') if t.depart_at else ''}",
+            f"Vehicle: {getattr(t.vehicle, 'plate_no', '')} ({getattr(t.vehicle, 'make', '')} {getattr(t.vehicle, 'model', '')})",
+            f"Driver: {t.driver_name or ''} | Phone: {t.driver_phone or ''}",
+            f"Base Fare: {t.base_fare} | Status: {t.status}",
+        ]
+        for line in lines:
+            if y < 60:
+                pdf.showPage()
+                pdf.setFont('Helvetica', 10)
+                y = margin_top
+            pdf.drawString(margin_left, y, line)
+            y -= line_height
+        # spacer
+        y -= 8
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+
+    # After generating, delete the completed trips
+    try:
+        for t in trips:
+            db.session.delete(t)
+        db.session.commit()
+        flash('Exported and cleared completed trips.', 'success')
+    except Exception:
+        db.session.rollback()
+        flash('Export successful, but failed to clear completed trips.', 'warning')
+
+    return send_file(
+        buffer,
+        as_attachment=True,
+        download_name=f"completed_trips_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.pdf",
+        mimetype='application/pdf'
+    )
 
 
 @staff_bp.route('/vehicles')
