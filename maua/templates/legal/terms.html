@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4 contrast-scope">
+  <h2 class="mb-2 section-heading-contrast">Terms of Service</h2>
+  <p class="mb-4 section-text-contrast">Last updated: {{ now.strftime('%Y-%m-%d') if now else '' }}</p>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">1. Bookings</h5>
+      <p class="card-text">All bookings are subject to availability and confirmation upon payment or approval.</p>
+
+      <h5 class="card-title mt-4">2. Cancellations & Refunds</h5>
+      <p class="card-text">Cancellations may attract fees. Refunds follow company policy and applicable law.</p>
+
+      <h5 class="card-title mt-4">3. Conduct</h5>
+      <p class="card-text">Passengers must follow staff instructions and safety rules during travel.</p>
+    </div>
+  </div>
+
+  <a href="{{ url_for('main.home') }}" class="btn btn-contrast-outline">Back to Home</a>
+</div>
+{% endblock %}
+
+

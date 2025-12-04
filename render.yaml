@@ -1,0 +1,31 @@
+# render.yaml
+
+services:
+  - type: web
+    name: maua-sacco
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn -c gunicorn.conf.py wsgi:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.8
+      - key: FLASK_ENV
+        value: production
+      - key: FLASK_APP
+        value: wsgi.py
+      - key: SECRET_KEY
+        value: be8b97bc83215c5b8b661e27a8f2e2635eba3e6d7b2b387812e170f221fdb393
+      - key: MAIL_SERVER
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USE_TLS
+        value: 'true'
+      - key: MAIL_USERNAME
+        value: kariukistephen964@gmail.com
+      - key: MAIL_PASSWORD
+        value: lszd yuds pgry pesv
+      - key: MAIL_DEFAULT_SENDER
+        value: kariukistephen964@gmail.com
+    plan: free
+    autoDeploy: true

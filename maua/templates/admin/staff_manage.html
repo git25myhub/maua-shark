@@ -1,0 +1,123 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-heading-contrast mb-0">
+        <i class="fas fa-users-cog me-2"></i>Staff Management
+    </h2>
+    <a href="{{ url_for('admin.staff_create') }}" class="btn btn-primary">
+        <i class="fas fa-user-plus me-2"></i>Add Staff Member
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in staff_members %}
+                    <tr>
+                        <td>
+                            <strong>{{ staff.username }}</strong>
+                            {% if staff.id == current_user.id %}
+                            <span class="badge bg-info ms-1">You</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ staff.email }}</td>
+                        <td>{{ staff.phone }}</td>
+                        <td>
+                            {% if staff.is_admin %}
+                            <span class="badge bg-danger"><i class="fas fa-crown me-1"></i>Admin</span>
+                            {% else %}
+                            <span class="badge bg-primary"><i class="fas fa-user-tie me-1"></i>Staff</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if staff.is_active %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary"><i class="fas fa-ban me-1"></i>Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ staff.date_joined.strftime('%b %d, %Y') if staff.date_joined else 'N/A' }}</td>
+                        <td class="text-end">
+                            {% if staff.id != current_user.id %}
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('admin.staff_edit', user_id=staff.id) }}" 
+                                   class="btn btn-outline-primary" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form action="{{ url_for('admin.staff_toggle', user_id=staff.id) }}" 
+                                      method="POST" class="d-inline">
+                                    <button type="submit" 
+                                            class="btn btn-outline-{{ 'warning' if staff.is_active else 'success' }}"
+                                            title="{{ 'Deactivate' if staff.is_active else 'Activate' }}">
+                                        <i class="fas fa-{{ 'ban' if staff.is_active else 'check' }}"></i>
+                                    </button>
+                                </form>
+                                {% if not staff.is_admin %}
+                                <form action="{{ url_for('admin.staff_delete', user_id=staff.id) }}" 
+                                      method="POST" class="d-inline"
+                                      onsubmit="return confirm('Are you sure you want to delete this staff account?');">
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-2 d-block"></i>
+                            No staff members found. Click "Add Staff Member" to create one.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-info-circle me-2"></i>Role Permissions
+            </div>
+            <div class="card-body">
+                <h6><span class="badge bg-primary">Staff</span></h6>
+                <ul class="small mb-3">
+                    <li>Manage bookings (view, update status)</li>
+                    <li>Create and manage parcels</li>
+                    <li>Manage trips</li>
+                    <li>View customer information</li>
+                </ul>
+                <h6><span class="badge bg-danger">Admin</span></h6>
+                <ul class="small mb-0">
+                    <li>All staff permissions</li>
+                    <li>Manage staff accounts</li>
+                    <li>Manage routes, depots, vehicles</li>
+                    <li>System configuration</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

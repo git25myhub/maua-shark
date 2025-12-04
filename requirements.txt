@@ -1,0 +1,41 @@
+# Core Flask and Extensions
+Flask==2.3.3
+Flask-Login==0.6.2
+Flask-SQLAlchemy>=2.5.1
+Flask-Migrate==4.0.4
+Flask-WTF==1.1.1
+Flask-Bcrypt==1.0.1
+Flask-Mail==0.9.1
+
+# Database
+SQLAlchemy>=2.0.0
+alembic==1.12.1
+psycopg2-binary>=2.9.9
+
+# Authentication
+email-validator==2.1.0.post1
+
+# Forms
+WTForms==3.0.1
+
+# Environment & Configuration
+python-dotenv==1.0.0
+
+# Utilities
+qrcode==7.4.2
+Pillow>=10.0.0  # Updated for Python 3.13 compatibility
+requests==2.31.0
+pytz==2023.3
+reportlab==4.2.2
+twilio==9.0.0
+
+# Production
+gunicorn==21.2.0
+
+# Development
+Werkzeug==2.3.7
+greenlet>=3.0.0
+pytest==7.4.0
+pytest-cov==4.1.0
+black==23.7.0
+flake8==6.1.0

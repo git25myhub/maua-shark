@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-credit-card me-2"></i>Complete Payment</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Booking Summary -->
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Booking Summary</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Passenger:</strong> {{ booking.passenger_name }}</p>
+                                <p class="mb-1"><strong>Phone:</strong> {{ booking.passenger_phone }}</p>
+                                <p class="mb-1"><strong>Seat:</strong> <span class="badge bg-primary">{{ booking.seat_number }}</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>
+                                <p class="mb-1"><strong>Date:</strong> {{ trip.depart_at.strftime('%A, %B %d, %Y') }}</p>
+                                <p class="mb-1"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Total Amount</h5>
+                            <h4 class="mb-0 text-primary">KES {{ "%.2f"|format(booking.fare) }}</h4>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <form method="POST" novalidate class="needs-validation">
+                        <div class="mb-4">
+                            <h5>Payment Method</h5>
+                            <div class="card border-primary">
+                                <div class="card-body">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <i class="fas fa-mobile-alt fa-2x text-primary"></i>
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">M-Pesa STK Push</h6>
+                                            <p class="text-muted mb-0">Pay securely using your M-Pesa mobile money account</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="phone" class="form-label">M-Pesa Phone Number</label>
+                            <div class="input-group">
+                                <span class="input-group-text">+254</span>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       id="phone" 
+                                       name="phone" 
+                                       placeholder="712345678" 
+                                       value="{{ booking.passenger_phone if booking.passenger_phone.startswith('0') else booking.passenger_phone[3:] if booking.passenger_phone.startswith('254') else booking.passenger_phone }}"
+                                       required>
+                            </div>
+                            <div class="form-text">Enter your M-Pesa registered phone number (without +254)</div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Important:</strong> After clicking "Pay Now", you will receive an STK push notification on your phone. 
+                            Please enter your M-Pesa PIN to complete the payment.
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('booking.book', trip_id=trip.id) }}" 
+                               class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Seat Selection
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Pay Now - KES {{ "%.2f"|format(booking.fare) }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Payment Security Info -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6 class="card-title"><i class="fas fa-shield-alt me-2"></i>Payment Security</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-lock fa-2x text-success mb-2"></i>
+                                <h6>Secure</h6>
+                                <small class="text-muted">256-bit SSL encryption</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-mobile-alt fa-2x text-primary mb-2"></i>
+                                <h6>M-Pesa</h6>
+                                <small class="text-muted">Safaricom's secure platform</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                                <h6>Verified</h6>
+                                <small class="text-muted">Instant confirmation</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-format phone number
+document.getElementById('phone').addEventListener('input', function(e) {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.startsWith('0')) {
+        value = value.substring(1);
+    }
+    e.target.value = value;
+});
+</script>
+{% endblock %}

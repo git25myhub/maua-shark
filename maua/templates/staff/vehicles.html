@@ -1,0 +1,21 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2 class="mb-3">Vehicles</h2>
+  <table class="table">
+    <thead><tr><th>Plate</th><th>Make/Model</th><th>Seats</th><th>Actions</th></tr></thead>
+    <tbody>
+      {% for v in vehicles %}
+      <tr>
+        <td>{{ v.plate_no }}</td>
+        <td>{{ v.make }} {{ v.model }}</td>
+        <td>{{ v.seat_count }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('staff.vehicle_seat_layout', vehicle_id=v.id) }}">Edit Seats</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

@@ -1,0 +1,28 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Edit Vehicle</h2>
+  <form method="post" class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Plate No</label>
+      <input class="form-control" name="plate_no" value="{{ vehicle.plate_no }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Make</label>
+      <input class="form-control" name="make" value="{{ vehicle.make or '' }}">
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Model</label>
+      <input class="form-control" name="model" value="{{ vehicle.model or '' }}">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Seats (space-separated)</label>
+      <input class="form-control" name="seats" value="{{ seats_text }}" placeholder="1A 1B 2A 2B">
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('admin.vehicles_manage') }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
+
+

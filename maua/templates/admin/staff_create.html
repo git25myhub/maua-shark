@@ -1,0 +1,91 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-heading-contrast mb-0">
+        <i class="fas fa-user-plus me-2"></i>Add Staff Member
+    </h2>
+    <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to List
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>New Staff Account</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin.staff_create') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   required placeholder="e.g., john_staff">
+                            <div class="form-text">Must be unique. Used for login.</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   required placeholder="e.g., john@mauasacco.com">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="phone" name="phone" 
+                                   required placeholder="e.g., 0712345678">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   required minlength="6" placeholder="Min 6 characters">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Role <span class="text-danger">*</span></label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 border">
+                                    <input class="form-check-input" type="radio" name="role" 
+                                           id="role_staff" value="staff" checked>
+                                    <label class="form-check-label" for="role_staff">
+                                        <strong><i class="fas fa-user-tie me-1"></i> Staff</strong>
+                                        <p class="mb-0 small text-muted">
+                                            Can manage bookings, parcels, and trips
+                                        </p>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check card p-3 border">
+                                    <input class="form-check-input" type="radio" name="role" 
+                                           id="role_admin" value="admin">
+                                    <label class="form-check-label" for="role_admin">
+                                        <strong><i class="fas fa-crown me-1"></i> Admin</strong>
+                                        <p class="mb-0 small text-muted">
+                                            Full access including staff management
+                                        </p>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

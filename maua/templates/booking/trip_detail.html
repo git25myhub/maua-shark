@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3">
+    <div class="row g-4">
+        <div class="col-lg-7">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-chair me-2"></i>Trip {{ trip_id }} – Select Seat</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('booking.reserve') }}" class="needs-validation" novalidate>
+                        <input type="hidden" name="trip_id" value="{{ trip_id }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label" for="seat_number">Seat Number</label>
+                                <input type="text" class="form-control" id="seat_number" name="seat_number" required placeholder="e.g. 7">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="fare">Fare (KES)</label>
+                                <input type="number" class="form-control" id="fare" name="fare" required>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-ticket-alt me-2"></i>Reserve Seat</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-th me-2"></i>Occupied Seats</h6>
+                </div>
+                <div class="card-body">
+                    {% if taken_seats and taken_seats|length > 0 %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for seat in taken_seats %}
+                                <span class="badge badge-red">{{ seat }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted mb-0">No seats are taken yet. Pick any available seat.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

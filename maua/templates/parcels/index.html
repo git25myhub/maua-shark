@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container contrast-scope">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0"><i class="fas fa-box me-2"></i>Your Parcels</h4>
+        <a href="{{ url_for('parcels.create') }}" class="btn btn-primary"><i class="fas fa-plus me-2"></i>Create Parcel</a>
+    </div>
+    {% if parcels %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-contrast">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Sender</th>
+                            <th>Receiver</th>
+                            <th>Origin</th>
+                            <th>Destination</th>
+                            <th>Weight (kg)</th>
+                            <th>Status</th>
+                            <th>Photo</th>
+                            <th>Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in parcels %}
+                        <tr>
+                            <td class="cell-strong">{{ p.ref_code }}</td>
+                            <td class="cell-muted">{{ p.sender_name }}</td>
+                            <td class="cell-muted">{{ p.receiver_name }}</td>
+                            <td>{{ p.origin_name }}</td>
+                            <td>{{ p.destination_name }}</td>
+                            <td>{{ '%.1f'|format(p.weight_kg or 0) }}</td>
+                            <td><span class="badge badge-status badge-{{ p.status }}">{{ p.status }}</span></td>
+                            <td>
+                                {% if p.photo_filename %}
+                                <img src="{{ url_for('static', filename='uploads/parcels/' ~ p.photo_filename) }}" alt="parcel photo" style="width:56px;height:40px;object-fit:cover;border-radius:4px;"/>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at }}</td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a class="btn btn-sm btn-outline-light" href="{{ url_for('parcels.track') }}?ref={{ p.ref_code }}">Track</a>
+                                    {% if p.payment_status == 'paid' %}
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ url_for('parcels.receipt', parcel_id=p.id) }}">
+                                        <i class="fas fa-download me-1"></i>Receipt
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No parcels yet. Create your first one.</div>
+    {% endif %}
+</div>
+{% endblock %}
+

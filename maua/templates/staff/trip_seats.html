@@ -1,0 +1,153 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2>Trip Seats - #{{ trip.id }} ({{ trip.vehicle.plate_no }})</h2>
+  <p><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }} | <strong>Departs:</strong> {{ trip.depart_at.strftime('%Y-%m-%d %H:%M') }}</p>
+  <div class="mb-2">
+    <span class="badge bg-success">Green = Checked-in</span>
+    <span class="badge bg-primary">Blue = Booked</span>
+    <span class="badge bg-danger">Red = Available</span>
+  </div>
+  <div class="d-flex flex-wrap gap-2" id="seat-grid" data-trip-id="{{ trip.id }}">
+    {% for s in seat_layout %}
+      {% set code = s['seat'] %}
+      {% set b = seat_to_booking.get(code) %}
+      {% set color = 'danger' %}
+      {% if b %}
+        {% if b.status in ['checked_in','completed'] %}
+          {% set color = 'success' %}
+        {% else %}
+          {% set color = 'primary' %}
+        {% endif %}
+      {% endif %}
+      <div class="badge bg-{{ color }} seat-badge" data-seat="{{ code }}" style="min-width:64px; cursor:pointer">
+        {{ code }}
+        {% if b and b.status not in ['checked_in','completed'] %}
+          <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" style="display:inline">
+            <button class="btn btn-sm btn-light" type="submit">Check in</button>
+          </form>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+  <div class="mt-3">
+    <a class="btn btn-outline-secondary" href="{{ url_for('staff.trips_list') }}">Back</a>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="seatInfoModal" tabindex="-1" aria-labelledby="seatInfoLabel" aria-hidden="true" data-bs-backdrop="false" data-bs-keyboard="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title mb-0" id="seatInfoLabel">Seat Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body bg-light">
+          <div id="seatInfoBody" class="seat-info-body">
+            <div class="text-center py-4 text-muted">Loading…</div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const grid = document.getElementById('seat-grid');
+      const tripId = grid.getAttribute('data-trip-id');
+      const modalEl = document.getElementById('seatInfoModal');
+      const modal = new bootstrap.Modal(modalEl, { backdrop: false, keyboard: true, focus: true });
+      const body = document.getElementById('seatInfoBody');
+      const titleEl = document.getElementById('seatInfoLabel');
+
+      grid.addEventListener('click', async function (e) {
+        const target = e.target.closest('.seat-badge');
+        if (!target) return;
+        const seat = target.getAttribute('data-seat');
+        titleEl.textContent = `Seat Details — ${seat}`;
+        body.innerHTML = '<div class="text-center py-4 text-muted">Loading…</div>';
+        modal.show();
+        try {
+          const res = await fetch(`/staff/trips/${tripId}/seats/${seat}/booking.json`, { headers: { 'Accept': 'application/json' } });
+          if (!res.ok) {
+            body.innerHTML = `
+              <div class="p-3 bg-white rounded shadow-sm">
+                <div class="d-flex align-items-center">
+                  <div class="me-3 display-6">✅</div>
+                  <div>
+                    <div class="fs-5 fw-semibold">Seat ${seat} is Available</div>
+                    <div class="text-muted">No booking found for this seat.</div>
+                  </div>
+                </div>
+              </div>`;
+            return;
+          }
+          const data = await res.json();
+          if (!data.found) {
+            body.innerHTML = `
+              <div class="p-3 bg-white rounded shadow-sm">
+                <div class="d-flex align-items-center">
+                  <div class="me-3 display-6">✅</div>
+                  <div>
+                    <div class="fs-5 fw-semibold">Seat ${seat} is Available</div>
+                    <div class="text-muted">No booking found for this seat.</div>
+                  </div>
+                </div>
+              </div>`;
+            return;
+          }
+          const b = data.booking;
+          const statusBadgeClass = (s => {
+            if (['checked_in','completed'].includes(s)) return 'bg-success';
+            if (['confirmed','reserved','pending_payment'].includes(s)) return 'bg-primary';
+            if (['cancelled'].includes(s)) return 'bg-secondary';
+            return 'bg-dark';
+          })(b.status || '');
+
+          body.innerHTML = `
+            <div class="p-3 bg-white rounded shadow-sm">
+              <div class="row g-3 align-items-center">
+                <div class="col-md-6">
+                  <div class="fw-semibold text-uppercase small text-muted">Seat</div>
+                  <div class="fs-5 fw-bold">${b.seat_number}</div>
+                </div>
+                <div class="col-md-6 text-md-end">
+                  <span class="badge ${statusBadgeClass} fs-6">${(b.status || '').replace('_',' ') || '—'}</span>
+                </div>
+              </div>
+              <hr/>
+              <div class="row g-2">
+                <div class="col-sm-6"><div class="seat-label">Passenger</div><div class="seat-value">${b.passenger_name}</div></div>
+                <div class="col-sm-6"><div class="seat-label">Phone</div><div class="seat-value">${b.passenger_phone}</div></div>
+                <div class="col-sm-6"><div class="seat-label">Gender / Age</div><div class="seat-value">${b.passenger_sex}, ${b.passenger_age}</div></div>
+                <div class="col-sm-6"><div class="seat-label">National ID</div><div class="seat-value">${b.passenger_id_number}</div></div>
+                <div class="col-sm-12"><div class="seat-label">Pickup Location</div><div class="seat-value">${b.pickup_location || '—'}</div></div>
+              </div>
+              <hr/>
+              <div class="row g-2">
+                <div class="col-sm-6"><div class="seat-label">Route</div><div class="seat-value">${b.route || data.route || '—'}</div></div>
+                <div class="col-sm-6"><div class="seat-label">Depart</div><div class="seat-value">${(b.depart_at ? new Date(b.depart_at) : (data.depart_at ? new Date(data.depart_at) : null)) ? new Date(b.depart_at || data.depart_at).toLocaleString() : '—'}</div></div>
+                <div class="col-sm-6"><div class="seat-label">Vehicle</div><div class="seat-value">${b.vehicle_plate || data.vehicle_plate || '—'} ${((b.vehicle_make||data.vehicle_make) && (b.vehicle_model||data.vehicle_model)) ? '('+(b.vehicle_make||data.vehicle_make)+' '+(b.vehicle_model||data.vehicle_model)+')' : ''}</div></div>
+                <div class="col-sm-6"><div class="seat-label">Driver</div><div class="seat-value">${b.driver_name || data.driver_name || '—'} ${(b.driver_phone || data.driver_phone) ? '— '+(b.driver_phone || data.driver_phone) : ''}</div></div>
+                <div class="col-sm-6"><div class="seat-label">Reference</div><div class="seat-value">${b.reference}</div></div>
+              </div>
+            </div>`;
+        } catch (err) {
+          body.innerHTML = `<div class="alert alert-danger">Error loading seat details.</div>`;
+        }
+      });
+    });
+  </script>
+
+  <style>
+    /* Make modal non-blocking and remove any dark overlay */
+    .modal-backdrop { opacity: 0 !important; display: none !important; }
+    .seat-info-body .seat-label { color: #0d6efd; font-weight: 600; font-size: 0.9rem; }
+    .seat-info-body .seat-value { font-weight: 600; color: #212529; }
+    .modal-content { box-shadow: 0 0.75rem 1.5rem rgba(0,0,0,.25); }
+  </style>
+{% endblock %}
+
+

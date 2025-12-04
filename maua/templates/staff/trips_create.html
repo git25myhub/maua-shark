@@ -1,0 +1,44 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2 class="mb-3">Create Trip</h2>
+  <form method="post">
+    <div class="mb-3">
+      <label class="form-label">Route</label>
+      <select class="form-select" name="route_id" required>
+        {% for r in routes %}
+          <option value="{{ r.id }}">{{ r.origin.town }} → {{ r.destination.town }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Vehicle</label>
+      <select class="form-select" name="vehicle_id" required>
+        {% for v in vehicles %}
+          <option value="{{ v.id }}">{{ v.plate_no }} ({{ v.make }} {{ v.model }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Depart at</label>
+      <input class="form-control" type="datetime-local" name="depart_at" required>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Base Fare (KES)</label>
+      <input class="form-control" type="number" step="0.01" name="base_fare" required>
+    </div>
+    <div class="row">
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Driver Name</label>
+        <input class="form-control" type="text" name="driver_name" placeholder="e.g. John Mwangi">
+      </div>
+      <div class="col-md-6 mb-3">
+        <label class="form-label">Driver Phone</label>
+        <input class="form-control" type="tel" name="driver_phone" placeholder="e.g. +254712345678">
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>Create</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('staff.trips_list') }}">Cancel</a>
+  </form>
+{% endblock %}
+
+

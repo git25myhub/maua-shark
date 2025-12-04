@@ -1,0 +1,43 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Manage Routes</h2>
+  <form method="post" class="row g-3 mb-4">
+    <div class="col-md-3">
+      <input class="form-control mb-2" name="code" placeholder="e.g. NRB-MSA" required>
+      <small class="text-muted">Route Code (e.g., NRB-MSA)</small>
+    </div>
+    <div class="col-md-4">
+      <input class="form-control mb-2" name="origin" placeholder="e.g. Nairobi - CBD" required>
+      <small class="text-muted">Origin (Town - Location)</small>
+    </div>
+    <div class="col-md-4">
+      <input class="form-control mb-2" name="destination" placeholder="e.g. Mombasa - CBD" required>
+      <small class="text-muted">Destination (Town - Location)</small>
+    </div>
+    <div class="col-md-1 d-flex align-items-end">
+      <button class="btn btn-primary w-100" type="submit" title="Add Route">
+        <i class="fas fa-plus"></i> Add
+      </button>
+    </div>
+  </form>
+  <table class="table">
+    <thead><tr><th>Code</th><th>Origin</th><th>Destination</th><th></th></tr></thead>
+    <tbody>
+      {% for r in routes %}
+      <tr>
+        <td>{{ r.code }}</td>
+        <td>{{ r.origin.town }} - {{ r.origin.name }}</td>
+        <td>{{ r.destination.town }} - {{ r.destination.name }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.routes_edit', route_id=r.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin.routes_delete', route_id=r.id) }}" onsubmit="return confirm('Delete route?')">
+            <button class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

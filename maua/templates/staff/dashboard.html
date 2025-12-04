@@ -1,0 +1,18 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2 class="mb-3 section-heading-contrast">Staff Dashboard</h2>
+  <div class="grid">
+    <div class="card">Bookings: {{ booking_count }}</div>
+    <div class="card">Parcels: {{ parcel_count }}</div>
+    <div class="card">Active Trips: {{ active_trips }}</div>
+  </div>
+  <div class="mt-3 d-flex flex-wrap gap-2">
+    <a class="btn btn-primary btn-lg btn-cta-contrast" href="{{ url_for('staff.trips_list') }}"><i class="fas fa-route me-1"></i> Manage Trips</a>
+    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.bookings_list') }}"><i class="fas fa-ticket-alt me-1"></i> Bookings</a>
+    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.parcels_list') }}"><i class="fas fa-box me-1"></i> Parcels</a>
+    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.vehicles_list') }}"><i class="fas fa-van-shuttle me-1"></i> Vehicles</a>
+    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.customers_list') }}"><i class="fas fa-users me-1"></i> Customers</a>
+  </div>
+{% endblock %}
+
+

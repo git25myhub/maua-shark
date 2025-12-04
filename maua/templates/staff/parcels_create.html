@@ -1,0 +1,149 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="section-heading-contrast mb-0">
+        <i class="fas fa-box me-2"></i>Register New Parcel
+    </h2>
+    <a href="{{ url_for('staff.parcels_list') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i>Back to Parcels
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-edit me-2"></i>Parcel Details</h5>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('staff.parcels_create') }}" enctype="multipart/form-data">
+            <!-- Sender Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Sender Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="sender_name" class="form-label">Sender Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="sender_name" name="sender_name" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sender_phone" class="form-label">Sender Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="sender_phone" name="sender_phone" 
+                                   required placeholder="e.g., 0712345678">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="sender_id_number" class="form-label">Sender ID Number</label>
+                            <input type="text" class="form-control" id="sender_id_number" name="sender_id_number" 
+                                   placeholder="National ID">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Receiver Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-user-check me-2"></i>Receiver Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="receiver_name" class="form-label">Receiver Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="receiver_name" name="receiver_name" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="receiver_phone" class="form-label">Receiver Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control" id="receiver_phone" name="receiver_phone" 
+                                   required placeholder="e.g., 0712345678">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="receiver_id_number" class="form-label">Receiver ID Number</label>
+                            <input type="text" class="form-control" id="receiver_id_number" name="receiver_id_number" 
+                                   placeholder="National ID">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Parcel Details -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-box-open me-2"></i>Parcel Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="origin_name" class="form-label">Origin (From) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="origin_name" name="origin_name" 
+                                   required placeholder="e.g., Nairobi">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="destination_name" class="form-label">Destination (To) <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="destination_name" name="destination_name" 
+                                   required placeholder="e.g., Mombasa">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="weight_kg" class="form-label">Weight (kg)</label>
+                            <input type="number" class="form-control" id="weight_kg" name="weight_kg" 
+                                   step="0.1" min="0" placeholder="0.0">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="price" class="form-label">Price (KES) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="price" name="price" 
+                                   required min="0" step="1" placeholder="e.g., 500">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="parcel_photo" class="form-label">Parcel Photo</label>
+                            <input type="file" class="form-control" id="parcel_photo" name="parcel_photo" 
+                                   accept="image/*">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Payment Method</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check card p-3 border mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="payment_cash" value="cash" checked>
+                                <label class="form-check-label" for="payment_cash">
+                                    <strong><i class="fas fa-money-bill-alt me-2 text-success"></i>Cash Payment</strong>
+                                    <p class="mb-0 small text-muted">Customer pays cash at counter</p>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check card p-3 border mb-2">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="payment_mpesa" value="mpesa">
+                                <label class="form-check-label" for="payment_mpesa">
+                                    <strong><i class="fas fa-mobile-alt me-2 text-success"></i>M-Pesa</strong>
+                                    <p class="mb-0 small text-muted">Customer will pay via M-Pesa STK push</p>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{{ url_for('staff.parcels_list') }}" class="btn btn-outline-secondary btn-lg">
+                    Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-check me-2"></i>Register Parcel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

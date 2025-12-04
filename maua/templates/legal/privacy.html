@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4 contrast-scope">
+  <h2 class="mb-2 section-heading-contrast">Privacy Policy</h2>
+  <p class="mb-4 section-text-contrast">Last updated: {{ now.strftime('%Y-%m-%d') if now else '' }}</p>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <p class="card-text">We collect only necessary data to provide booking and parcel services. We do not sell your personal information. You can request data access or deletion by contacting support.</p>
+      <h5 class="card-title mt-4">Data We Collect</h5>
+      <ul>
+        <li>Account details (name, phone, email)</li>
+        <li>Booking and parcel transaction information</li>
+        <li>Device and usage data for security and performance</li>
+      </ul>
+      <h5 class="card-title mt-4">Your Rights</h5>
+      <ul>
+        <li>Access, correct, or delete your personal data</li>
+        <li>Withdraw consent where applicable</li>
+        <li>Lodge a complaint with your data protection authority</li>
+      </ul>
+    </div>
+  </div>
+
+  <a href="{{ url_for('main.home') }}" class="btn btn-contrast-outline">Back to Home</a>
+</div>
+{% endblock %}
+
+

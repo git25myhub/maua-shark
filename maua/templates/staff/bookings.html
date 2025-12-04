@@ -1,0 +1,74 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h2 class="mb-0">Bookings</h2>
+      {% if selected_trip %}
+        <div class="text-muted small">Route: {{ selected_trip.route.origin.town }} → {{ selected_trip.route.destination.town }} ({{ selected_trip.route.code }})</div>
+        <div class="text-muted small">Vehicle: {{ selected_trip.vehicle.plate_no }} • Departs {{ selected_trip.depart_at.strftime('%Y-%m-%d %H:%M') }}</div>
+      {% endif %}
+    </div>
+    <form method="get" class="d-flex gap-2 align-items-center flex-wrap">
+      <input type="hidden" name="trip_id" value="{{ selected_trip.id if selected_trip else '' }}">
+      <select name="status" class="form-select form-select-sm" style="width:auto">
+        <option value="">All</option>
+        {% for s in ['confirmed','reserved','checked_in','cancelled','completed'] %}
+        <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+      <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+      <a href="{{ url_for('staff.bookings_routes') }}" class="btn btn-sm btn-outline-secondary">Change route</a>
+    </form>
+  </div>
+  <form method="get" class="mb-3">
+    
+  </form>
+  <div class="table-responsive">
+  <table class="table table-sm align-middle table-contrast">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Trip</th>
+        <th>Passenger</th>
+        <th>Phone</th>
+        <th>ID Number</th>
+        <th>Seat</th>
+        <th>Status</th>
+        <th>Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in bookings %}
+      <tr>
+        <td class="text-nowrap">{{ b.id }}</td>
+        <td class="text-nowrap">#{{ b.trip_id }}</td>
+        <td class="small">{{ b.passenger_name }}</td>
+        <td class="text-nowrap">{{ b.passenger_phone }}</td>
+        <td class="text-nowrap">{{ b.passenger_id_number }}</td>
+        <td class="text-nowrap">{{ b.seat_number }}</td>
+        <td class="text-nowrap">{{ b.status }}</td>
+        <td class="text-nowrap">{{ b.created_at.strftime('%Y-%m-%d %H:%M') if b.created_at else '—' }}</td>
+        <td>
+          <form method="post" action="{{ url_for('staff.bookings_update_status', booking_id=b.id) }}">
+            <select name="status">
+              {% for s in ['confirmed','reserved','checked_in','cancelled','completed'] %}
+              <option value="{{ s }}" {% if b.status == s %}selected{% endif %}>{{ s }}</option>
+              {% endfor %}
+            </select>
+            <button class="btn btn-sm btn-success" type="submit">Update</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% if selected_trip %}
+  <a href="{{ url_for('staff.bookings_route_trips', route_id=selected_trip.route_id) }}" class="btn btn-back mt-3"><i class="fas fa-arrow-left me-2"></i>Back to trips</a>
+  {% else %}
+  <a href="{{ url_for('staff.bookings_routes') }}" class="btn btn-back mt-3"><i class="fas fa-arrow-left me-2"></i>Back to routes</a>
+  {% endif %}
+{% endblock %}
+
+

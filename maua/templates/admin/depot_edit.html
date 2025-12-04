@@ -1,0 +1,28 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Edit Depot</h2>
+  <form method="post" class="row g-3">
+    <div class="col-md-4">
+      <label class="form-label">Name</label>
+      <input class="form-control" name="name" value="{{ depot.name }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Town</label>
+      <input class="form-control" name="town" value="{{ depot.town }}" required>
+    </div>
+    <div class="col-md-4">
+      <label class="form-label">Phone</label>
+      <input class="form-control" name="phone" value="{{ depot.phone or '' }}">
+    </div>
+    <div class="col-12">
+      <label class="form-label">Address</label>
+      <input class="form-control" name="address" value="{{ depot.address or '' }}">
+    </div>
+    <div class="col-12">
+      <button class="btn btn-primary" type="submit">Save</button>
+      <a class="btn btn-outline-secondary" href="{{ url_for('admin.depots_manage') }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}
+
+

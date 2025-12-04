@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-clock me-2"></i>Payment Status</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Booking Summary -->
+                    <div class="alert alert-light">
+                        <h5 class="alert-heading">Booking Details</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Reference:</strong> {{ booking.reference }}</p>
+                                <p class="mb-1"><strong>Passenger:</strong> {{ booking.passenger_name }}</p>
+                                <p class="mb-1"><strong>Seat:</strong> <span class="badge bg-primary">{{ booking.seat_number }}</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>
+                                <p class="mb-1"><strong>Date:</strong> {{ trip.depart_at.strftime('%A, %B %d, %Y') }}</p>
+                                <p class="mb-1"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Amount</h5>
+                            <h4 class="mb-0 text-primary">KES {{ "%.2f"|format(booking.fare) }}</h4>
+                        </div>
+                    </div>
+
+                    <!-- Payment Status -->
+                    <div id="payment-status" class="text-center">
+                        {% if payment.status == 'completed' %}
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle fa-3x mb-3"></i>
+                                <h4>Payment Successful!</h4>
+                                <p class="mb-2">Your booking has been confirmed.</p>
+                                <p class="mb-0"><strong>Transaction ID:</strong> {{ payment.transaction_id }}</p>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="{{ url_for('booking.booking_confirmation', booking_id=booking.id) }}" 
+                                   class="btn btn-success btn-lg">
+                                    <i class="fas fa-ticket-alt me-2"></i>View Booking Confirmation
+                                </a>
+                            </div>
+                        {% elif payment.status == 'failed' %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-times-circle fa-3x mb-3"></i>
+                                <h4>Payment Failed</h4>
+                                <p class="mb-2">{{ failure_message or 'Your payment could not be processed.' }}</p>
+                                <p class="mb-0">Please try again or contact support if the problem persists.</p>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <a href="{{ url_for('booking.payment', booking_id=booking.id) }}" 
+                                   class="btn btn-primary me-md-2">
+                                    <i class="fas fa-redo me-2"></i>Try Payment Again
+                                </a>
+                                <a href="{{ url_for('booking.book', trip_id=trip.id) }}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Select Different Seat
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-warning">
+                                <i class="fas fa-clock fa-3x mb-3"></i>
+                                <h4>Payment Pending</h4>
+                                <p class="mb-2">Please check your phone and enter your M-Pesa PIN to complete the payment.</p>
+                                <p class="mb-0">This page will automatically update when payment is confirmed.</p>
+                            </div>
+                            
+                            <!-- Loading Animation -->
+                            <div class="text-center mb-4">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-2">Waiting for payment confirmation...</p>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                                <button onclick="checkPaymentStatus()" class="btn btn-outline-primary me-md-2">
+                                    <i class="fas fa-sync-alt me-2"></i>Check Status
+                                </button>
+                                <a href="{{ url_for('booking.book', trip_id=trip.id) }}" 
+                                   class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Cancel & Select Different Seat
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Payment Instructions -->
+                    {% if payment.status == 'pending' %}
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h6 class="card-title"><i class="fas fa-info-circle me-2"></i>Payment Instructions</h6>
+                            <ol class="mb-0">
+                                <li>Check your phone for an M-Pesa STK push notification</li>
+                                <li>Enter your M-Pesa PIN when prompted</li>
+                                <li>Wait for the payment confirmation</li>
+                                <li>This page will automatically update once payment is confirmed</li>
+                            </ol>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if payment.status == 'pending' %}
+<script>
+function checkPaymentStatus() {
+    fetch(`/payments/status/{{ payment.id }}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const paymentData = data.payment;
+                if (paymentData.status === 'completed') {
+                    // Reload page to show success state
+                    window.location.reload();
+                } else if (paymentData.status === 'failed') {
+                    // Reload page to show failure state
+                    window.location.reload();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error checking payment status:', error);
+        });
+}
+
+// Auto-check payment status every 15 seconds (reduced frequency)
+setInterval(checkPaymentStatus, 15000);
+
+// Check status on page load
+document.addEventListener('DOMContentLoaded', function() {
+    checkPaymentStatus();
+});
+</script>
+{% endif %}
+{% endblock %}

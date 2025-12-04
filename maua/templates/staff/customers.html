@@ -1,0 +1,19 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <h2 class="mb-3">Customers (Passengers)</h2>
+  <table class="table">
+    <thead><tr><th>Passenger</th><th>Phone</th><th>Bookings</th><th>Last Booking</th></tr></thead>
+    <tbody>
+      {% for p in passengers %}
+      <tr>
+        <td>{{ p.name }}</td>
+        <td>{{ p.phone }}</td>
+        <td>{{ p.num_bookings }}</td>
+        <td>{{ p.last_booking_at.strftime('%Y-%m-%d %H:%M') if p.last_booking_at else '-' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

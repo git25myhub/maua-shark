@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h2 class="section-heading-contrast">Available Trips</h2>
+  <p class="section-text-contrast">Select a trip to view seat availability and vehicle details.</p>
+  <div class="list-group">
+    {% for trip in trips %}
+      <a class="list-group-item list-group-item-action" href="{{ url_for('catalog.trip_detail', trip_id=trip.id) }}">
+        <div class="d-flex justify-content-between">
+          <div>
+            <strong>{{ trip.route.origin.town }} → {{ trip.route.destination.town }}</strong>
+            <div class="text-muted">{{ trip.vehicle.plate_no }} • departs {{ trip.depart_at.strftime('%Y-%m-%d %H:%M') }}</div>
+          </div>
+          <div class="text-nowrap">Seats Available: {{ trip.available_seats|length }}</div>
+        </div>
+      </a>
+    {% else %}
+      <div class="alert alert-info">No trips available yet.</div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

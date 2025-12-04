@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-3 contrast-scope">
+    <div class="d-flex align-items-center mb-3">
+        <h2 class="mb-0 me-3">Parcels</h2>
+        <span class="badge badge-teal">Live</span>
+    </div>
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-contrast">
+                    <thead>
+                        <tr>
+                            <th>Ref</th>
+                            <th>Sender</th>
+                            <th>Receiver</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for parcel in parcels %}
+                        <tr>
+                            <td class="cell-strong">{{ parcel.ref_code }}</td>
+                            <td class="cell-muted">{{ parcel.sender_name }}</td>
+                            <td class="cell-muted">{{ parcel.receiver_name }}</td>
+                            <td>
+                                {% set status = parcel.status|lower %}
+                                <span class="badge badge-status badge-{{ status.replace(' ', '_') }}">
+                                    {{ parcel.status }}
+                                </span>
+                            </td>
+                            <td>{{ parcel.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td class="text-end"><a class="btn btn-sm btn-outline-light" href="{{ url_for('parcels.track') }}?ref={{ parcel.ref_code }}">Track</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

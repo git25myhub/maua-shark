@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-chair me-2"></i>Select Your Seat</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading"><i class="fas fa-route me-2"></i>Trip Details</h5>
+                        <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} to {{ trip.route.destination.town }}</p>
+                        <p class="mb-1"><strong>Date:</strong> {{ trip.depart_at.strftime('%A, %B %d, %Y') }}</p>
+                        <p class="mb-1"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
+                        <p class="mb-0"><strong>Vehicle:</strong> {{ trip.vehicle.registration_number }} ({{ trip.vehicle.capacity }} seater)</p>
+                    </div>
+          
+                              <form method="post" id="seatForm" class="mb-4">
+                        {{ form.hidden_tag() }}
+                        <input type="hidden" name="seat_number" id="selectedSeat">
+                        
+                        <div class="bus-layout p-4 border rounded">
+                            <div class="bus-driver text-center mb-4">
+                                <div class="bus-icon">
+                                    <i class="fas fa-bus fa-3x text-muted"></i>
+                                </div>
+                                <div class="driver-text text-muted">Driver's Cabin</div>
+                            </div>
+                            
+                            <div class="bus-layout-kenya" role="radiogroup" aria-label="Seat selection">
+                                {% set total = seat_layout|length %}
+                                {% set back_count = 4 if total >= 10 else (total % 3) %}
+                                {% set front_count = total - back_count %}
+                                {% set rows = seat_layout[:front_count] | batch(3, None) %}
+                                {% set back_row = seat_layout[front_count:] %}
+
+                                {% for row in rows %}
+                                <div class="bus-row">
+                                    {% for s in row[:2] %}
+                                        {% if s is not none %}
+                                            {% set code = s['seat'] %}
+                                            {% set is_taken = code in taken %}
+                                            <div class="seat-container">
+                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                    <span class="seat-number">{{ code }}</span>
+                                                    {% if is_taken %}
+                                                        <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                    {% else %}
+                                                        <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    <div class="aisle" aria-hidden="true"></div>
+                                    {% set s = (row[2] if (row|length) > 2 else None) %}
+                                    {% if s is not none %}
+                                        {% set code = s['seat'] %}
+                                        {% set is_taken = code in taken %}
+                                        <div class="seat-container">
+                                            <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                            <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                <span class="seat-number">{{ code }}</span>
+                                                {% if is_taken %}
+                                                    <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                {% else %}
+                                                    <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+
+                                {% if back_row %}
+                                <div class="bus-row back-row justify-content-center">
+                                    {% for s in back_row %}
+                                        {% set code = s['seat'] %}
+                                        {% set is_taken = code in taken %}
+                                        <div class="seat-container">
+                                            <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                            <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                <span class="seat-number">{{ code }}</span>
+                                                {% if is_taken %}
+                                                    <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                {% else %}
+                                                    <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="bus-exit text-center mt-4 pt-3 border-top" aria-hidden="true">
+                                <i class="fas fa-door-open fa-2x text-muted"></i>
+                                <div class="text-muted">Exit</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Seat Legend</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat-legend available"></div>
+                                <span class="ms-2">Available</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="seat-legend selected"></div>
+                                <span class="ms-2">Selected</span>
+                            </div>
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="seat-legend taken"></div>
+                                <span class="ms-2">Booked</span>
+                            </div>
+                            
+                            <div class="selected-seat-info text-center p-3 bg-light rounded">
+                                <h5 class="mb-2">Your Selection</h5>
+                                <div id="selectedSeatDisplay" class="display-4 fw-bold text-primary mb-2">-</div>
+                                <small class="text-muted d-block mb-3">Click on an available seat to select</small>
+                                
+                                <button type="submit" form="seatForm" class="btn btn-primary btn-lg w-100" id="confirmBtn" disabled>
+                                    <i class="fas fa-arrow-right me-2"></i>Continue to Passenger Details
+                                </button>
+                            </div>
+                            
+                            <div class="d-grid gap-2 mt-4">
+                                <a href="{{ url_for('catalog.trip_detail', trip_id=trip.id) }}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-2"></i>Back to Trip Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.seat-container {
+    position: relative;
+    margin: 5px;
+}
+
+.seat-label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 70px;
+    height: 70px;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.seat-number {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.seat-status {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
+.seat-label.available {
+    background-color: #f8f9fa;
+    color: #198754;
+    border-color: #198754;
+}
+
+.seat-label.available:hover {
+    background-color: #d1e7dd;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.seat-label.selected {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+.seat-label.taken {
+    background-color: #f8d7da;
+    color: #dc3545;
+    border-color: #dc3545;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.seat-label:focus-within {
+    outline: 2px solid #0d6efd;
+    outline-offset: 2px;
+}
+
+.seat-radio {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  background-color: #007bff;
+  color: white;
+  border-color: #0056b3;
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+}
+
+.seat-status {
+  font-size: 0.7rem;
+  font-weight: normal;
+  display: block;
+  margin-top: 2px;
+}
+
+.seat-legend {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.seat-legend.available {
+  background-color: #e9f7ef;
+  border: 1px solid #28a745;
+}
+
+.seat-legend.selected {
+  background-color: #007bff;
+  border: 1px solid #0056b3;
+}
+
+.seat-legend.taken {
+  background-color: #f8d7da;
+  border: 1px solid #dc3545;
+  opacity: 0.7;
+}
+
+.bus-layout {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.bus-driver, .bus-exit {
+  color: #6c757d;
+  padding: 10px;
+  background-color: #e9ecef;
+  border-radius: 8px;
+  margin: 0 auto;
+  max-width: 200px;
+}
+
+.selected-seat-info {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin: 15px 0;
+  padding: 15px;
+  border: 1px dashed #dee2e6;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const radios = document.querySelectorAll('.seat-radio');
+  const confirmBtn = document.getElementById('confirmBtn');
+  const selectedSeatInput = document.getElementById('selectedSeat');
+  const selectedSeatDisplay = document.getElementById('selectedSeatDisplay');
+  const tripId = {{ trip.id }};
+
+  function updateSelectionUI(selectedValue) {
+    // toggle selected class on labels
+    document.querySelectorAll('.seat-label').forEach(label => {
+      if (label.dataset.seat === selectedValue) {
+        label.classList.add('selected');
+        label.classList.remove('available');
+      } else if (!label.classList.contains('taken')) {
+        label.classList.remove('selected');
+        label.classList.add('available');
+      }
+    });
+
+    // update hidden input and display
+    selectedSeatInput.value = selectedValue || '';
+    selectedSeatDisplay.textContent = selectedValue || '-';
+    confirmBtn.disabled = !selectedValue;
+  }
+
+  radios.forEach(radio => {
+    radio.addEventListener('change', function() {
+      updateSelectionUI(this.checked ? this.value : '');
+    });
+  });
+
+  // Initialize form submission validation
+  const form = document.getElementById('seatForm');
+  form.addEventListener('submit', function(e) {
+    // Prefer actual radio selection for submission
+    const anyChecked = Array.from(radios).some(r => r.checked);
+    if (!anyChecked) {
+      e.preventDefault();
+      alert('Please select a seat');
+    }
+  });
+
+  // Live updates via SSE
+  function setSeatTaken(seatCode, taken) {
+    const radio = document.getElementById(`seat-${seatCode}`);
+    const label = document.querySelector(`label[for="seat-${seatCode}"]`);
+    if (!radio || !label) return;
+    if (taken) {
+      radio.disabled = true;
+      label.classList.remove('available', 'selected');
+      label.classList.add('taken');
+    } else {
+      radio.disabled = false;
+      label.classList.remove('taken', 'selected');
+      label.classList.add('available');
+    }
+  }
+
+  try {
+    const es = new EventSource(`{{ url_for('booking.stream_trip_seats', trip_id=trip.id) }}`);
+    es.onmessage = (ev) => {
+      const data = JSON.parse(ev.data);
+      if (!data || !data.seat) return;
+      if (data.type === 'seat_held' || data.type === 'seat_hold_refreshed' || data.type === 'seat_confirmed' || data.type === 'seat_checked_in') {
+        setSeatTaken(data.seat, true);
+      } else if (data.type === 'seat_released' || data.type === 'seat_cancelled') {
+        setSeatTaken(data.seat, false);
+      }
+    };
+  } catch (e) {
+    console.warn('SSE not available', e);
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Manage Depots</h2>
+  <form method="post" class="row g-2 mb-3">
+    <div class="col-md-3"><input class="form-control" name="name" placeholder="Name" required></div>
+    <div class="col-md-3"><input class="form-control" name="town" placeholder="Town" required></div>
+    <div class="col-md-3"><input class="form-control" name="address" placeholder="Address"></div>
+    <div class="col-md-2"><input class="form-control" name="phone" placeholder="Phone"></div>
+    <div class="col-md-1"><button class="btn btn-primary w-100" type="submit">Add</button></div>
+  </form>
+  <table class="table">
+    <thead><tr><th>Name</th><th>Town</th><th>Address</th><th>Phone</th><th></th></tr></thead>
+    <tbody>
+      {% for d in depots %}
+      <tr>
+        <td>{{ d.name }}</td>
+        <td>{{ d.town }}</td>
+        <td>{{ d.address or '' }}</td>
+        <td>{{ d.phone or '' }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.depots_edit', depot_id=d.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin.depots_delete', depot_id=d.id) }}" onsubmit="return confirm('Delete depot?')">
+            <button class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

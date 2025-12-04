@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <aside class="col-lg-3 col-xl-2 mb-3">
+      <div class="list-group shadow-sm">
+        <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint=='admin.dashboard' %}active{% endif %}"><i class="fas fa-gauge me-2"></i>Dashboard</a>
+        <a href="{{ url_for('admin.routes_manage') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.routes_') %}active{% endif %}"><i class="fas fa-route me-2"></i>Routes</a>
+        <a href="{{ url_for('admin.vehicles_manage') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('admin.vehicles_') %}active{% endif %}"><i class="fas fa-van-shuttle me-2"></i>Vehicles</a>
+        <a href="{{ url_for('staff.dashboard') }}" class="list-group-item list-group-item-action"><i class="fas fa-briefcase me-2"></i>Staff</a>
+      </div>
+    </aside>
+    <section class="col-lg-9 col-xl-10 contrast-scope">
+      {% block admin_content %}{% endblock %}
+    </section>
+  </div>
+</div>
+{% endblock %}
+
+

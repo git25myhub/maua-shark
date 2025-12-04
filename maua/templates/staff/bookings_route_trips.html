@@ -1,0 +1,40 @@
+{% extends 'staff/_layout.html' %}
+{% block staff_content %}
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div>
+      <h2 class="mb-0">Select Trip (Car)</h2>
+      <div class="text-muted small">Route: {{ route.origin.town }} → {{ route.destination.town }} ({{ route.code }})</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('staff.bookings_routes') }}" class="btn btn-outline-secondary">Change route</a>
+    </div>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-striped align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>ID</th>
+          <th>Vehicle</th>
+          <th>Driver</th>
+          <th>Departs</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in trips %}
+        <tr>
+          <td>{{ t.id }}</td>
+          <td>{{ t.vehicle.plate_no }}<div class="small text-muted">{{ t.vehicle.make }} {{ t.vehicle.model }}</div></td>
+          <td>{{ t.driver_name or '-' }}<div class="small text-muted">{{ t.driver_phone or '' }}</div></td>
+          <td class="text-nowrap">{{ t.depart_at.strftime('%Y-%m-%d %H:%M') }}</td>
+          <td>{{ t.status }}</td>
+          <td>
+            <a class="btn btn-sm btn-primary" href="{{ url_for('staff.bookings_list', trip_id=t.id) }}">View bookings</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

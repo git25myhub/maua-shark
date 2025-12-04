@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <aside class="col-lg-3 col-xl-2 mb-3">
+      <div class="list-group shadow-sm">
+        <a href="{{ url_for('staff.dashboard') }}" class="list-group-item list-group-item-action {% if request.endpoint=='staff.dashboard' %}active{% endif %}"><i class="fas fa-gauge me-2"></i>Dashboard</a>
+        <a href="{{ url_for('staff.trips_list') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('staff.trips_') and request.endpoint != 'staff.trips_completed' %}active{% endif %}"><i class="fas fa-route me-2"></i>Trips</a>
+        <a href="{{ url_for('staff.trips_completed') }}" class="list-group-item list-group-item-action {% if request.endpoint=='staff.trips_completed' %}active{% endif %}"><i class="fas fa-clipboard-check me-2"></i>Completed Trips</a>
+        <a href="{{ url_for('staff.bookings_routes') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('staff.bookings_') %}active{% endif %}"><i class="fas fa-ticket-alt me-2"></i>Bookings</a>
+        <a href="{{ url_for('staff.parcels_list') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('staff.parcels_') %}active{% endif %}"><i class="fas fa-box me-2"></i>Parcels</a>
+        <a href="{{ url_for('staff.vehicles_list') }}" class="list-group-item list-group-item-action {% if request.endpoint and request.endpoint.startswith('staff.vehicles') %}active{% endif %}"><i class="fas fa-van-shuttle me-2"></i>Vehicles</a>
+        <a href="{{ url_for('staff.customers_list') }}" class="list-group-item list-group-item-action {% if request.endpoint=='staff.customers_list' %}active{% endif %}"><i class="fas fa-users me-2"></i>Customers</a>
+      </div>
+    </aside>
+    <section class="col-lg-9 col-xl-10 contrast-scope">
+      {% block staff_content %}{% endblock %}
+    </section>
+  </div>
+  </div>
+{% endblock %}
+
+

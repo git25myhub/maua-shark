@@ -1,0 +1,47 @@
+{% extends 'admin/_layout.html' %}
+{% block admin_content %}
+  <h2 class="mb-3">Manage Vehicles</h2>
+  <form method="post" class="row g-2 mb-4">
+    <div class="col-md-3">
+      <input class="form-control mb-2" name="plate_no" placeholder="e.g. KAA 123A" required>
+      <small class="text-muted">Vehicle Registration Number</small>
+    </div>
+    <div class="col-md-3">
+      <input class="form-control mb-2" name="make" placeholder="e.g. Toyota">
+      <small class="text-muted">Vehicle Make</small>
+    </div>
+    <div class="col-md-3">
+      <input class="form-control mb-2" name="model" placeholder="e.g. Hiace">
+      <small class="text-muted">Vehicle Model</small>
+    </div>
+    <div class="col-md-12 mt-3">
+      <div class="input-group">
+        <input class="form-control" name="seats" placeholder="e.g. 1 2 3 4 5 6 7 8 9 10 11 12 13 14">
+        <button class="btn btn-primary" type="submit">
+          <i class="fas fa-plus"></i> Add Vehicle
+        </button>
+      </div>
+      <small class="text-muted">Enter seat numbers separated by spaces (e.g., 1 2 3 4 5 6 7 8 9 10 11 12 13 14)</small>
+    </div>
+  </form>
+  <table class="table">
+    <thead><tr><th>Plate</th><th>Make/Model</th><th>Seats</th><th></th></tr></thead>
+    <tbody>
+      {% for v in vehicles %}
+      <tr>
+        <td>{{ v.plate_no }}</td>
+        <td>{{ v.make }} {{ v.model }}</td>
+        <td>{{ v.seat_count }}</td>
+        <td>
+          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.vehicles_edit', vehicle_id=v.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin.vehicles_delete', vehicle_id=v.id) }}" onsubmit="return confirm('Delete vehicle?')">
+            <button class="btn btn-sm btn-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}
+
+

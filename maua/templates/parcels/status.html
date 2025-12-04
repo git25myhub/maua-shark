@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container contrast-scope py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="fas fa-box me-2"></i>Parcel Status</h5>
+        </div>
+        <div class="card-body">
+          <!-- Status Banner -->
+          <div class="text-center mb-4">
+            {% set status_colors = {
+              'pending': 'warning',
+              'pending_payment': 'secondary',
+              'in_transit': 'info',
+              'delivered': 'success',
+              'cancelled': 'danger'
+            } %}
+            <span class="badge bg-{{ status_colors.get(parcel.status, 'secondary') }} fs-4 px-4 py-3">
+              {% if parcel.status == 'pending' %}
+              <i class="fas fa-clock me-2"></i>Pending Dispatch
+              {% elif parcel.status == 'in_transit' %}
+              <i class="fas fa-truck me-2"></i>In Transit
+              {% elif parcel.status == 'delivered' %}
+              <i class="fas fa-check-circle me-2"></i>Delivered
+              {% elif parcel.status == 'cancelled' %}
+              <i class="fas fa-times-circle me-2"></i>Cancelled
+              {% else %}
+              {{ parcel.status.replace('_', ' ').title() }}
+              {% endif %}
+            </span>
+          </div>
+          
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="text-muted small">Reference Code</div>
+              <div class="fs-4 fw-bold text-primary">{{ parcel.ref_code }}</div>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <div class="text-muted small">Created</div>
+              <div>{{ parcel.created_at.strftime('%B %d, %Y at %I:%M %p') if parcel.created_at }}</div>
+            </div>
+          </div>
+          
+          <hr>
+          
+          <!-- Route -->
+          <div class="text-center my-4">
+            <div class="d-flex align-items-center justify-content-center">
+              <div class="text-end" style="flex: 1;">
+                <h4 class="mb-0">{{ parcel.origin_name }}</h4>
+                <small class="text-muted">Origin</small>
+              </div>
+              <div class="px-4">
+                <i class="fas fa-arrow-right fa-2x text-primary"></i>
+              </div>
+              <div class="text-start" style="flex: 1;">
+                <h4 class="mb-0">{{ parcel.destination_name }}</h4>
+                <small class="text-muted">Destination</small>
+              </div>
+            </div>
+          </div>
+          
+          <hr>
+          
+          <!-- Details -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="text-muted small"><i class="fas fa-user me-2"></i>Sender</div>
+                  <div class="fw-bold">{{ parcel.sender_name }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="text-muted small"><i class="fas fa-user-check me-2"></i>Receiver</div>
+                  <div class="fw-bold">{{ parcel.receiver_name }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {% if parcel.vehicle_plate or parcel.driver_phone %}
+          <div class="row g-3 mt-2">
+            <div class="col-md-6">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="text-muted small"><i class="fas fa-bus me-2"></i>Vehicle</div>
+                  <div class="fw-bold">{{ parcel.vehicle_plate or 'N/A' }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card bg-light">
+                <div class="card-body">
+                  <div class="text-muted small"><i class="fas fa-phone me-2"></i>Driver</div>
+                  <div class="fw-bold">{{ parcel.driver_phone or 'N/A' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+          
+          <div class="text-center mt-4">
+            <a href="{{ url_for('parcels.track') }}" class="btn btn-outline-primary">
+              <i class="fas fa-search me-2"></i>Track Another Parcel
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
