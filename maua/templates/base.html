@@ -4,35 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
     <title>{% block title %}MAUA SHARK SACCO{% endblock %}</title>
-    <meta name="theme-color" content="#0d6efd">
-    <meta name="description" content="MAUA SHARK SACCO - Your trusted partner for safe, reliable, and comfortable transportation services across Kenya.">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="description" content="MAUA SHARK SACCO - Your trusted partner for safe, reliable, and comfortable PSV transportation services across Kenya. Book trips and send parcels.">
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230d6efd' rx='20'/><path d='M50 30L30 70h40L50 30zm0 10l10 20h-20l10-20z' fill='white'/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231e40af' rx='20'/><path d='M25 65h50v8H25zM30 35h40v25H30zm5 5v15h10V40zm15 0v15h10V40zm15 0v15h10V40z' fill='white'/></svg>">
     <link rel="alternate icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
 </head>
-<body class="d-flex flex-column min-vh-100 {% if not current_user.is_authenticated %}role-guest{% elif current_user.is_authenticated and (current_user.is_admin or current_user.is_staff) %}role-staff{% else %}role-customer{% endif %}">
+<body class="d-flex flex-column min-vh-100">
+    <!-- Navigation -->
     <header class="sticky-top">
-        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center" href="/">
-                    <i class="fas fa-bus fa-lg me-2"></i>
+                <a class="navbar-brand" href="{{ url_for('main.home') }}">
+                    <i class="fas fa-bus-alt me-2"></i>
                     <span class="fw-bold">MAUA SHARK</span>
-                    <span class="badge bg-warning text-dark ms-2 d-none d-sm-inline" style="font-size: 0.6rem;">SACCO</span>
+                    <span class="badge bg-warning text-dark ms-2 d-none d-sm-inline" style="font-size: 0.6rem; vertical-align: middle;">SACCO</span>
                 </a>
+                
                 <div class="d-flex align-items-center order-lg-2 gap-2">
                     <a href="{{ url_for('catalog.routes') }}" class="btn btn-warning btn-sm btn-cta d-none d-lg-inline-flex">
                         <i class="fas fa-ticket-alt me-1"></i>Book Now
                     </a>
-                    <button id="theme-toggle" class="btn btn-outline-light btn-sm rounded-circle" type="button" title="Toggle theme" style="width: 38px; height: 38px;">
+                    <button id="theme-toggle" class="btn btn-outline-light btn-sm rounded-circle" type="button" title="Toggle theme" style="width: 36px; height: 36px; padding: 0;">
                         <i class="fas fa-moon"></i>
                     </button>
                     <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
@@ -40,60 +42,113 @@
                         <span class="navbar-toggler-icon"></span>
                     </button>
                 </div>
+                
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.home') }}"><i class="fas fa-home me-1"></i> Home</a>
+                            <a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}">
+                                <i class="fas fa-home me-1"></i> Home
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('catalog.routes') }}"><i class="fas fa-route me-1"></i> Routes</a>
+                            <a class="nav-link {% if 'catalog' in request.endpoint|default('') %}active{% endif %}" href="{{ url_for('catalog.routes') }}">
+                                <i class="fas fa-route me-1"></i> Routes
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('booking.index') }}"><i class="fas fa-ticket-alt me-1"></i> Book a Trip</a>
+                            <a class="nav-link {% if 'booking' in request.endpoint|default('') %}active{% endif %}" href="{{ url_for('booking.index') }}">
+                                <i class="fas fa-ticket-alt me-1"></i> Book a Trip
+                            </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('parcels.track') }}"><i class="fas fa-box me-1"></i> Track Parcel</a>
+                            <a class="nav-link {% if 'parcels' in request.endpoint|default('') %}active{% endif %}" href="{{ url_for('parcels.track') }}">
+                                <i class="fas fa-box me-1"></i> Track Parcel
+                            </a>
                         </li>
                     </ul>
+                    
                     <ul class="navbar-nav ms-auto">
                         {% if current_user.is_authenticated %}
-                            {# Staff and Admin see the Staff menu #}
+                            <!-- Staff/Admin Quick Access -->
                             {% if current_user.is_admin or current_user.is_staff %}
                                 <li class="nav-item dropdown">
                                     <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="fas fa-tools me-1"></i> Staff
+                                        <i class="fas fa-tools me-1"></i> 
+                                        {% if current_user.is_admin %}Admin{% else %}Staff{% endif %}
                                     </a>
-                                    <ul class="dropdown-menu" aria-labelledby="staffDropdown">
-                                        <li><a class="dropdown-item" href="{{ url_for('staff.dashboard') }}"><i class="fas fa-tachometer-alt me-1"></i> Dashboard</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('staff.bookings_routes') }}"><i class="fas fa-ticket-alt me-1"></i> Bookings</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('staff.parcels_list') }}"><i class="fas fa-box me-1"></i> Parcels</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('staff.parcels_create') }}"><i class="fas fa-plus me-1"></i> New Parcel</a></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('staff.trips_list') }}"><i class="fas fa-bus me-1"></i> Trips</a></li>
+                                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="staffDropdown">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('staff.dashboard') }}">
+                                                <i class="fas fa-tachometer-alt me-2 text-primary"></i> Staff Dashboard
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('staff.bookings_routes') }}">
+                                                <i class="fas fa-ticket-alt me-2 text-info"></i> Manage Bookings
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('staff.parcels_list') }}">
+                                                <i class="fas fa-box me-2 text-success"></i> Manage Parcels
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('staff.trips_list') }}">
+                                                <i class="fas fa-bus me-2 text-warning"></i> Manage Trips
+                                            </a>
+                                        </li>
                                         {% if current_user.is_admin %}
                                         <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}"><i class="fas fa-user-shield me-1"></i> Admin Panel</a></li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">
+                                                <i class="fas fa-user-shield me-2 text-danger"></i> Admin Panel
+                                            </a>
+                                        </li>
                                         {% endif %}
                                     </ul>
                                 </li>
                             {% endif %}
-                            {# Customer menu #}
+                            
+                            <!-- User Account -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user me-1"></i> {{ current_user.username }}
+                                    <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" href="{{ url_for('booking.index') }}"><i class="fas fa-ticket-alt me-1"></i> My Bookings</a></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('parcels.track') }}"><i class="fas fa-box me-1"></i> Track Parcel</a></li>
+                                    <li>
+                                        <span class="dropdown-item-text small text-muted">
+                                            <i class="fas fa-envelope me-2"></i>{{ current_user.email }}
+                                        </span>
+                                    </li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt me-1"></i> Logout</a></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('booking.index') }}">
+                                            <i class="fas fa-ticket-alt me-2"></i> My Bookings
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('parcels.track') }}">
+                                            <i class="fas fa-box me-2"></i> Track Parcel
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                            <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                        </a>
+                                    </li>
                                 </ul>
                             </li>
                         {% else %}
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('auth.login') }}"><i class="fas fa-sign-in-alt me-1"></i> Login</a>
+                                <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">
+                                    <i class="fas fa-sign-in-alt me-1"></i> Login
+                                </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('auth.register') }}"><i class="fas fa-user-plus me-1"></i> Register</a>
+                                <a class="nav-link {% if request.endpoint == 'auth.register' %}active{% endif %}" href="{{ url_for('auth.register') }}">
+                                    <i class="fas fa-user-plus me-1"></i> Register
+                                </a>
                             </li>
                         {% endif %}
                     </ul>
@@ -101,140 +156,135 @@
             </div>
         </nav>
     </header>
-    <!-- Maua Shark color stripe -->
+    
+    <!-- Brand Stripe -->
     <div class="maua-stripe">
         <span></span><span></span><span></span><span></span><span></span>
     </div>
-    <main class="flex-grow-1 py-4">
-        <div class="container content-surface">
-            <!-- Flash Messages -->
-            <div class="row">
-                <div class="col-12">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                                    {{ message }}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-                </div>
-            </div>
-            
-            <!-- Main Content -->
-            <div class="row">
-                <div class="col-lg-8">
-                    {% block content %}{% endblock %}
-                </div>
-                <div class="col-lg-4">
-                    <div class="card shadow-sm mb-4">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0"><i class="fas fa-link me-2"></i>Quick Links</h5>
-                        </div>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('catalog.routes') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-clock me-2"></i>Latest Trips
-                            </a>
-                            <a href="{{ url_for('main.announcements') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-bullhorn me-2"></i>Announcements
-                            </a>
-                            <a href="{{ url_for('main.contact') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-phone-alt me-2"></i>Contact Us
-                            </a>
-                        </div>
-                    </div>
-                    {% if current_user.is_authenticated and (current_user.is_admin or current_user.is_staff) %}
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-dark text-white">
-                            <h5 class="mb-0"><i class="fas fa-tools me-2"></i>Staff Tools</h5>
-                        </div>
-                        <div class="list-group list-group-flush">
-                            <a href="{{ url_for('staff.dashboard') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-tachometer-alt me-2"></i>Dashboard
-                            </a>
-                            <a href="{{ url_for('staff.bookings_routes') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-ticket-alt me-2"></i>Manage Bookings
-                            </a>
-                            <a href="{{ url_for('staff.parcels_list') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-box me-2"></i>Manage Parcels
-                            </a>
-                            <a href="{{ url_for('staff.parcels_create') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-plus me-2"></i>Create Parcel
-                            </a>
-                            <a href="{{ url_for('staff.trips_list') }}" class="list-group-item list-group-item-action">
-                                <i class="fas fa-bus me-2"></i>Manage Trips
-                            </a>
-                            {% if current_user.is_admin %}
-                            <a href="{{ url_for('admin.dashboard') }}" class="list-group-item list-group-item-action list-group-item-warning">
-                                <i class="fas fa-user-shield me-2"></i>Admin Panel
-                            </a>
+    
+    <!-- Main Content -->
+    <main class="flex-grow-1">
+        <!-- Flash Messages -->
+        <div class="container mt-3">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {% if category == 'success' %}
+                                <i class="fas fa-check-circle me-2"></i>
+                            {% elif category == 'danger' %}
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                            {% elif category == 'warning' %}
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle me-2"></i>
                             {% endif %}
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         </div>
+        
+        {% block content %}{% endblock %}
     </main>
     
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-auto" style="--bs-bg-opacity: 0.98;">
+    <footer class="py-5 mt-auto">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>About Us</h5>
-                    <p class="mb-0">Your trusted partner for safe and reliable transportation services across Kenya.</p>
+            <div class="row g-4">
+                <div class="col-lg-4 mb-4 mb-lg-0">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-bus-alt fa-2x text-primary me-2"></i>
+                        <h5 class="mb-0">MAUA SHARK SACCO</h5>
+                    </div>
+                    <p class="text-muted mb-3">Your trusted partner for safe and reliable PSV transportation services across Kenya.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-muted"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-muted"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    </div>
                 </div>
-                <div class="col-md-4 mb-3 mb-md-0">
-                    <h5>Quick Links</h5>
+                
+                <div class="col-6 col-lg-2">
+                    <h6 class="fw-bold mb-3">Quick Links</h6>
                     <ul class="list-unstyled">
-                        <li><a href="{{ url_for('main.terms') }}" class="text-white">Terms of Service</a></li>
-                        <li><a href="{{ url_for('main.privacy') }}" class="text-white">Privacy Policy</a></li>
-                        <li><a href="{{ url_for('main.faq') }}" class="text-white">FAQs</a></li>
+                        <li class="mb-2"><a href="{{ url_for('catalog.routes') }}">Book a Trip</a></li>
+                        <li class="mb-2"><a href="{{ url_for('parcels.track') }}">Track Parcel</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.faq') }}">FAQs</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.contact') }}">Contact Us</a></li>
                     </ul>
                 </div>
-                <div class="col-md-4">
-                    <h5>Contact Us</h5>
+                
+                <div class="col-6 col-lg-2">
+                    <h6 class="fw-bold mb-3">Legal</h6>
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-phone me-2"></i> +254 700 000000</li>
-                        <li><i class="fas fa-envelope me-2"></i> info@mauasharksacco.co.ke</li>
-                        <li><i class="fas fa-map-marker-alt me-2"></i> Nairobi, Kenya</li>
+                        <li class="mb-2"><a href="{{ url_for('main.terms') }}">Terms of Service</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.privacy') }}">Privacy Policy</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.announcements') }}">Announcements</a></li>
+                    </ul>
+                </div>
+                
+                <div class="col-lg-4">
+                    <h6 class="fw-bold mb-3">Contact Us</h6>
+                    <ul class="list-unstyled text-muted">
+                        <li class="mb-2">
+                            <i class="fas fa-phone-alt me-2 text-primary"></i> +254 700 000000
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i> info@mauasharksacco.co.ke
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i> Nairobi, Kenya
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock me-2 text-primary"></i> 24/7 Customer Support
+                        </li>
                     </ul>
                 </div>
             </div>
+            
             <hr class="my-4">
-            <div class="text-center">
-                <p class="mb-0">&copy; <span id="current-year"></span> MAUA SHARK SACCO. All rights reserved.</p>
+            
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="text-muted mb-0">&copy; <span id="current-year"></span> MAUA SHARK SACCO. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/M-PESA_LOGO-01.svg/200px-M-PESA_LOGO-01.svg.png" 
+                         alt="M-Pesa" height="24" class="me-2">
+                    <span class="text-muted small">Secure payments via M-Pesa</span>
+                </div>
             </div>
-            <script>
-                // Set current year in footer
-                document.getElementById('current-year').textContent = new Date().getFullYear();
-            </script>
         </div>
     </footer>
 
-    <!-- Bootstrap 5 JS Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <!-- Scroll to Top Button -->
     <button class="scroll-top" id="scrollTop" title="Back to top">
         <i class="fas fa-chevron-up"></i>
     </button>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     
     <script>
-        // Theme toggle with persistence
+        // Set current year
+        document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Theme toggle
         (function() {
             const root = document.documentElement;
             const saved = localStorage.getItem('maua_theme');
             if (saved) {
                 root.setAttribute('data-theme', saved);
             }
+            
             const btn = document.getElementById('theme-toggle');
             if (btn) {
-                // Set initial icon based on saved theme
                 if (saved === 'dark') {
                     btn.innerHTML = '<i class="fas fa-sun"></i>';
                 }
@@ -246,19 +296,17 @@
                 });
             }
             
-            // Navbar and scroll handling
+            // Scroll handling
             const nav = document.querySelector('.navbar');
             const scrollTopBtn = document.getElementById('scrollTop');
             
             const onScroll = () => {
-                // Elevate navbar
                 if (window.scrollY > 10) {
                     nav.classList.add('navbar-elevated');
                 } else {
                     nav.classList.remove('navbar-elevated');
                 }
                 
-                // Show/hide scroll to top button
                 if (scrollTopBtn) {
                     if (window.scrollY > 300) {
                         scrollTopBtn.classList.add('visible');
@@ -271,18 +319,14 @@
             onScroll();
             window.addEventListener('scroll', onScroll);
             
-            // Scroll to top click handler
             if (scrollTopBtn) {
                 scrollTopBtn.addEventListener('click', () => {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 });
             }
-            
-            // Add animation classes to elements on page load
-            document.querySelectorAll('.card').forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.1}s`;
-            });
         })();
     </script>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,44 +1,108 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <h2 class="mb-3">Create Trip</h2>
-  <form method="post">
-    <div class="mb-3">
-      <label class="form-label">Route</label>
-      <select class="form-select" name="route_id" required>
-        {% for r in routes %}
-          <option value="{{ r.id }}">{{ r.origin.town }} → {{ r.destination.town }}</option>
-        {% endfor %}
-      </select>
+
+{% block title %}Schedule Trip{% endblock %}
+{% block page_title %}Schedule New Trip{% endblock %}
+{% block page_subtitle %}Create a new trip with route, vehicle, and driver{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-plus me-2"></i>Trip Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Route <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-lg" name="route_id" required>
+                                <option value="" disabled selected>Select route</option>
+                                {% for r in routes %}
+                                <option value="{{ r.id }}">{{ r.origin.town }} → {{ r.destination.town }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Vehicle <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-lg" name="vehicle_id" required>
+                                <option value="" disabled selected>Select vehicle</option>
+                                {% for v in vehicles %}
+                                <option value="{{ v.id }}">{{ v.plate_no }} ({{ v.make }} {{ v.model }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Departure Date & Time <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-lg" type="datetime-local" name="depart_at" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Base Fare (KES) <span class="text-danger">*</span></label>
+                            <input class="form-control form-control-lg" type="number" step="0.01" name="base_fare" 
+                                   placeholder="e.g. 1200" required>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <h6 class="mb-3"><i class="fas fa-user me-2 text-primary"></i>Driver Information (Optional)</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Driver Name</label>
+                            <input class="form-control" type="text" name="driver_name" placeholder="e.g. John Mwangi">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold">Driver Phone</label>
+                            <input class="form-control" type="tel" name="driver_phone" placeholder="e.g. 0712345678">
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('staff.trips_list') }}">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button class="btn btn-primary btn-lg" type="submit">
+                            <i class="fas fa-save me-2"></i>Create Trip
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Vehicle</label>
-      <select class="form-select" name="vehicle_id" required>
-        {% for v in vehicles %}
-          <option value="{{ v.id }}">{{ v.plate_no }} ({{ v.make }} {{ v.model }})</option>
-        {% endfor %}
-      </select>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Select the route first to determine origin and destination
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Vehicle seat layout will be used for bookings
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Driver info can be added/updated later
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Base fare will be used for all bookings on this trip
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-      <label class="form-label">Depart at</label>
-      <input class="form-control" type="datetime-local" name="depart_at" required>
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Base Fare (KES)</label>
-      <input class="form-control" type="number" step="0.01" name="base_fare" required>
-    </div>
-    <div class="row">
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Driver Name</label>
-        <input class="form-control" type="text" name="driver_name" placeholder="e.g. John Mwangi">
-      </div>
-      <div class="col-md-6 mb-3">
-        <label class="form-label">Driver Phone</label>
-        <input class="form-control" type="tel" name="driver_phone" placeholder="e.g. +254712345678">
-      </div>
-    </div>
-    <button class="btn btn-primary" type="submit"><i class="fas fa-save me-1"></i>Create</button>
-    <a class="btn btn-outline-secondary" href="{{ url_for('staff.trips_list') }}">Cancel</a>
-  </form>
+</div>
 {% endblock %}
-
-

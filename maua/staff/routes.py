@@ -42,7 +42,12 @@ def dashboard():
     booking_count = Booking.query.count()
     parcel_count = Parcel.query.count()
     active_trips = Trip.query.filter(Trip.status.in_(['scheduled', 'in_progress'])).count()
-    return render_template('staff/dashboard.html', booking_count=booking_count, parcel_count=parcel_count, active_trips=active_trips)
+    today_date = datetime.now().strftime('%b %d, %Y')
+    return render_template('staff/dashboard.html', 
+                         booking_count=booking_count, 
+                         parcel_count=parcel_count, 
+                         active_trips=active_trips,
+                         today_date=today_date)
 
 
 @staff_bp.route('/bookings/routes')

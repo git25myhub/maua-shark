@@ -1,10 +1,13 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session
 from flask_login import login_required, current_user
 from functools import wraps
 from maua.extensions import db, bcrypt
 from maua.catalog.models import Route, Depot, Vehicle
 from maua.auth.models import User
 from datetime import datetime
+import secrets
+import string
+import re
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -21,7 +24,19 @@ def admin_required(f):
 @login_required
 @admin_required
 def dashboard():
-    return render_template('admin/dashboard.html')
+    # Get counts for dashboard
+    staff_count = User.query.filter(
+        (User.is_staff == True) | (User.is_admin == True)
+    ).count()
+    routes_count = Route.query.filter_by(active=True).count()
+    vehicles_count = Vehicle.query.filter_by(active=True).count()
+    depots_count = Depot.query.count()
+    
+    return render_template('admin/dashboard.html',
+                         staff_count=staff_count,
+                         routes_count=routes_count,
+                         vehicles_count=vehicles_count,
+                         depots_count=depots_count)
 
 
  
@@ -250,33 +265,60 @@ def staff_manage():
     return render_template('admin/staff_manage.html', staff_members=staff_members)
 
 
+def generate_username(first_name, last_name):
+    """Generate a unique username from first and last name"""
+    # Clean and lowercase the names
+    first = re.sub(r'[^a-zA-Z]', '', first_name.lower().strip())
+    last = re.sub(r'[^a-zA-Z]', '', last_name.lower().strip())
+    
+    # Base username: firstname.lastname
+    base_username = f"{first}.{last}"
+    username = base_username
+    
+    # Check if exists and add number if needed
+    counter = 1
+    while User.query.filter_by(username=username).first():
+        username = f"{base_username}{counter}"
+        counter += 1
+    
+    return username
+
+
+def generate_password(length=8):
+    """Generate a random password"""
+    # Use a mix of letters and digits, avoiding confusing characters
+    chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ23456789'
+    password = ''.join(secrets.choice(chars) for _ in range(length))
+    return password
+
+
 @admin_bp.route('/staff/create', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def staff_create():
-    """Create a new staff account"""
+    """Create a new staff account with auto-generated credentials"""
     if request.method == 'POST':
-        username = request.form.get('username')
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
         email = request.form.get('email')
         phone = request.form.get('phone')
-        password = request.form.get('password')
         role = request.form.get('role', 'staff')  # staff or admin
         
         # Validation
-        if not all([username, email, phone, password]):
+        if not all([first_name, last_name, email, phone]):
             flash('All fields are required.', 'danger')
             return render_template('admin/staff_create.html')
         
-        # Check if username or email already exists
-        if User.query.filter_by(username=username).first():
-            flash('Username already exists.', 'danger')
-            return render_template('admin/staff_create.html')
-        
+        # Check if email already exists
         if User.query.filter_by(email=email).first():
-            flash('Email already exists.', 'danger')
+            flash('Email already exists. Use a different email.', 'danger')
             return render_template('admin/staff_create.html')
         
         try:
+            # Auto-generate username and password
+            username = generate_username(first_name, last_name)
+            password = generate_password(8)
+            
             hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
             staff = User(
                 username=username,
@@ -290,13 +332,38 @@ def staff_create():
             )
             db.session.add(staff)
             db.session.commit()
-            flash(f'Staff account for {username} created successfully!', 'success')
-            return redirect(url_for('admin.staff_manage'))
+            
+            # Store credentials in session for display
+            session['new_staff_credentials'] = {
+                'first_name': first_name,
+                'last_name': last_name,
+                'username': username,
+                'password': password,
+                'email': email,
+                'role': role,
+                'user_id': staff.id
+            }
+            
+            return redirect(url_for('admin.staff_credentials'))
+            
         except Exception as e:
             db.session.rollback()
             flash(f'Failed to create staff account: {str(e)}', 'danger')
     
     return render_template('admin/staff_create.html')
+
+
+@admin_bp.route('/staff/credentials')
+@login_required
+@admin_required
+def staff_credentials():
+    """Display the generated credentials for the newly created staff"""
+    credentials = session.pop('new_staff_credentials', None)
+    if not credentials:
+        flash('No new staff credentials to display.', 'warning')
+        return redirect(url_for('admin.staff_manage'))
+    
+    return render_template('admin/staff_credentials.html', credentials=credentials)
 
 
 @admin_bp.route('/staff/<int:user_id>/edit', methods=['GET', 'POST'])
@@ -384,3 +451,40 @@ def staff_delete(user_id: int):
         flash('Failed to delete staff account. They may have associated records.', 'danger')
     
     return redirect(url_for('admin.staff_manage'))
+
+
+@admin_bp.route('/staff/<int:user_id>/reset-password', methods=['POST'])
+@login_required
+@admin_required
+def staff_reset_password(user_id: int):
+    """Reset staff password and show new credentials"""
+    user = User.query.get_or_404(user_id)
+    
+    if user.id == current_user.id:
+        flash('You cannot reset your own password here.', 'warning')
+        return redirect(url_for('admin.staff_edit', user_id=user_id))
+    
+    try:
+        # Generate new password
+        new_password = generate_password(8)
+        user.password_hash = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        db.session.commit()
+        
+        # Store new credentials for display
+        session['new_staff_credentials'] = {
+            'first_name': user.username.split('.')[0].title() if '.' in user.username else user.username,
+            'last_name': user.username.split('.')[1].title() if '.' in user.username else '',
+            'username': user.username,
+            'password': new_password,
+            'email': user.email,
+            'role': 'admin' if user.is_admin else 'staff',
+            'user_id': user.id,
+            'is_reset': True
+        }
+        
+        return redirect(url_for('admin.staff_credentials'))
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Failed to reset password: {str(e)}', 'danger')
+        return redirect(url_for('admin.staff_edit', user_id=user_id))

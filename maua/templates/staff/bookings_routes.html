@@ -1,31 +1,53 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h2 class="mb-0">Bookings by Route</h2>
-    <a href="{{ url_for('staff.dashboard') }}" class="btn btn-outline-secondary">Back</a>
-  </div>
-  <div class="table-responsive">
-    <table class="table table-striped align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>Code</th>
-          <th>Origin</th>
-          <th>Destination</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in routes %}
-        <tr>
-          <td>{{ r.code }}</td>
-          <td>{{ r.origin.town }}</td>
-          <td>{{ r.destination.town }}</td>
-          <td>
-            <a class="btn btn-sm btn-primary" href="{{ url_for('staff.bookings_route_trips', route_id=r.id) }}">Select route</a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+{% block title %}Bookings by Route{% endblock %}
+{% block page_title %}Bookings by Route{% endblock %}
+{% block page_subtitle %}Select a route to view its trips and bookings{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="fas fa-route me-2 text-primary"></i>Available Routes</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Route Code</th>
+                        <th>Origin</th>
+                        <th>Destination</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in routes %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-primary">{{ r.code }}</span>
+                        </td>
+                        <td>
+                            <i class="fas fa-map-marker-alt me-2 text-success"></i>{{ r.origin.town }}
+                        </td>
+                        <td>
+                            <i class="fas fa-map-marker-alt me-2 text-danger"></i>{{ r.destination.town }}
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-primary" href="{{ url_for('staff.bookings_route_trips', route_id=r.id) }}">
+                                <i class="fas fa-arrow-right me-1"></i>View Trips
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            <i class="fas fa-info-circle me-2"></i>No routes available
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

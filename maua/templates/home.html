@@ -2,355 +2,64 @@
 
 {% block content %}
 <!-- Hero Section -->
-<section class="hero-section hero-banner text-white py-5 mb-5">
-    <div class="container">
+<section class="hero-section py-5">
+    <div class="container hero-content">
         <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h1 class="display-4 fw-bold mb-3">
-                    Travel Safe with<br>
-                    <span class="text-warning">MAUA SHARK SACCO</span>
+            <div class="col-lg-7 mb-4 mb-lg-0">
+                <div class="hero-badge mb-3">
+                    <i class="fas fa-shield-alt text-success"></i>
+                    <span>Trusted by 50,000+ travelers</span>
+                </div>
+                
+                <h1 class="mb-4">
+                    Safe & Reliable<br>
+                    <span style="color: var(--brand-accent);">PSV Transport</span><br>
+                    Across Kenya
                 </h1>
-                <p class="lead mb-4 opacity-90">
-                    Your trusted partner for safe, reliable, and comfortable transportation 
-                    services across Kenya. Book your trip or send a parcel with ease.
+                
+                <p class="lead mb-4">
+                    Book your seat, send parcels, and travel with confidence. 
+                    MAUA SHARK SACCO delivers professional transportation services 
+                    with modern vehicles and trained drivers.
                 </p>
-                <div class="d-flex flex-wrap gap-3">
-                    <a href="{{ url_for('catalog.routes') }}" class="btn btn-light btn-lg">
+                
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a href="{{ url_for('catalog.routes') }}" class="btn btn-warning btn-lg btn-cta">
                         <i class="fas fa-ticket-alt me-2"></i>Book a Trip
                     </a>
                     <a href="{{ url_for('parcels.track') }}" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-box me-2"></i>Track Parcel
                     </a>
                 </div>
-                <div class="mt-4 d-flex align-items-center gap-4 text-white-50">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-users me-2 text-warning"></i>
-                        <span>50K+ Happy Customers</span>
+                
+                <div class="d-flex flex-wrap gap-4 text-white-50">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-star text-warning"></i>
+                        <span>4.8/5 Rating</span>
                     </div>
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-star me-2 text-warning"></i>
-                        <span>4.8 Rating</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-bus text-info"></i>
+                        <span>Modern Fleet</span>
                     </div>
-                </div>
-            </div>
-            <div class="col-lg-6 d-none d-lg-block">
-                <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" 
-                     alt="Maua Shark Sacco Bus" 
-                     class="img-fluid rounded-4 shadow-lg">
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Quick Actions -->
-<section class="py-4 mb-4">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <a href="{{ url_for('catalog.routes') }}" class="text-decoration-none">
-                    <div class="card h-100 border-0 hover-lift">
-                        <div class="card-body text-center p-4">
-                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="fas fa-bus fa-2x text-primary"></i>
-                            </div>
-                            <h3 class="h5 mb-2">Book a Trip</h3>
-                            <p class="text-muted mb-0">Browse routes and book your seat online</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="{{ url_for('parcels.track') }}" class="text-decoration-none">
-                    <div class="card h-100 border-0 hover-lift">
-                        <div class="card-body text-center p-4">
-                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="fas fa-box fa-2x text-success"></i>
-                            </div>
-                            <h3 class="h5 mb-2">Send a Parcel</h3>
-                            <p class="text-muted mb-0">Visit our depot to send parcels. Track online.</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-            <div class="col-md-4">
-                <a href="{{ url_for('parcels.track') }}" class="text-decoration-none">
-                    <div class="card h-100 border-0 hover-lift">
-                        <div class="card-body text-center p-4">
-                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
-                                <i class="fas fa-search-location fa-2x text-warning"></i>
-                            </div>
-                            <h3 class="h5 mb-2">Track & Trace</h3>
-                            <p class="text-muted mb-0">Track your parcel in real-time</p>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- How It Works -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="text-center mb-5">
-            <h2 class="fw-bold">How It Works</h2>
-            <p class="text-muted">Simple steps to book your journey or send a parcel</p>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-3">
-                <div class="text-center">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">1</div>
-                    <h5>Choose Route</h5>
-                    <p class="text-muted small">Select your departure and destination points</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="text-center">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">2</div>
-                    <h5>Select Seat</h5>
-                    <p class="text-muted small">Pick your preferred seat from available options</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="text-center">
-                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;">3</div>
-                    <h5>Pay via M-Pesa</h5>
-                    <p class="text-muted small">Quick and secure payment through M-Pesa</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="text-center">
-                    <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px; font-size: 1.5rem; font-weight: bold;"><i class="fas fa-check"></i></div>
-                    <h5>Travel!</h5>
-                    <p class="text-muted small">Show your e-ticket and enjoy your journey</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Popular Routes -->
-<section class="py-5">
-    <div class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h2 class="fw-bold mb-1 section-heading-contrast">Popular Routes</h2>
-                <p class="text-white-50 mb-0">Choose from our most traveled routes</p>
-            </div>
-            <a href="{{ url_for('catalog.routes') }}" class="btn btn-outline-light">
-                View All <i class="fas fa-arrow-right ms-2"></i>
-            </a>
-        </div>
-        
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="card h-100 border-0 hover-lift overflow-hidden">
-                    <div class="position-relative">
-                        <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" class="card-img-top" alt="Nairobi to Meru" style="height: 180px; object-fit: cover;">
-                        <span class="badge bg-danger position-absolute top-0 end-0 m-3">Popular</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h5 class="card-title mb-1">Nairobi → Meru</h5>
-                                <p class="text-muted small mb-0"><i class="fas fa-clock me-1"></i>~4 hours</p>
-                            </div>
-                            <div class="text-end">
-                                <p class="text-muted small mb-0">From</p>
-                                <h5 class="text-primary mb-0">KES 1,200</h5>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small"><i class="fas fa-bus me-1"></i>Daily departures</span>
-                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-sm btn-primary">Book Now</a>
-                        </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas fa-headset text-success"></i>
+                        <span>24/7 Support</span>
                     </div>
                 </div>
             </div>
             
-            <div class="col-md-4">
-                <div class="card h-100 border-0 hover-lift overflow-hidden">
-                    <div class="position-relative">
-                        <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" class="card-img-top" alt="Nairobi to Embu" style="height: 180px; object-fit: cover;">
-                        <span class="badge bg-success position-absolute top-0 end-0 m-3">Frequent</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h5 class="card-title mb-1">Nairobi → Embu</h5>
-                                <p class="text-muted small mb-0"><i class="fas fa-clock me-1"></i>~2.5 hours</p>
-                            </div>
-                            <div class="text-end">
-                                <p class="text-muted small mb-0">From</p>
-                                <h5 class="text-primary mb-0">KES 500</h5>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small"><i class="fas fa-bus me-1"></i>Hourly trips</span>
-                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-sm btn-primary">Book Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="card h-100 border-0 hover-lift overflow-hidden">
-                    <div class="position-relative">
-                        <img src="https://www.pandashuttles.co.ke/images/maua-sharks.webp" class="card-img-top" alt="Nairobi to Chuka" style="height: 180px; object-fit: cover;">
-                        <span class="badge bg-info position-absolute top-0 end-0 m-3">Express</span>
-                    </div>
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h5 class="card-title mb-1">Nairobi → Chuka</h5>
-                                <p class="text-muted small mb-0"><i class="fas fa-clock me-1"></i>~3 hours</p>
-                            </div>
-                            <div class="text-end">
-                                <p class="text-muted small mb-0">From</p>
-                                <h5 class="text-primary mb-0">KES 800</h5>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="text-muted small"><i class="fas fa-bus me-1"></i>Multiple daily</span>
-                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-sm btn-primary">Book Now</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Parcel Services -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0">
-                <h2 class="fw-bold mb-3">Parcel Delivery Services</h2>
-                <p class="lead text-muted">Fast, secure, and reliable parcel delivery to all major towns in Kenya.</p>
-                
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                            <i class="fas fa-shield-alt text-success"></i>
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h5 class="mb-1">Secure Handling</h5>
-                        <p class="text-muted mb-0">Your parcels are handled with care and fully insured</p>
-                    </div>
-                </div>
-                
-                <div class="d-flex mb-3">
-                    <div class="flex-shrink-0">
-                        <div class="bg-primary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                            <i class="fas fa-truck text-primary"></i>
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h5 class="mb-1">Same-Day Delivery</h5>
-                        <p class="text-muted mb-0">Send your parcel in the morning, arrives same day</p>
-                    </div>
-                </div>
-                
-                <div class="d-flex mb-4">
-                    <div class="flex-shrink-0">
-                        <div class="bg-warning bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-                            <i class="fas fa-map-marker-alt text-warning"></i>
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h5 class="mb-1">Real-time Tracking</h5>
-                        <p class="text-muted mb-0">Track your parcel status online anytime</p>
-                    </div>
-                </div>
-                
-                <a href="{{ url_for('parcels.track') }}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-search me-2"></i>Track Your Parcel
-                </a>
-            </div>
-            <div class="col-lg-6">
-                <div class="card border-0 shadow-lg">
+            <div class="col-lg-5">
+                <!-- Quick Booking Card -->
+                <div class="card border-0 shadow-strong">
                     <div class="card-header bg-primary text-white py-3">
-                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>How to Send a Parcel</h5>
+                        <h5 class="mb-0"><i class="fas fa-search me-2"></i>Quick Trip Search</h5>
                     </div>
                     <div class="card-body p-4">
-                        <ol class="mb-4">
-                            <li class="mb-2">Visit any <strong>Maua Shark Sacco depot</strong></li>
-                            <li class="mb-2">Our staff will register your parcel details</li>
-                            <li class="mb-2">Pay via <strong>Cash or M-Pesa</strong></li>
-                            <li class="mb-2">Receive your <strong>tracking code</strong></li>
-                            <li>Receiver gets SMS notification on arrival</li>
-                        </ol>
-                        <div class="alert alert-info mb-0">
-                            <i class="fas fa-phone me-2"></i>
-                            Need help? Call us: <strong>+254 700 000000</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Why Choose Us -->
-<section class="py-5 why-choose">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 mb-4 mb-lg-0 why-choose-text">
-                <h2 class="fw-bold mb-3">Why Choose MAUA SHARK SACCO?</h2>
-                <p class="lead mb-4">We are committed to providing the best travel experience with exceptional services.</p>
-                
-                <div class="d-flex mb-4">
-                    <div class="flex-shrink-0">
-                        <div class="why-icon why-icon-primary">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h5 class="mb-1">Safe & Secure</h5>
-                        <p class="mb-0 opacity-75">Regularly serviced vehicles and trained professional drivers</p>
-                    </div>
-                </div>
-                
-                <div class="d-flex mb-4">
-                    <div class="flex-shrink-0">
-                        <div class="why-icon why-icon-success">
-                            <i class="fas fa-clock"></i>
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h5 class="mb-1">On-time Service</h5>
-                        <p class="mb-0 opacity-75">We value your time - strict adherence to schedules</p>
-                    </div>
-                </div>
-                
-                <div class="d-flex">
-                    <div class="flex-shrink-0">
-                        <div class="why-icon why-icon-warning">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                    </div>
-                    <div class="ms-3">
-                        <h5 class="mb-1">24/7 Support</h5>
-                        <p class="mb-0 opacity-75">Dedicated support team available round the clock</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-6">
-                <div class="card border-0 shadow-lg">
-                    <div class="card-body p-4">
-                        <h4 class="mb-4 fw-bold">Quick Trip Search</h4>
                         <form action="{{ url_for('catalog.routes') }}" method="get">
                             <div class="mb-3">
-                                <label for="from" class="form-label fw-semibold">From</label>
-                                <select class="form-select form-select-lg" id="from" name="from">
-                                    <option selected disabled>Select departure city</option>
+                                <label class="form-label fw-semibold">From</label>
+                                <select class="form-select form-select-lg" name="from">
+                                    <option value="" selected disabled>Select departure</option>
                                     <option value="nairobi">Nairobi</option>
                                     <option value="meru">Meru</option>
                                     <option value="embu">Embu</option>
@@ -360,9 +69,9 @@
                             </div>
                             
                             <div class="mb-3">
-                                <label for="to" class="form-label fw-semibold">To</label>
-                                <select class="form-select form-select-lg" id="to" name="to">
-                                    <option selected disabled>Select destination</option>
+                                <label class="form-label fw-semibold">To</label>
+                                <select class="form-select form-select-lg" name="to">
+                                    <option value="" selected disabled>Select destination</option>
                                     <option value="nairobi">Nairobi</option>
                                     <option value="meru">Meru</option>
                                     <option value="embu">Embu</option>
@@ -372,8 +81,8 @@
                             </div>
                             
                             <div class="mb-4">
-                                <label for="date" class="form-label fw-semibold">Travel Date</label>
-                                <input type="date" class="form-control form-control-lg" id="date" name="date">
+                                <label class="form-label fw-semibold">Travel Date</label>
+                                <input type="date" class="form-control form-control-lg" name="date" min="{{ now.strftime('%Y-%m-%d') if now else '' }}">
                             </div>
                             
                             <button type="submit" class="btn btn-primary btn-lg w-100">
@@ -387,19 +96,402 @@
     </div>
 </section>
 
-<!-- Testimonials -->
-<section class="py-5 bg-light">
+<!-- Services Section -->
+<section class="py-5">
     <div class="container">
         <div class="text-center mb-5">
-            <h2 class="fw-bold">What Our Customers Say</h2>
-            <p class="text-muted">Real experiences from our valued travelers</p>
+            <h2 class="section-title">Our Services</h2>
+            <p class="section-subtitle">Everything you need for safe and convenient travel</p>
         </div>
         
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 border-0 hover-lift">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon feature-icon-primary">
+                            <i class="fas fa-bus-alt"></i>
+                        </div>
+                        <h4>Passenger Transport</h4>
+                        <p class="text-muted mb-3">
+                            Comfortable, air-conditioned buses with professional drivers. 
+                            Book your seat online and travel with peace of mind.
+                        </p>
+                        <a href="{{ url_for('catalog.routes') }}" class="btn btn-outline-primary">
+                            Book Now <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon feature-icon-success">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <h4>Parcel Delivery</h4>
+                        <p class="text-muted mb-3">
+                            Fast and secure parcel delivery to all major towns. 
+                            Same-day delivery with real-time tracking.
+                        </p>
+                        <a href="{{ url_for('parcels.track') }}" class="btn btn-outline-success">
+                            Track Parcel <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon feature-icon-warning">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <h4>M-Pesa Payments</h4>
+                        <p class="text-muted mb-3">
+                            Secure and instant payments via M-Pesa. 
+                            No cash needed - pay conveniently from your phone.
+                        </p>
+                        <a href="{{ url_for('booking.index') }}" class="btn btn-outline-warning">
+                            Learn More <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Book your trip in 4 simple steps</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 64px; height: 64px; font-size: 1.5rem; font-weight: 700;">1</div>
+                    <h5>Choose Route</h5>
+                    <p class="text-muted small mb-0">Select your departure and destination</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 64px; height: 64px; font-size: 1.5rem; font-weight: 700;">2</div>
+                    <h5>Select Seat</h5>
+                    <p class="text-muted small mb-0">Pick your preferred seat</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 64px; height: 64px; font-size: 1.5rem; font-weight: 700;">3</div>
+                    <h5>Pay via M-Pesa</h5>
+                    <p class="text-muted small mb-0">Quick and secure payment</p>
+                </div>
+            </div>
+            
+            <div class="col-md-3 col-6">
+                <div class="text-center">
+                    <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 64px; height: 64px; font-size: 1.5rem;">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h5>Travel!</h5>
+                    <p class="text-muted small mb-0">Show e-ticket and enjoy</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Routes -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="section-title mb-1">Popular Routes</h2>
+                <p class="section-subtitle mb-0">Most traveled routes</p>
+            </div>
+            <a href="{{ url_for('catalog.routes') }}" class="btn btn-outline-primary d-none d-md-inline-flex">
+                View All Routes <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 hover-lift">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-danger mb-2">Popular</span>
+                                <h5 class="card-title mb-1">Nairobi → Meru</h5>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-clock me-1"></i>~4 hours
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">From</small>
+                                <h5 class="text-primary mb-0">KES 1,200</h5>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">
+                                <i class="fas fa-bus me-1"></i>Daily departures
+                            </span>
+                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-sm btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 hover-lift">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-success mb-2">Frequent</span>
+                                <h5 class="card-title mb-1">Nairobi → Embu</h5>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-clock me-1"></i>~2.5 hours
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">From</small>
+                                <h5 class="text-primary mb-0">KES 500</h5>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">
+                                <i class="fas fa-bus me-1"></i>Hourly trips
+                            </span>
+                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-sm btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100 hover-lift">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <span class="badge bg-info mb-2">Express</span>
+                                <h5 class="card-title mb-1">Nairobi → Chuka</h5>
+                                <p class="text-muted small mb-0">
+                                    <i class="fas fa-clock me-1"></i>~3 hours
+                                </p>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">From</small>
+                                <h5 class="text-primary mb-0">KES 800</h5>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">
+                                <i class="fas fa-bus me-1"></i>Multiple daily
+                            </span>
+                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-sm btn-primary">Book Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-4 d-md-none">
+            <a href="{{ url_for('catalog.routes') }}" class="btn btn-outline-primary">
+                View All Routes <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Parcel Services -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-4 mb-lg-0">
+                <span class="badge bg-success mb-3">Parcel Services</span>
+                <h2 class="section-title">Fast & Secure Parcel Delivery</h2>
+                <p class="lead text-muted mb-4">
+                    Send parcels to any destination we serve. Same-day delivery with real-time tracking.
+                </p>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon feature-icon-success" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Secure Handling</h6>
+                                <p class="text-muted small mb-0">Fully insured parcels</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon feature-icon-primary" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Same-Day Delivery</h6>
+                                <p class="text-muted small mb-0">Fast and reliable</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon feature-icon-warning" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">Real-time Tracking</h6>
+                                <p class="text-muted small mb-0">Track your parcel online</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-sm-6">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="feature-icon feature-icon-info" style="width: 48px; height: 48px; font-size: 1.25rem;">
+                                <i class="fas fa-sms"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">SMS Notifications</h6>
+                                <p class="text-muted small mb-0">Status updates via SMS</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <a href="{{ url_for('parcels.track') }}" class="btn btn-success btn-lg">
+                    <i class="fas fa-search me-2"></i>Track Your Parcel
+                </a>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-soft">
+                    <div class="card-header bg-primary text-white py-3">
+                        <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>How to Send a Parcel</h5>
+                    </div>
                     <div class="card-body p-4">
-                        <div class="d-flex mb-3 align-items-center">
+                        <ol class="mb-4">
+                            <li class="mb-3">
+                                <strong>Visit any MAUA SHARK depot</strong>
+                                <p class="text-muted small mb-0">Find your nearest depot location</p>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Staff registers your parcel</strong>
+                                <p class="text-muted small mb-0">Provide sender and receiver details</p>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Pay via Cash or M-Pesa</strong>
+                                <p class="text-muted small mb-0">Secure and convenient payment</p>
+                            </li>
+                            <li class="mb-3">
+                                <strong>Receive tracking code</strong>
+                                <p class="text-muted small mb-0">Track your parcel online</p>
+                            </li>
+                            <li>
+                                <strong>Receiver gets SMS on arrival</strong>
+                                <p class="text-muted small mb-0">Automatic notification when delivered</p>
+                            </li>
+                        </ol>
+                        
+                        <div class="alert alert-info mb-0">
+                            <i class="fas fa-phone me-2"></i>
+                            Need help? Call us: <strong>+254 700 000000</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">Why Choose MAUA SHARK?</h2>
+            <p class="section-subtitle">We are committed to your safety and comfort</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon feature-icon-primary">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <h4>Safe & Secure</h4>
+                        <p class="text-muted mb-0">
+                            Regularly serviced vehicles, trained professional drivers, 
+                            and comprehensive insurance coverage for all passengers.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon feature-icon-success">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <h4>On-time Service</h4>
+                        <p class="text-muted mb-0">
+                            We value your time with strict adherence to schedules. 
+                            Real-time updates keep you informed throughout your journey.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card feature-card h-100">
+                    <div class="card-body">
+                        <div class="feature-icon feature-icon-warning">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4>24/7 Support</h4>
+                        <p class="text-muted mb-0">
+                            Our dedicated support team is available round the clock 
+                            to assist you with bookings, parcels, and inquiries.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title">What Our Customers Say</h2>
+            <p class="section-subtitle">Real experiences from our valued travelers</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
                             <div class="avatar-initials me-3">JM</div>
                             <div>
                                 <h6 class="mb-0 fw-bold">John Mwangi</h6>
@@ -412,16 +504,19 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">"The most comfortable bus ride I've ever had. The seats were spacious and the staff was very professional. Highly recommended!"</p>
+                        <p class="text-muted mb-0">
+                            "The most comfortable bus ride I've ever had. The seats were spacious 
+                            and the staff was very professional. Highly recommended!"
+                        </p>
                     </div>
                 </div>
             </div>
             
             <div class="col-md-4">
-                <div class="card h-100 border-0 hover-lift">
+                <div class="card h-100">
                     <div class="card-body p-4">
-                        <div class="d-flex mb-3 align-items-center">
-                            <div class="avatar-initials me-3" style="background: linear-gradient(135deg, #10b981, #059669);">SA</div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-initials me-3" style="background: linear-gradient(135deg, #059669, #047857);">SA</div>
                             <div>
                                 <h6 class="mb-0 fw-bold">Sarah Auma</h6>
                                 <div class="text-warning small">
@@ -433,16 +528,19 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">"I regularly send parcels with Maua Shark and I'm always impressed by their reliability and affordable rates. Great service!"</p>
+                        <p class="text-muted mb-0">
+                            "I regularly send parcels with Maua Shark and I'm always impressed 
+                            by their reliability and affordable rates. Great service!"
+                        </p>
                     </div>
                 </div>
             </div>
             
             <div class="col-md-4">
-                <div class="card h-100 border-0 hover-lift">
+                <div class="card h-100">
                     <div class="card-body p-4">
-                        <div class="d-flex mb-3 align-items-center">
-                            <div class="avatar-initials me-3" style="background: linear-gradient(135deg, #f59e0b, #d97706);">DO</div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-initials me-3" style="background: linear-gradient(135deg, #d97706, #b45309);">DO</div>
                             <div>
                                 <h6 class="mb-0 fw-bold">David Ochieng</h6>
                                 <div class="text-warning small">
@@ -454,7 +552,10 @@
                                 </div>
                             </div>
                         </div>
-                        <p class="text-muted mb-0">"The online booking system is very user-friendly. Customer service was helpful when I needed to change my booking."</p>
+                        <p class="text-muted mb-0">
+                            "The online booking system is very user-friendly. Customer service 
+                            was helpful when I needed to change my booking."
+                        </p>
                     </div>
                 </div>
             </div>
@@ -462,17 +563,19 @@
     </div>
 </section>
 
-<!-- Call to Action -->
+<!-- CTA Section -->
 <section class="py-5 bg-primary text-white">
     <div class="container text-center">
         <h2 class="fw-bold mb-3">Ready to Travel with Us?</h2>
-        <p class="lead mb-4 opacity-90">Book your next journey with MAUA SHARK SACCO and experience comfort like never before.</p>
+        <p class="lead mb-4 opacity-90">
+            Book your next journey with MAUA SHARK SACCO and experience comfort like never before.
+        </p>
         <div class="d-flex flex-wrap justify-content-center gap-3">
             <a href="{{ url_for('catalog.routes') }}" class="btn btn-light btn-lg">
                 <i class="fas fa-ticket-alt me-2"></i>Book a Trip
             </a>
-            <a href="{{ url_for('parcels.track') }}" class="btn btn-outline-light btn-lg">
-                <i class="fas fa-box me-2"></i>Track Parcel
+            <a href="{{ url_for('main.contact') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-phone me-2"></i>Contact Us
             </a>
         </div>
     </div>

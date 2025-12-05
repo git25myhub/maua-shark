@@ -1,18 +1,281 @@
-{% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <h2 class="mb-3 section-heading-contrast">Staff Dashboard</h2>
-  <div class="grid">
-    <div class="card">Bookings: {{ booking_count }}</div>
-    <div class="card">Parcels: {{ parcel_count }}</div>
-    <div class="card">Active Trips: {{ active_trips }}</div>
-  </div>
-  <div class="mt-3 d-flex flex-wrap gap-2">
-    <a class="btn btn-primary btn-lg btn-cta-contrast" href="{{ url_for('staff.trips_list') }}"><i class="fas fa-route me-1"></i> Manage Trips</a>
-    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.bookings_list') }}"><i class="fas fa-ticket-alt me-1"></i> Bookings</a>
-    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.parcels_list') }}"><i class="fas fa-box me-1"></i> Parcels</a>
-    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.vehicles_list') }}"><i class="fas fa-van-shuttle me-1"></i> Vehicles</a>
-    <a class="btn btn-outline-light btn-lg btn-contrast-outline" href="{{ url_for('staff.customers_list') }}"><i class="fas fa-users me-1"></i> Customers</a>
-  </div>
+{% extends "staff/_layout.html" %}
+
+{% block title %}Staff Dashboard{% endblock %}
+{% block page_title %}Staff Dashboard{% endblock %}
+{% block page_subtitle %}Manage bookings, parcels, and trips{% endblock %}
+
+{% block content %}
+<!-- Stats Overview -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label mb-0">Total Bookings</p>
+                    <h3 class="stat-value text-primary">{{ booking_count|default(0) }}</h3>
+                </div>
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label mb-0">Total Parcels</p>
+                    <h3 class="stat-value text-success">{{ parcel_count|default(0) }}</h3>
+                </div>
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="fas fa-box"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label mb-0">Active Trips</p>
+                    <h3 class="stat-value text-warning">{{ active_trips|default(0) }}</h3>
+                </div>
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="fas fa-bus"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-xl-3">
+        <div class="stat-card">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <p class="stat-label mb-0">Today</p>
+                    <h3 class="stat-value text-info fs-5">{{ today_date }}</h3>
+                </div>
+                <div class="stat-icon bg-info bg-opacity-10 text-info">
+                    <i class="fas fa-calendar-day"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                        <a href="{{ url_for('staff.parcels_create') }}" class="btn btn-success w-100 py-3">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Create Parcel
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="{{ url_for('staff.trips_create') }}" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-calendar-plus me-2"></i>
+                            Schedule Trip
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="{{ url_for('staff.bookings_routes') }}" class="btn btn-info w-100 py-3 text-white">
+                            <i class="fas fa-ticket-alt me-2"></i>
+                            Check Bookings
+                        </a>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <a href="{{ url_for('staff.parcels_list') }}" class="btn btn-warning w-100 py-3">
+                            <i class="fas fa-box me-2"></i>
+                            Manage Parcels
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Bookings Management -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-ticket-alt me-2 text-primary"></i>Booking Management</h5>
+                <a href="{{ url_for('staff.bookings_routes') }}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Manage passenger bookings - check-in passengers, update booking status, and view seat maps.
+                </p>
+                
+                <div class="d-flex flex-column gap-3">
+                    <a href="{{ url_for('staff.bookings_routes') }}" class="d-flex align-items-center p-3 bg-light rounded text-decoration-none">
+                        <div class="me-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px;">
+                                <i class="fas fa-search"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 text-dark">Browse by Route</h6>
+                            <p class="text-muted small mb-0">Select route → trip → view bookings</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('staff.trips_list') }}" class="d-flex align-items-center p-3 bg-light rounded text-decoration-none">
+                        <div class="me-3">
+                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px;">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 text-dark">View Seat Map</h6>
+                            <p class="text-muted small mb-0">Visual seat layout for check-ins</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Parcel Management -->
+    <div class="col-lg-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-box me-2 text-success"></i>Parcel Management</h5>
+                <a href="{{ url_for('staff.parcels_list') }}" class="btn btn-sm btn-outline-success">View All</a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-4">
+                    Register new parcels, update status, assign vehicles, and print receipts.
+                </p>
+                
+                <div class="d-flex flex-column gap-3">
+                    <a href="{{ url_for('staff.parcels_create') }}" class="d-flex align-items-center p-3 bg-light rounded text-decoration-none">
+                        <div class="me-3">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px;">
+                                <i class="fas fa-plus"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 text-dark">Create New Parcel</h6>
+                            <p class="text-muted small mb-0">Register parcel for customer at depot</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('staff.parcels_list') }}" class="d-flex align-items-center p-3 bg-light rounded text-decoration-none">
+                        <div class="me-3">
+                            <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" 
+                                 style="width: 48px; height: 48px;">
+                                <i class="fas fa-truck"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1">
+                            <h6 class="mb-1 text-dark">Assign & Track</h6>
+                            <p class="text-muted small mb-0">Assign vehicle/driver, update status</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trip Management -->
+<div class="row g-4 mt-2">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-bus me-2 text-warning"></i>Trip Management</h5>
+                <a href="{{ url_for('staff.trips_list') }}" class="btn btn-sm btn-outline-warning">View All Trips</a>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('staff.trips_create') }}" class="card text-center p-4 text-decoration-none h-100 hover-lift">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-plus fa-3x text-primary mb-3"></i>
+                                <h5>Schedule New Trip</h5>
+                                <p class="text-muted small mb-0">Create a new trip with route, vehicle, and driver</p>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{{ url_for('staff.trips_list') }}" class="card text-center p-4 text-decoration-none h-100 hover-lift">
+                            <div class="card-body">
+                                <i class="fas fa-bus fa-3x text-warning mb-3"></i>
+                                <h5>Active Trips</h5>
+                                <p class="text-muted small mb-0">
+                                    <span class="badge bg-warning">{{ active_trips|default(0) }}</span> trips scheduled/in progress
+                                </p>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <a href="{{ url_for('staff.trips_completed') }}" class="card text-center p-4 text-decoration-none h-100 hover-lift">
+                            <div class="card-body">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <h5>Completed Trips</h5>
+                                <p class="text-muted small mb-0">View history and export reports</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicles & Customers -->
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-truck me-2 text-info"></i>Vehicles</h5>
+                <a href="{{ url_for('staff.vehicles_list') }}" class="btn btn-sm btn-outline-info">Manage</a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    View fleet, update seat layouts, and manage vehicle configurations.
+                </p>
+                <a href="{{ url_for('staff.vehicles_list') }}" class="btn btn-info text-white">
+                    <i class="fas fa-truck me-2"></i>View Vehicles
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users me-2 text-secondary"></i>Customers</h5>
+                <a href="{{ url_for('staff.customers_list') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    View customer booking history and passenger information.
+                </p>
+                <a href="{{ url_for('staff.customers_list') }}" class="btn btn-secondary">
+                    <i class="fas fa-users me-2"></i>View Customers
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
-
-

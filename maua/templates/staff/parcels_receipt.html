@@ -1,13 +1,20 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="section-heading-contrast mb-0">
-        <i class="fas fa-receipt me-2"></i>Parcel Receipt
-    </h2>
-    <div>
+
+{% block title %}Parcel Receipt{% endblock %}
+{% block page_title %}Parcel Receipt{% endblock %}
+{% block page_subtitle %}Reference: {{ parcel.ref_code }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
+    <div class="d-flex gap-2">
         <a href="{{ url_for('staff.parcels_receipt_pdf', parcel_id=parcel.id) }}" class="btn btn-primary">
             <i class="fas fa-download me-2"></i>Download PDF
         </a>
+        <button onclick="window.print()" class="btn btn-outline-primary">
+            <i class="fas fa-print me-2"></i>Print
+        </button>
+    </div>
+    <div class="d-flex gap-2">
         <a href="{{ url_for('staff.parcels_create') }}" class="btn btn-success">
             <i class="fas fa-plus me-2"></i>New Parcel
         </a>
@@ -21,19 +28,19 @@
     <div class="col-lg-8">
         <div class="card shadow-sm" id="receipt-card">
             <div class="card-header bg-primary text-white text-center py-4">
-                <h3 class="mb-1"><i class="fas fa-bus me-2"></i>MAUA SHARK SACCO</h3>
+                <h3 class="mb-1"><i class="fas fa-bus-alt me-2"></i>MAUA SHARK SACCO</h3>
                 <p class="mb-0">Parcel Delivery Receipt</p>
             </div>
             <div class="card-body p-4">
                 <!-- Reference & Date -->
                 <div class="row mb-4">
                     <div class="col-6">
-                        <p class="mb-1"><strong>Reference Code:</strong></p>
-                        <h4 class="text-primary">{{ parcel.ref_code }}</h4>
+                        <p class="mb-1 text-muted small">REFERENCE CODE</p>
+                        <h4 class="text-primary fw-bold">{{ parcel.ref_code }}</h4>
                     </div>
                     <div class="col-6 text-end">
-                        <p class="mb-1"><strong>Date:</strong></p>
-                        <p class="mb-0">{{ parcel.created_at.strftime('%B %d, %Y') }}</p>
+                        <p class="mb-1 text-muted small">DATE</p>
+                        <p class="mb-0 fw-bold">{{ parcel.created_at.strftime('%B %d, %Y') }}</p>
                         <p class="text-muted small">{{ parcel.created_at.strftime('%I:%M %p') }}</p>
                     </div>
                 </div>
@@ -44,15 +51,15 @@
                 <div class="text-center mb-4">
                     <div class="d-flex align-items-center justify-content-center">
                         <div class="text-end" style="flex: 1;">
-                            <h5 class="mb-0">{{ parcel.origin_name }}</h5>
-                            <small class="text-muted">Origin</small>
+                            <h5 class="mb-0 fw-bold">{{ parcel.origin_name }}</h5>
+                            <small class="text-muted">From</small>
                         </div>
                         <div class="px-4">
                             <i class="fas fa-arrow-right fa-2x text-primary"></i>
                         </div>
                         <div class="text-start" style="flex: 1;">
-                            <h5 class="mb-0">{{ parcel.destination_name }}</h5>
-                            <small class="text-muted">Destination</small>
+                            <h5 class="mb-0 fw-bold">{{ parcel.destination_name }}</h5>
+                            <small class="text-muted">To</small>
                         </div>
                     </div>
                 </div>
@@ -60,24 +67,24 @@
                 <hr>
                 
                 <!-- Sender & Receiver -->
-                <div class="row mb-4">
+                <div class="row mb-4 g-3">
                     <div class="col-md-6">
-                        <div class="card bg-light">
+                        <div class="card bg-light h-100">
                             <div class="card-body">
-                                <h6 class="text-muted mb-2"><i class="fas fa-user me-2"></i>SENDER</h6>
-                                <p class="mb-1"><strong>{{ parcel.sender_name }}</strong></p>
-                                <p class="mb-1"><i class="fas fa-phone me-2"></i>{{ parcel.sender_phone }}</p>
-                                <p class="mb-0"><i class="fas fa-id-card me-2"></i>{{ parcel.sender_id_number or 'N/A' }}</p>
+                                <h6 class="text-muted mb-3"><i class="fas fa-user me-2 text-primary"></i>SENDER</h6>
+                                <p class="mb-1 fw-bold">{{ parcel.sender_name }}</p>
+                                <p class="mb-1 small"><i class="fas fa-phone me-2 text-muted"></i>{{ parcel.sender_phone }}</p>
+                                <p class="mb-0 small"><i class="fas fa-id-card me-2 text-muted"></i>{{ parcel.sender_id_number or 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card bg-light">
+                        <div class="card bg-light h-100">
                             <div class="card-body">
-                                <h6 class="text-muted mb-2"><i class="fas fa-user-check me-2"></i>RECEIVER</h6>
-                                <p class="mb-1"><strong>{{ parcel.receiver_name }}</strong></p>
-                                <p class="mb-1"><i class="fas fa-phone me-2"></i>{{ parcel.receiver_phone }}</p>
-                                <p class="mb-0"><i class="fas fa-id-card me-2"></i>{{ parcel.receiver_id_number or 'N/A' }}</p>
+                                <h6 class="text-muted mb-3"><i class="fas fa-user-check me-2 text-success"></i>RECEIVER</h6>
+                                <p class="mb-1 fw-bold">{{ parcel.receiver_name }}</p>
+                                <p class="mb-1 small"><i class="fas fa-phone me-2 text-muted"></i>{{ parcel.receiver_phone }}</p>
+                                <p class="mb-0 small"><i class="fas fa-id-card me-2 text-muted"></i>{{ parcel.receiver_id_number or 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
@@ -85,14 +92,14 @@
                 
                 <!-- Parcel Details -->
                 <div class="table-responsive mb-4">
-                    <table class="table table-bordered">
+                    <table class="table table-bordered mb-0">
                         <tr>
                             <th class="bg-light" style="width: 30%;">Weight</th>
                             <td>{{ "%.1f"|format(parcel.weight_kg) if parcel.weight_kg else '—' }} kg</td>
                         </tr>
                         <tr>
                             <th class="bg-light">Amount</th>
-                            <td><strong class="text-success">KES {{ "%.2f"|format(parcel.price|float) }}</strong></td>
+                            <td><strong class="text-success fs-5">KES {{ "%.2f"|format(parcel.price|float) }}</strong></td>
                         </tr>
                         <tr>
                             <th class="bg-light">Payment Status</th>
@@ -100,48 +107,55 @@
                                 {% if parcel.payment_status == 'paid' %}
                                 <span class="badge bg-success"><i class="fas fa-check me-1"></i>Paid</span>
                                 {% else %}
-                                <span class="badge bg-warning"><i class="fas fa-clock me-1"></i>Pending</span>
+                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>
                                 {% endif %}
                             </td>
                         </tr>
                         <tr>
                             <th class="bg-light">Parcel Status</th>
                             <td>
-                                <span class="badge bg-info">{{ parcel.status.replace('_', ' ').title() }}</span>
+                                {% set status_class = {
+                                    'pending': 'bg-secondary',
+                                    'in_transit': 'bg-info',
+                                    'delivered': 'bg-success',
+                                    'cancelled': 'bg-danger'
+                                } %}
+                                <span class="badge {{ status_class.get(parcel.status, 'bg-secondary') }}">
+                                    {{ parcel.status.replace('_', ' ').title() }}
+                                </span>
                             </td>
                         </tr>
                     </table>
                 </div>
                 
                 <!-- Tracking Info -->
-                <div class="alert alert-info">
-                    <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Tracking Information</h6>
+                <div class="alert alert-info mb-4">
+                    <h6 class="alert-heading"><i class="fas fa-info-circle me-2"></i>Track Your Parcel</h6>
                     <p class="mb-0">
-                        Track your parcel online at: <strong>mauasharksacco.co.ke/parcels/track</strong><br>
-                        Use reference code: <strong class="text-primary">{{ parcel.ref_code }}</strong>
+                        Visit: <strong>mauasharksacco.co.ke/parcels/track</strong><br>
+                        Reference code: <strong class="text-primary">{{ parcel.ref_code }}</strong>
                     </p>
                 </div>
                 
                 <!-- Footer -->
-                <div class="text-center text-muted small mt-4">
+                <div class="text-center text-muted small">
                     <p class="mb-1">Thank you for choosing Maua Shark Sacco!</p>
-                    <p class="mb-0">For inquiries: +254 700 000000 | info@mauasharksacco.co.ke</p>
+                    <p class="mb-0">Contact: +254 700 000000 | info@mauasharksacco.co.ke</p>
                 </div>
             </div>
         </div>
-        
-        <div class="text-center mt-4 d-print-none">
-            <button onclick="window.print()" class="btn btn-lg btn-outline-primary">
-                <i class="fas fa-print me-2"></i>Print Receipt
-            </button>
-        </div>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_css %}
 <style>
 @media print {
-    .navbar, .sidebar, footer, .d-print-none {
+    .navbar, .dashboard-sidebar, footer, .d-print-none, .dashboard-header {
         display: none !important;
+    }
+    .dashboard-content {
+        margin-left: 0 !important;
     }
     #receipt-card {
         border: none !important;
@@ -150,8 +164,8 @@
     body {
         padding: 0 !important;
         margin: 0 !important;
+        background: white !important;
     }
 }
 </style>
 {% endblock %}
-

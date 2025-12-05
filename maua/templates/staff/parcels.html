@@ -1,82 +1,133 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0 staff-admin-title">Parcels</h2>
-    <form method="get" class="d-flex gap-2">
-      <select name="status" class="form-select form-select-sm" style="width:auto">
-        <option value="">All</option>
-        {% for s in ['pending','in_transit','delivered','cancelled','created','pending_payment'] %}
-        <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>{{ s }}</option>
-        {% endfor %}
-      </select>
-      <button class="btn btn-sm btn-primary" type="submit">Filter</button>
-    </form>
-  </div>
-  <div class="table-responsive">
-    <table class="table table-sm align-middle table-contrast">
-      <thead>
-        <tr class="text-nowrap">
-          <th>ID</th>
-          <th>Trip (From → To)</th>
-          <th>Reference</th>
-          <th>Sender</th>
-          <th>Recipient</th>
-          <th>IDs</th>
-          <th>Status</th>
-          <th>Vehicle/Driver</th>
-          <th>Created</th>
-          <th style="min-width:220px">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for p in parcels %}
-        <tr>
-          <td class="text-nowrap">{{ p.id }}</td>
-          <td class="small text-nowrap">{{ p.origin_name }} → {{ p.destination_name }}</td>
-          <td class="text-nowrap">{{ p.ref_code }}</td>
-          <td class="small">
-            <div class="fw-semibold">{{ p.sender_name or '—' }}</div>
-            <div class="text-muted">{{ p.sender_phone or '—' }}</div>
-          </td>
-          <td class="small">
-            <div class="fw-semibold">{{ p.receiver_name or p.recipient_name or '—' }}</div>
-            <div class="text-muted">{{ p.receiver_phone or p.recipient_phone or '—' }}</div>
-          </td>
-          <td class="small">
-            <div class="text-muted">Sender ID: {{ p.sender_id_number or '—' }}</div>
-            <div class="text-muted">Receiver ID: {{ p.receiver_id_number or '—' }}</div>
-          </td>
-          <td class="text-nowrap">
-            <span class="badge badge-status badge-{{ (p.status or '').replace(' ','_') | safe }}">{{ p.status }}</span>
-          </td>
-          <td class="small">
-            <div class="fw-semibold">{{ p.vehicle_plate or '—' }}</div>
-            <div class="text-muted">{{ p.driver_phone or '—' }}</div>
-          </td>
-          <td class="text-nowrap">{{ p.created_at.strftime('%Y-%m-%d %H:%M') if p.created_at else '—' }}</td>
-          <td>
-            <div class="d-flex flex-column flex-lg-row gap-2">
-              <form method="post" action="{{ url_for('staff.parcels_update_status', parcel_id=p.id) }}" class="d-flex gap-2">
-                <select name="status" class="form-select form-select-sm">
-                  {% for s in ['pending','pending_payment','created','in_transit','delivered','cancelled'] %}
-                  <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>{{ s }}</option>
-                  {% endfor %}
-                </select>
-                <button class="btn btn-sm btn-success" type="submit">Update</button>
-              </form>
-              <form method="post" action="{{ url_for('staff.parcels_assign_tracking', parcel_id=p.id) }}" class="d-flex gap-2">
-                <input name="vehicle_plate" class="form-control form-control-sm" placeholder="Vehicle Plate" value="{{ p.vehicle_plate or '' }}" />
-                <input name="driver_phone" class="form-control form-control-sm" placeholder="Driver Phone" value="{{ p.driver_phone or '' }}" />
-                <button class="btn btn-sm btn-secondary" type="submit">Assign</button>
-              </form>
+
+{% block title %}Manage Parcels{% endblock %}
+{% block page_title %}Parcels{% endblock %}
+{% block page_subtitle %}Manage parcel deliveries and assignments{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0"><i class="fas fa-box me-2 text-success"></i>All Parcels</h5>
+            <div class="d-flex gap-2">
+                <form method="get" class="d-flex gap-2">
+                    <select name="status" class="form-select form-select-sm" style="width: auto;">
+                        <option value="">All Statuses</option>
+                        {% for s in ['pending', 'pending_payment', 'in_transit', 'delivered', 'cancelled'] %}
+                        <option value="{{ s }}" {% if request.args.get('status') == s %}selected{% endif %}>
+                            {{ s|replace('_', ' ')|title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-sm btn-primary" type="submit">Filter</button>
+                </form>
+                <a href="{{ url_for('staff.parcels_create') }}" class="btn btn-sm btn-success">
+                    <i class="fas fa-plus me-1"></i>New Parcel
+                </a>
             </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  <a href="{{ url_for('staff.dashboard') }}" class="btn btn-back mt-3"><i class="fas fa-arrow-left me-2"></i>Back</a>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Ref Code</th>
+                        <th>Route</th>
+                        <th>Sender</th>
+                        <th>Receiver</th>
+                        <th>Status</th>
+                        <th>Vehicle/Driver</th>
+                        <th>Created</th>
+                        <th style="min-width: 200px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in parcels %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold text-primary">{{ p.ref_code }}</span>
+                        </td>
+                        <td class="small">
+                            {{ p.origin_name }}<br>
+                            <i class="fas fa-arrow-down text-muted small"></i><br>
+                            {{ p.destination_name }}
+                        </td>
+                        <td class="small">
+                            <div class="fw-semibold">{{ p.sender_name or '—' }}</div>
+                            <div class="text-muted">{{ p.sender_phone or '—' }}</div>
+                            <div class="text-muted small">ID: {{ p.sender_id_number or '—' }}</div>
+                        </td>
+                        <td class="small">
+                            <div class="fw-semibold">{{ p.receiver_name or '—' }}</div>
+                            <div class="text-muted">{{ p.receiver_phone or '—' }}</div>
+                            <div class="text-muted small">ID: {{ p.receiver_id_number or '—' }}</div>
+                        </td>
+                        <td>
+                            {% set status_class = {
+                                'pending': 'bg-secondary',
+                                'pending_payment': 'bg-warning text-dark',
+                                'in_transit': 'bg-info',
+                                'delivered': 'bg-success',
+                                'cancelled': 'bg-danger'
+                            } %}
+                            <span class="badge {{ status_class.get(p.status, 'bg-secondary') }}">
+                                {{ (p.status or 'unknown')|replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td class="small">
+                            <div class="fw-semibold">{{ p.vehicle_plate or '—' }}</div>
+                            <div class="text-muted">{{ p.driver_phone or '—' }}</div>
+                        </td>
+                        <td class="small text-nowrap">
+                            {{ p.created_at.strftime('%b %d, %Y') if p.created_at else '—' }}<br>
+                            <span class="text-muted">{{ p.created_at.strftime('%H:%M') if p.created_at else '' }}</span>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column gap-2">
+                                <!-- Status Update -->
+                                <form method="post" action="{{ url_for('staff.parcels_update_status', parcel_id=p.id) }}" class="d-flex gap-1">
+                                    <select name="status" class="form-select form-select-sm">
+                                        {% for s in ['pending', 'in_transit', 'delivered', 'cancelled'] %}
+                                        <option value="{{ s }}" {% if p.status == s %}selected{% endif %}>
+                                            {{ s|replace('_', ' ')|title }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-sm btn-success" type="submit" title="Update Status">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                
+                                <!-- Vehicle/Driver Assignment -->
+                                <form method="post" action="{{ url_for('staff.parcels_assign_tracking', parcel_id=p.id) }}" class="d-flex gap-1">
+                                    <input name="vehicle_plate" class="form-control form-control-sm" 
+                                           placeholder="Vehicle" value="{{ p.vehicle_plate or '' }}" style="width: 80px;">
+                                    <input name="driver_phone" class="form-control form-control-sm" 
+                                           placeholder="Driver" value="{{ p.driver_phone or '' }}" style="width: 100px;">
+                                    <button class="btn btn-sm btn-info text-white" type="submit" title="Assign">
+                                        <i class="fas fa-truck"></i>
+                                    </button>
+                                </form>
+                                
+                                <!-- Receipt Link -->
+                                <a href="{{ url_for('staff.parcels_receipt', parcel_id=p.id) }}" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-receipt me-1"></i>Receipt
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="fas fa-box-open me-2"></i>No parcels found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}
-
-

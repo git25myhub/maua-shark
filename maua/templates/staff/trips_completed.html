@@ -1,40 +1,88 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h2 class="mb-0">Completed Trips</h2>
-    <div class="d-flex gap-2">
-      <a class="btn btn-outline-secondary" href="{{ url_for('staff.trips_list') }}">Back to Trips</a>
-      <form method="post" action="{{ url_for('staff.trips_completed_export_pdf') }}">
-        <button class="btn btn-danger"><i class="fas fa-file-pdf me-1"></i> Export as PDF & Clear</button>
-      </form>
+
+{% block title %}Completed Trips{% endblock %}
+{% block page_title %}Completed Trips{% endblock %}
+{% block page_subtitle %}View trip history and export reports{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-check-circle me-2 text-success"></i>Completed Trips</h5>
+            <div class="d-flex gap-2">
+                <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('staff.trips_list') }}">
+                    <i class="fas fa-arrow-left me-1"></i>Active Trips
+                </a>
+                {% if trips %}
+                <form method="post" action="{{ url_for('staff.trips_completed_export_pdf') }}" class="d-inline">
+                    <button class="btn btn-danger btn-sm" 
+                            onclick="return confirm('This will export all completed trips to PDF and clear them from the database. Continue?');">
+                        <i class="fas fa-file-pdf me-1"></i>Export PDF & Clear
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
     </div>
-  </div>
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Route</th>
-        <th>Vehicle</th>
-        <th>Driver</th>
-        <th>Departs</th>
-        <th>ETA</th>
-        <th>Base Fare</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for t in trips %}
-      <tr>
-        <td>{{ t.id }}</td>
-        <td>{{ t.route.origin.town }} &rarr; {{ t.route.destination.town }}</td>
-        <td>{{ t.vehicle.plate_no }}<div class="small text-muted">{{ t.vehicle.make }} {{ t.vehicle.model }}</div></td>
-        <td>{{ t.driver_name or '-' }}<div class="small text-muted">{{ t.driver_phone or '' }}</div></td>
-        <td>{{ t.depart_at.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td>{{ t.arrive_eta.strftime('%Y-%m-%d %H:%M') if t.arrive_eta else '-' }}</td>
-        <td>{{ t.base_fare }}</td>
-        <td>{{ t.status }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Route</th>
+                        <th>Vehicle</th>
+                        <th>Driver</th>
+                        <th>Departed</th>
+                        <th>Fare</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in trips %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ t.id }}</span></td>
+                        <td>
+                            <strong>{{ t.route.origin.town }}</strong>
+                            <i class="fas fa-arrow-right mx-2 text-muted small"></i>
+                            <strong>{{ t.route.destination.town }}</strong>
+                        </td>
+                        <td>
+                            <div class="fw-semibold">{{ t.vehicle.plate_no }}</div>
+                            <small class="text-muted">{{ t.vehicle.make }} {{ t.vehicle.model }}</small>
+                        </td>
+                        <td>
+                            <div>{{ t.driver_name or '—' }}</div>
+                            <small class="text-muted">{{ t.driver_phone or '' }}</small>
+                        </td>
+                        <td>
+                            <div>{{ t.depart_at.strftime('%b %d, %Y') }}</div>
+                            <small class="text-muted">{{ t.depart_at.strftime('%H:%M') }}</small>
+                        </td>
+                        <td><span class="fw-bold text-success">{{ t.base_fare }}</span> KES</td>
+                        <td>
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+                            No completed trips found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if trips %}
+<div class="alert alert-info mt-4">
+    <i class="fas fa-info-circle me-2"></i>
+    <strong>Export & Clear:</strong> The "Export PDF & Clear" button will generate a PDF report of all completed trips
+    and remove them from the database to keep your system clean.
+</div>
+{% endif %}
 {% endblock %}

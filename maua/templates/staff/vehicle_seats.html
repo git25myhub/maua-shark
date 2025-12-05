@@ -1,14 +1,81 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <h2 class="mb-3">Edit Seat Layout - {{ vehicle.plate_no }}</h2>
-  <form method="post">
-    <div class="mb-3">
-      <label class="form-label">Seats (space-separated)</label>
-      <textarea class="form-control" name="seats" rows="4" placeholder="1A 1B 2A 2B 3A 3B">{{ seats_text }}</textarea>
+
+{% block title %}Edit Seat Layout{% endblock %}
+{% block page_title %}Edit Seat Layout{% endblock %}
+{% block page_subtitle %}Vehicle: {{ vehicle.plate_no }} ({{ vehicle.make }} {{ vehicle.model }}){% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-th me-2"></i>Seat Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Seat Numbers</label>
+                        <textarea class="form-control" name="seats" rows="4" placeholder="1 2 3 4 5 6 7 8 9 10 11 12 13 14">{{ seats_text }}</textarea>
+                        <div class="form-text">
+                            Enter seat numbers separated by spaces. Example: 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('staff.vehicles_list') }}">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                        <button class="btn btn-primary btn-lg" type="submit">
+                            <i class="fas fa-save me-2"></i>Save Layout
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <button class="btn btn-primary" type="submit">Save</button>
-    <a class="btn btn-outline-secondary" href="{{ url_for('staff.vehicles_list') }}">Back</a>
-  </form>
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Vehicle Info</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">PLATE NUMBER</label>
+                    <div class="h5 mb-0">{{ vehicle.plate_no }}</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">MAKE / MODEL</label>
+                    <div>{{ vehicle.make or '—' }} {{ vehicle.model or '' }}</div>
+                </div>
+                <div>
+                    <label class="form-label text-muted small">CURRENT SEATS</label>
+                    <div class="h5 mb-0">{{ vehicle.seat_count }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2 text-warning"></i>Tips</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small mb-0">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Use simple numbers: 1 2 3 4 5...
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Or use labels: 1A 1B 2A 2B...
+                    </li>
+                    <li>
+                        <i class="fas fa-check text-success me-2"></i>
+                        Separate each seat with a space
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
-
-

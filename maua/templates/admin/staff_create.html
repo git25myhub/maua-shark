@@ -1,91 +1,149 @@
 {% extends 'admin/_layout.html' %}
-{% block admin_content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="section-heading-contrast mb-0">
-        <i class="fas fa-user-plus me-2"></i>Add Staff Member
-    </h2>
-    <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-2"></i>Back to List
-    </a>
-</div>
 
-<div class="row justify-content-center">
+{% block title %}Create Staff Account{% endblock %}
+{% block page_title %}Add Staff Member{% endblock %}
+{% block page_subtitle %}Enter staff details - login credentials will be auto-generated{% endblock %}
+
+{% block content %}
+<div class="row">
     <div class="col-lg-8">
-        <div class="card shadow-sm">
+        <div class="card">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>New Staff Account</h5>
+                <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>New Staff Account</h5>
             </div>
             <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-magic me-2"></i>
+                    <strong>Auto-Generated Credentials:</strong> 
+                    Just enter the staff member's name and contact details. 
+                    Username and password will be generated automatically!
+                </div>
+                
                 <form method="POST" action="{{ url_for('admin.staff_create') }}">
+                    <h6 class="text-muted mb-3"><i class="fas fa-user me-2"></i>Staff Name</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="username" name="username" 
-                                   required placeholder="e.g., john_staff">
-                            <div class="form-text">Must be unique. Used for login.</div>
+                            <label for="first_name" class="form-label fw-semibold">
+                                First Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="first_name" name="first_name" 
+                                   required placeholder="e.g. John" autofocus>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" 
-                                   required placeholder="e.g., john@mauasacco.com">
+                            <label for="last_name" class="form-label fw-semibold">
+                                Last Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="last_name" name="last_name" 
+                                   required placeholder="e.g. Mwangi">
                         </div>
                     </div>
                     
+                    <hr class="my-4">
+                    
+                    <h6 class="text-muted mb-3"><i class="fas fa-address-card me-2"></i>Contact Details</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
-                                   required placeholder="e.g., 0712345678">
+                            <label for="email" class="form-label fw-semibold">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" 
+                                   required placeholder="e.g. john@mauasacco.com">
+                            <div class="form-text">Staff will use this email to log in</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                            <input type="password" class="form-control" id="password" name="password" 
-                                   required minlength="6" placeholder="Min 6 characters">
+                            <label for="phone" class="form-label fw-semibold">
+                                Phone <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" class="form-control form-control-lg" id="phone" name="phone" 
+                                   required placeholder="e.g. 0712345678">
                         </div>
                     </div>
                     
-                    <div class="mb-4">
-                        <label class="form-label">Role <span class="text-danger">*</span></label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check card p-3 border">
-                                    <input class="form-check-input" type="radio" name="role" 
-                                           id="role_staff" value="staff" checked>
-                                    <label class="form-check-label" for="role_staff">
-                                        <strong><i class="fas fa-user-tie me-1"></i> Staff</strong>
-                                        <p class="mb-0 small text-muted">
-                                            Can manage bookings, parcels, and trips
-                                        </p>
-                                    </label>
-                                </div>
+                    <hr class="my-4">
+                    
+                    <h6 class="text-muted mb-3"><i class="fas fa-user-shield me-2"></i>Access Level</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check card p-3 border h-100">
+                                <input class="form-check-input" type="radio" name="role" 
+                                       id="role_staff" value="staff" checked>
+                                <label class="form-check-label ms-2" for="role_staff">
+                                    <strong><i class="fas fa-user-tie me-1 text-primary"></i> Staff</strong>
+                                    <p class="mb-0 small text-muted mt-1">
+                                        Can manage bookings, parcels, trips, and vehicles. 
+                                        No access to admin settings or staff management.
+                                    </p>
+                                </label>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-check card p-3 border">
-                                    <input class="form-check-input" type="radio" name="role" 
-                                           id="role_admin" value="admin">
-                                    <label class="form-check-label" for="role_admin">
-                                        <strong><i class="fas fa-crown me-1"></i> Admin</strong>
-                                        <p class="mb-0 small text-muted">
-                                            Full access including staff management
-                                        </p>
-                                    </label>
-                                </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check card p-3 border h-100">
+                                <input class="form-check-input" type="radio" name="role" 
+                                       id="role_admin" value="admin">
+                                <label class="form-check-label ms-2" for="role_admin">
+                                    <strong><i class="fas fa-crown me-1 text-danger"></i> Admin</strong>
+                                    <p class="mb-0 small text-muted mt-1">
+                                        Full system access including staff management, 
+                                        routes, depots, and vehicles configuration.
+                                    </p>
+                                </label>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary">
-                            Cancel
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                        <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-save me-2"></i>Create Account
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-magic me-2"></i>Create & Generate Credentials
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-success">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="fas fa-magic me-2"></i>Auto-Generation</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">When you click "Create & Generate Credentials":</p>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2">
+                        <i class="fas fa-user text-primary me-2"></i>
+                        <strong>Username:</strong> firstname.lastname<br>
+                        <span class="text-muted ms-4">e.g., john.mwangi</span>
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-key text-warning me-2"></i>
+                        <strong>Password:</strong> Random 8 characters<br>
+                        <span class="text-muted ms-4">e.g., Hx7Kp2Qm</span>
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Credentials will be shown for you to share with the staff member
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Next Steps</h6>
+            </div>
+            <div class="card-body">
+                <ol class="small mb-0">
+                    <li class="mb-2">Fill in the staff member's details</li>
+                    <li class="mb-2">Click "Create & Generate Credentials"</li>
+                    <li class="mb-2">Copy or print the login credentials</li>
+                    <li class="mb-2">Share credentials with the staff member</li>
+                    <li>Staff can log in at the main login page</li>
+                </ol>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
-

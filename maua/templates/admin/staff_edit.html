@@ -1,112 +1,169 @@
 {% extends 'admin/_layout.html' %}
-{% block admin_content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="section-heading-contrast mb-0">
-        <i class="fas fa-user-edit me-2"></i>Edit Staff: {{ user.username }}
-    </h2>
-    <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary">
-        <i class="fas fa-arrow-left me-2"></i>Back to List
-    </a>
-</div>
 
-<div class="row justify-content-center">
+{% block title %}Edit Staff: {{ user.username }}{% endblock %}
+{% block page_title %}Edit Staff Account{% endblock %}
+{% block page_subtitle %}Update details for {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="row">
     <div class="col-lg-8">
-        <div class="card shadow-sm">
+        <div class="card">
             <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>Edit Staff Account</h5>
+                <h5 class="mb-0"><i class="fas fa-user-edit me-2"></i>Edit Staff Account</h5>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('admin.staff_edit', user_id=user.id) }}">
+                    <h6 class="text-muted mb-3"><i class="fas fa-user me-2"></i>Account Details</h6>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="username" name="username" 
+                            <label for="username" class="form-label fw-semibold">
+                                Username <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="username" name="username" 
                                    value="{{ user.username }}" required>
+                            <div class="form-text">Used for login identification</div>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                            <input type="email" class="form-control" id="email" name="email" 
+                            <label for="email" class="form-label fw-semibold">
+                                Email <span class="text-danger">*</span>
+                            </label>
+                            <input type="email" class="form-control form-control-lg" id="email" name="email" 
                                    value="{{ user.email }}" required>
                         </div>
                     </div>
                     
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="phone" class="form-label">Phone <span class="text-danger">*</span></label>
-                            <input type="tel" class="form-control" id="phone" name="phone" 
+                            <label for="phone" class="form-label fw-semibold">
+                                Phone <span class="text-danger">*</span>
+                            </label>
+                            <input type="tel" class="form-control form-control-lg" id="phone" name="phone" 
                                    value="{{ user.phone }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="password" class="form-label">New Password</label>
-                            <input type="password" class="form-control" id="password" name="password" 
+                            <label for="password" class="form-label fw-semibold">New Password</label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" 
                                    minlength="6" placeholder="Leave blank to keep current">
                             <div class="form-text">Only fill if changing password</div>
                         </div>
                     </div>
                     
-                    <div class="mb-3">
-                        <label class="form-label">Role <span class="text-danger">*</span></label>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-check card p-3 border">
-                                    <input class="form-check-input" type="radio" name="role" 
-                                           id="role_staff" value="staff" {{ 'checked' if user.is_staff and not user.is_admin else '' }}>
-                                    <label class="form-check-label" for="role_staff">
-                                        <strong><i class="fas fa-user-tie me-1"></i> Staff</strong>
-                                    </label>
-                                </div>
+                    <hr class="my-4">
+                    
+                    <h6 class="text-muted mb-3"><i class="fas fa-user-shield me-2"></i>Access Level</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-check card p-3 border h-100">
+                                <input class="form-check-input" type="radio" name="role" 
+                                       id="role_staff" value="staff" {{ 'checked' if user.is_staff and not user.is_admin else '' }}>
+                                <label class="form-check-label ms-2" for="role_staff">
+                                    <strong><i class="fas fa-user-tie me-1 text-primary"></i> Staff</strong>
+                                    <p class="mb-0 small text-muted mt-1">
+                                        Manage bookings, parcels, trips
+                                    </p>
+                                </label>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-check card p-3 border">
-                                    <input class="form-check-input" type="radio" name="role" 
-                                           id="role_admin" value="admin" {{ 'checked' if user.is_admin else '' }}>
-                                    <label class="form-check-label" for="role_admin">
-                                        <strong><i class="fas fa-crown me-1"></i> Admin</strong>
-                                    </label>
-                                </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check card p-3 border h-100">
+                                <input class="form-check-input" type="radio" name="role" 
+                                       id="role_admin" value="admin" {{ 'checked' if user.is_admin else '' }}>
+                                <label class="form-check-label ms-2" for="role_admin">
+                                    <strong><i class="fas fa-crown me-1 text-danger"></i> Admin</strong>
+                                    <p class="mb-0 small text-muted mt-1">
+                                        Full system access
+                                    </p>
+                                </label>
                             </div>
                         </div>
                     </div>
                     
+                    <hr class="my-4">
+                    
+                    <h6 class="text-muted mb-3"><i class="fas fa-toggle-on me-2"></i>Account Status</h6>
                     <div class="mb-4">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                   {{ 'checked' if user.is_active else '' }}>
-                            <label class="form-check-label" for="is_active">Account is active</label>
+                                   {{ 'checked' if user.is_active else '' }} style="width: 3rem; height: 1.5rem;">
+                            <label class="form-check-label ms-2 pt-1" for="is_active">
+                                <strong>Account is Active</strong>
+                            </label>
                         </div>
-                        <div class="form-text">Inactive accounts cannot log in.</div>
+                        <div class="form-text">Inactive accounts cannot log in to the system.</div>
                     </div>
                     
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary">
-                            Cancel
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('admin.staff_manage') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-times me-2"></i>Cancel
                         </a>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary btn-lg">
                             <i class="fas fa-save me-2"></i>Save Changes
                         </button>
                     </div>
                 </form>
             </div>
         </div>
-        
-        <div class="card mt-4 border-secondary">
+    </div>
+    
+    <div class="col-lg-4">
+        <!-- Account Info -->
+        <div class="card">
             <div class="card-header">
-                <i class="fas fa-info-circle me-2"></i>Account Information
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Account Information</h6>
             </div>
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Created:</strong></p>
-                        <p class="text-muted">{{ user.date_joined.strftime('%B %d, %Y at %I:%M %p') if user.date_joined else 'N/A' }}</p>
-                    </div>
-                    <div class="col-md-6">
-                        <p class="mb-1"><strong>Last Updated:</strong></p>
-                        <p class="text-muted">{{ user.updated_at.strftime('%B %d, %Y at %I:%M %p') if user.updated_at else 'N/A' }}</p>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">CURRENT STATUS</label>
+                    <div>
+                        {% if user.is_active %}
+                        <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i>Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary fs-6"><i class="fas fa-ban me-1"></i>Inactive</span>
+                        {% endif %}
                     </div>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">CURRENT ROLE</label>
+                    <div>
+                        {% if user.is_admin %}
+                        <span class="badge bg-danger fs-6"><i class="fas fa-crown me-1"></i>Admin</span>
+                        {% else %}
+                        <span class="badge bg-primary fs-6"><i class="fas fa-user-tie me-1"></i>Staff</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small">CREATED</label>
+                    <div class="text-muted">
+                        {{ user.date_joined.strftime('%B %d, %Y') if user.date_joined else 'N/A' }}
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label text-muted small">LAST UPDATED</label>
+                    <div class="text-muted">
+                        {{ user.updated_at.strftime('%B %d, %Y') if user.updated_at else 'N/A' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reset Password Card -->
+        <div class="card mt-3 border-warning">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h6 class="mb-0"><i class="fas fa-key me-2 text-warning"></i>Reset Password</h6>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-3">
+                    Generate a new random password for this staff member.
+                </p>
+                <form method="POST" action="{{ url_for('admin.staff_reset_password', user_id=user.id) }}">
+                    <button type="submit" class="btn btn-warning w-100" 
+                            onclick="return confirm('Generate a new password for {{ user.username }}?');">
+                        <i class="fas fa-random me-2"></i>Generate New Password
+                    </button>
+                </form>
             </div>
         </div>
     </div>
 </div>
 {% endblock %}
-

@@ -1,28 +1,73 @@
 {% extends 'admin/_layout.html' %}
-{% block admin_content %}
-  <h2 class="mb-3">Edit Vehicle</h2>
-  <form method="post" class="row g-3">
-    <div class="col-md-4">
-      <label class="form-label">Plate No</label>
-      <input class="form-control" name="plate_no" value="{{ vehicle.plate_no }}" required>
+
+{% block title %}Edit Vehicle{% endblock %}
+{% block page_title %}Edit Vehicle{% endblock %}
+{% block page_subtitle %}Update vehicle: {{ vehicle.plate_no }}{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-warning bg-opacity-10">
+                <h5 class="mb-0"><i class="fas fa-edit me-2 text-warning"></i>Edit Vehicle Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Plate Number <span class="text-danger">*</span></label>
+                        <input class="form-control form-control-lg" name="plate_no" value="{{ vehicle.plate_no }}" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Make</label>
+                        <input class="form-control form-control-lg" name="make" value="{{ vehicle.make or '' }}" placeholder="e.g. Toyota">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Model</label>
+                        <input class="form-control form-control-lg" name="model" value="{{ vehicle.model or '' }}" placeholder="e.g. Hiace">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Seat Layout</label>
+                        <input class="form-control" name="seats" value="{{ seats_text }}" placeholder="1 2 3 4 5 6 7 8 9 10 11 12 13 14">
+                        <div class="form-text">Enter seat numbers separated by spaces. Current: {{ vehicle.seat_count }} seats</div>
+                    </div>
+                    <div class="col-12">
+                        <hr>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a class="btn btn-outline-secondary btn-lg" href="{{ url_for('admin.vehicles_manage') }}">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button class="btn btn-warning btn-lg" type="submit">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-      <label class="form-label">Make</label>
-      <input class="form-control" name="make" value="{{ vehicle.make or '' }}">
+    
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Vehicle Info</h6>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">CURRENT STATUS</label>
+                    <div>
+                        {% if vehicle.active %}
+                        <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i>Active</span>
+                        {% else %}
+                        <span class="badge bg-secondary fs-6">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label text-muted small">TOTAL SEATS</label>
+                    <div class="h4">{{ vehicle.seat_count }}</div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-      <label class="form-label">Model</label>
-      <input class="form-control" name="model" value="{{ vehicle.model or '' }}">
-    </div>
-    <div class="col-12">
-      <label class="form-label">Seats (space-separated)</label>
-      <input class="form-control" name="seats" value="{{ seats_text }}" placeholder="1A 1B 2A 2B">
-    </div>
-    <div class="col-12">
-      <button class="btn btn-primary" type="submit">Save</button>
-      <a class="btn btn-outline-secondary" href="{{ url_for('admin.vehicles_manage') }}">Cancel</a>
-    </div>
-  </form>
+</div>
 {% endblock %}
-
-

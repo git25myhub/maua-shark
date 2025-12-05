@@ -1,43 +1,134 @@
 {% extends 'admin/_layout.html' %}
-{% block admin_content %}
-  <h2 class="mb-3">Manage Routes</h2>
-  <form method="post" class="row g-3 mb-4">
-    <div class="col-md-3">
-      <input class="form-control mb-2" name="code" placeholder="e.g. NRB-MSA" required>
-      <small class="text-muted">Route Code (e.g., NRB-MSA)</small>
+
+{% block title %}Manage Routes{% endblock %}
+{% block page_title %}Manage Routes{% endblock %}
+{% block page_subtitle %}Configure travel routes between depots{% endblock %}
+
+{% block content %}
+<!-- Add Route Form -->
+<div class="card mb-4">
+    <div class="card-header bg-success bg-opacity-10">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2 text-success"></i>Add New Route</h5>
     </div>
-    <div class="col-md-4">
-      <input class="form-control mb-2" name="origin" placeholder="e.g. Nairobi - CBD" required>
-      <small class="text-muted">Origin (Town - Location)</small>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Route Code <span class="text-danger">*</span></label>
+                <input class="form-control" name="code" placeholder="e.g. NRB-MRU" required>
+                <div class="form-text">Unique identifier (e.g., NRB-MRU)</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Origin <span class="text-danger">*</span></label>
+                <input class="form-control" name="origin" placeholder="e.g. Nairobi - CBD" required>
+                <div class="form-text">Format: Town - Location</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">Destination <span class="text-danger">*</span></label>
+                <input class="form-control" name="destination" placeholder="e.g. Meru - Town Center" required>
+                <div class="form-text">Format: Town - Location</div>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button class="btn btn-success w-100" type="submit">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </form>
     </div>
-    <div class="col-md-4">
-      <input class="form-control mb-2" name="destination" placeholder="e.g. Mombasa - CBD" required>
-      <small class="text-muted">Destination (Town - Location)</small>
+</div>
+
+<!-- Routes List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-route me-2 text-primary"></i>Registered Routes</h5>
     </div>
-    <div class="col-md-1 d-flex align-items-end">
-      <button class="btn btn-primary w-100" type="submit" title="Add Route">
-        <i class="fas fa-plus"></i> Add
-      </button>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Route Code</th>
+                        <th>Origin</th>
+                        <th></th>
+                        <th>Destination</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in routes %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-success">{{ r.code }}</span>
+                        </td>
+                        <td>
+                            <i class="fas fa-map-marker-alt me-2 text-success"></i>
+                            <strong>{{ r.origin.town }}</strong>
+                            <br><small class="text-muted">{{ r.origin.name }}</small>
+                        </td>
+                        <td class="text-center">
+                            <i class="fas fa-arrow-right text-muted"></i>
+                        </td>
+                        <td>
+                            <i class="fas fa-map-marker-alt me-2 text-danger"></i>
+                            <strong>{{ r.destination.town }}</strong>
+                            <br><small class="text-muted">{{ r.destination.name }}</small>
+                        </td>
+                        <td>
+                            {% if r.active %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-outline-primary" href="{{ url_for('admin.routes_edit', route_id=r.id) }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ url_for('admin.routes_delete', route_id=r.id) }}" 
+                                      class="d-inline" onsubmit="return confirm('Delete this route?');">
+                                    <button class="btn btn-outline-danger" type="submit">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fas fa-route fa-2x mb-2 d-block"></i>
+                            No routes configured yet. Add your first route above.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-  </form>
-  <table class="table">
-    <thead><tr><th>Code</th><th>Origin</th><th>Destination</th><th></th></tr></thead>
-    <tbody>
-      {% for r in routes %}
-      <tr>
-        <td>{{ r.code }}</td>
-        <td>{{ r.origin.town }} - {{ r.origin.name }}</td>
-        <td>{{ r.destination.town }} - {{ r.destination.name }}</td>
-        <td>
-          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.routes_edit', route_id=r.id) }}">Edit</a>
-          <form method="post" action="{{ url_for('admin.routes_delete', route_id=r.id) }}" onsubmit="return confirm('Delete route?')">
-            <button class="btn btn-sm btn-danger">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+</div>
+
+<!-- Help Card -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Tips</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>Route Codes</h6>
+                <p class="small text-muted mb-0">
+                    Use abbreviations like NRB-MRU (Nairobi to Meru), NRB-EMB (Nairobi to Embu), etc.
+                </p>
+            </div>
+            <div class="col-md-6">
+                <h6>Depots</h6>
+                <p class="small text-muted mb-0">
+                    Origin and destination will automatically create depots if they don't exist.
+                    Manage depots separately for more control.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
-
-

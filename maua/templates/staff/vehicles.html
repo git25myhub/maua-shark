@@ -1,21 +1,60 @@
 {% extends 'staff/_layout.html' %}
-{% block staff_content %}
-  <h2 class="mb-3">Vehicles</h2>
-  <table class="table">
-    <thead><tr><th>Plate</th><th>Make/Model</th><th>Seats</th><th>Actions</th></tr></thead>
-    <tbody>
-      {% for v in vehicles %}
-      <tr>
-        <td>{{ v.plate_no }}</td>
-        <td>{{ v.make }} {{ v.model }}</td>
-        <td>{{ v.seat_count }}</td>
-        <td>
-          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('staff.vehicle_seat_layout', vehicle_id=v.id) }}">Edit Seats</a>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+
+{% block title %}Vehicles{% endblock %}
+{% block page_title %}Fleet Vehicles{% endblock %}
+{% block page_subtitle %}View and manage vehicle seat layouts{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-bus me-2 text-primary"></i>Registered Vehicles</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Plate Number</th>
+                        <th>Make / Model</th>
+                        <th>Seats</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vehicles %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">{{ v.plate_no }}</span>
+                        </td>
+                        <td>{{ v.make or '—' }} {{ v.model or '' }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ v.seat_count }} seats</span>
+                        </td>
+                        <td>
+                            {% if v.active %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-primary" href="{{ url_for('staff.vehicle_seat_layout', vehicle_id=v.id) }}">
+                                <i class="fas fa-th me-1"></i>Edit Seats
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-bus fa-2x mb-2 d-block"></i>
+                            No vehicles found. Contact admin to add vehicles.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}
-
-

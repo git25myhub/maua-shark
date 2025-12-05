@@ -1,47 +1,103 @@
 {% extends 'admin/_layout.html' %}
-{% block admin_content %}
-  <h2 class="mb-3">Manage Vehicles</h2>
-  <form method="post" class="row g-2 mb-4">
-    <div class="col-md-3">
-      <input class="form-control mb-2" name="plate_no" placeholder="e.g. KAA 123A" required>
-      <small class="text-muted">Vehicle Registration Number</small>
+
+{% block title %}Manage Vehicles{% endblock %}
+{% block page_title %}Manage Vehicles{% endblock %}
+{% block page_subtitle %}Add and configure fleet vehicles{% endblock %}
+
+{% block content %}
+<!-- Add Vehicle Form -->
+<div class="card mb-4">
+    <div class="card-header bg-warning bg-opacity-10">
+        <h5 class="mb-0"><i class="fas fa-plus-circle me-2 text-warning"></i>Add New Vehicle</h5>
     </div>
-    <div class="col-md-3">
-      <input class="form-control mb-2" name="make" placeholder="e.g. Toyota">
-      <small class="text-muted">Vehicle Make</small>
+    <div class="card-body">
+        <form method="post" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Registration Number <span class="text-danger">*</span></label>
+                <input class="form-control" name="plate_no" placeholder="e.g. KAA 123A" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Make</label>
+                <input class="form-control" name="make" placeholder="e.g. Toyota">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">Model</label>
+                <input class="form-control" name="model" placeholder="e.g. Hiace">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">&nbsp;</label>
+                <button class="btn btn-warning w-100" type="submit">
+                    <i class="fas fa-plus me-2"></i>Add Vehicle
+                </button>
+            </div>
+            <div class="col-12">
+                <label class="form-label fw-semibold">Seat Numbers</label>
+                <input class="form-control" name="seats" placeholder="e.g. 1 2 3 4 5 6 7 8 9 10 11 12 13 14">
+                <div class="form-text">Enter seat numbers separated by spaces (e.g., 1 2 3 4 5 6 7 8 9 10 11 12 13 14)</div>
+            </div>
+        </form>
     </div>
-    <div class="col-md-3">
-      <input class="form-control mb-2" name="model" placeholder="e.g. Hiace">
-      <small class="text-muted">Vehicle Model</small>
+</div>
+
+<!-- Vehicles List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-bus me-2 text-primary"></i>Registered Vehicles</h5>
     </div>
-    <div class="col-md-12 mt-3">
-      <div class="input-group">
-        <input class="form-control" name="seats" placeholder="e.g. 1 2 3 4 5 6 7 8 9 10 11 12 13 14">
-        <button class="btn btn-primary" type="submit">
-          <i class="fas fa-plus"></i> Add Vehicle
-        </button>
-      </div>
-      <small class="text-muted">Enter seat numbers separated by spaces (e.g., 1 2 3 4 5 6 7 8 9 10 11 12 13 14)</small>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Plate Number</th>
+                        <th>Make / Model</th>
+                        <th>Seats</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for v in vehicles %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">{{ v.plate_no }}</span>
+                        </td>
+                        <td>{{ v.make or '—' }} {{ v.model or '' }}</td>
+                        <td>
+                            <span class="badge bg-primary">{{ v.seat_count }} seats</span>
+                        </td>
+                        <td>
+                            {% if v.active %}
+                            <span class="badge bg-success"><i class="fas fa-check me-1"></i>Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a class="btn btn-outline-primary" href="{{ url_for('admin.vehicles_edit', vehicle_id=v.id) }}">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="post" action="{{ url_for('admin.vehicles_delete', vehicle_id=v.id) }}" 
+                                      class="d-inline" onsubmit="return confirm('Delete this vehicle?');">
+                                    <button class="btn btn-outline-danger" type="submit">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="fas fa-bus fa-2x mb-2 d-block"></i>
+                            No vehicles registered yet. Add your first vehicle above.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
-  </form>
-  <table class="table">
-    <thead><tr><th>Plate</th><th>Make/Model</th><th>Seats</th><th></th></tr></thead>
-    <tbody>
-      {% for v in vehicles %}
-      <tr>
-        <td>{{ v.plate_no }}</td>
-        <td>{{ v.make }} {{ v.model }}</td>
-        <td>{{ v.seat_count }}</td>
-        <td>
-          <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.vehicles_edit', vehicle_id=v.id) }}">Edit</a>
-          <form method="post" action="{{ url_for('admin.vehicles_delete', vehicle_id=v.id) }}" onsubmit="return confirm('Delete vehicle?')">
-            <button class="btn btn-sm btn-danger">Delete</button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+</div>
 {% endblock %}
-
-
