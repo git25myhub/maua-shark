@@ -8,6 +8,7 @@ from maua.catalog.models import Trip, Vehicle, Route
 from maua.parcels.models import Parcel
 from datetime import datetime
 from maua.notifications.sms import send_sms
+from maua.notifications.notification_service import NotificationService
 from werkzeug.utils import secure_filename
 import os
 import io
@@ -96,27 +97,24 @@ def bookings_update_status(booking_id: int):
     try:
         booking.status = new_status
         db.session.commit()
-        # SMS: If checked in or completed, notify passenger
+        
+        # Send notifications based on status change
         try:
             if new_status == 'checked_in':
-                msg = (
-                    f"Maua Shark: Thank you {booking.passenger_name} for boarding. "
-                    f"Trip {booking.trip.route.origin.town}->{booking.trip.route.destination.town}. "
-                    f"Seat {booking.seat_number}. We wish you a safe journey."
-                )
-                # Get user email from booking if available
-                user_email = booking.user.email if booking.user and hasattr(booking.user, 'email') else None
-                send_sms(booking.passenger_phone, msg, user_email=user_email)
+                # Send check-in notification (SMS + Email)
+                NotificationService.notify_booking_checked_in(booking)
+                current_app.logger.info(f'Check-in notification sent for booking {booking.reference}')
             elif new_status == 'completed':
-                msg = (
-                    f"Maua Shark: Trip completed. Thank you for traveling with us, {booking.passenger_name}. "
-                    f"We appreciate you and welcome you to ride with MAUA SHARK again."
-                )
-                # Get user email from booking if available
-                user_email = booking.user.email if booking.user and hasattr(booking.user, 'email') else None
-                send_sms(booking.passenger_phone, msg, user_email=user_email)
-        except Exception:
-            pass
+                # Send trip completion thank you (SMS + Email)
+                NotificationService.notify_booking_completed(booking)
+                current_app.logger.info(f'Completion notification sent for booking {booking.reference}')
+            elif new_status == 'cancelled':
+                # Send cancellation notification
+                NotificationService.notify_booking_cancelled(booking)
+                current_app.logger.info(f'Cancellation notification sent for booking {booking.reference}')
+        except Exception as e:
+            current_app.logger.error(f'Failed to send notification: {e}')
+        
         flash('Booking status updated.', 'success')
     except Exception:
         db.session.rollback()
@@ -148,7 +146,8 @@ def parcels_update_status(parcel_id: int):
     try:
         parcel.status = new_status
         db.session.commit()
-        # SMS: Notify sender/receiver on parcel status changes
+        
+        # Send notifications based on status change
         try:
             # Get user email from parcel creator if available
             user_email = None
@@ -158,32 +157,26 @@ def parcels_update_status(parcel_id: int):
                 if user and hasattr(user, 'email'):
                     user_email = user.email
             
-            if new_status == 'pending':
-                msg = (
-                    f"Maua Shark: Parcel {parcel.ref_code} is pending dispatch from {parcel.origin_name}."
+            if new_status == 'in_transit':
+                # Send in-transit notification to sender and receiver
+                NotificationService.notify_parcel_in_transit(
+                    parcel, 
+                    vehicle=parcel.vehicle_plate,
+                    driver_phone=parcel.driver_phone,
+                    user_email=user_email
                 )
-                send_sms(parcel.sender_phone, msg, user_email=user_email)
-            elif new_status == 'in_transit':
-                msg_sender = (
-                    f"Maua Shark: Parcel {parcel.ref_code} now in transit to {parcel.destination_name}."
-                )
-                msg_receiver = (
-                    f"Maua Shark: You will receive parcel {parcel.ref_code} from {parcel.sender_name}. "
-                    f"It is now in transit to {parcel.destination_name}."
-                )
-                send_sms(parcel.sender_phone, msg_sender, user_email=user_email)
-                send_sms(parcel.receiver_phone, msg_receiver, user_email=user_email)
+                current_app.logger.info(f'In-transit notification sent for parcel {parcel.ref_code}')
             elif new_status == 'delivered':
-                msg_sender = (
-                    f"Maua Shark: Parcel {parcel.ref_code} delivered to {parcel.receiver_name}. Thank you!"
-                )
-                msg_receiver = (
-                    f"Maua Shark: Parcel {parcel.ref_code} received. Thank you for choosing Maua Shark."
-                )
-                send_sms(parcel.sender_phone, msg_sender, user_email=user_email)
-                send_sms(parcel.receiver_phone, msg_receiver, user_email=user_email)
-        except Exception:
-            pass
+                # Send delivery confirmation with appreciation message
+                NotificationService.notify_parcel_delivered(parcel, user_email=user_email)
+                current_app.logger.info(f'Delivery notification sent for parcel {parcel.ref_code}')
+            elif new_status == 'pending':
+                # Simple SMS for pending status
+                msg = f"Maua Shark: Parcel {parcel.ref_code} is pending dispatch from {parcel.origin_name}."
+                send_sms(parcel.sender_phone, msg, user_email=user_email)
+        except Exception as e:
+            current_app.logger.error(f'Failed to send parcel notification: {e}')
+        
         flash('Parcel status updated.', 'success')
     except Exception:
         db.session.rollback()
@@ -594,22 +587,13 @@ def parcels_create():
         db.session.add(payment)
         db.session.commit()
         
-        # Send SMS notification to sender and receiver
+        # Send notifications to sender and receiver (SMS + Email if available)
         try:
-            sender_msg = (
-                f"Maua Shark: Your parcel {ref_code} has been registered. "
-                f"From {origin_name} to {destination_name}. "
-                f"Receiver: {receiver_name}. Amount: KES {price}"
-            )
-            send_sms(sender_phone, sender_msg, user_email=None)
-            
-            receiver_msg = (
-                f"Maua Shark: A parcel {ref_code} is coming to you from {sender_name}. "
-                f"Track at our website using ref: {ref_code}"
-            )
-            send_sms(receiver_phone, receiver_msg, user_email=None)
-        except Exception:
-            pass  # SMS errors shouldn't block parcel creation
+            NotificationService.notify_parcel_created(parcel, user_email=current_user.email)
+            current_app.logger.info(f'Parcel creation notifications sent for {ref_code}')
+        except Exception as e:
+            current_app.logger.error(f'Failed to send parcel notifications: {e}')
+            # SMS errors shouldn't block parcel creation
         
         flash(f'Parcel {ref_code} created successfully!', 'success')
         

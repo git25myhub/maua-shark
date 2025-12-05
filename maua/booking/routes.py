@@ -379,6 +379,14 @@ def cancel(booking_id):
         booking.status = 'cancelled'
         db.session.commit()
         broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+        
+        # Send cancellation notification
+        try:
+            from maua.notifications.notification_service import NotificationService
+            NotificationService.notify_booking_cancelled(booking)
+        except Exception:
+            pass  # Don't fail if notification fails
+        
         flash('Booking has been cancelled.', 'success')
     except Exception as e:
         db.session.rollback()

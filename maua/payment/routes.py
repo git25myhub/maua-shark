@@ -142,7 +142,7 @@ def mpesa_callback():
                 payment.transaction_id = payment_data.get('receipt_number', checkout_request_id)
                 payment.payment_date = datetime.utcnow()
                 
-                # Update related booking or parcel status
+                # Update related booking or parcel status and send notifications
                 if payment.booking_id:
                     booking = Booking.query.get(payment.booking_id)
                     if booking:
@@ -151,27 +151,29 @@ def mpesa_callback():
                         from maua.booking.models import Ticket
                         ticket = Ticket(booking_id=booking.id, status='confirmed')
                         db.session.add(ticket)
+                        
+                        # Send booking confirmation notifications (SMS + Email)
+                        try:
+                            from maua.notifications.notification_service import NotificationService
+                            NotificationService.notify_booking_confirmed(booking)
+                            current_app.logger.info(f'Booking confirmation sent for {booking.reference}')
+                        except Exception as e:
+                            current_app.logger.error(f'Failed to send booking confirmation: {e}')
+                        
                 elif payment.parcel_id:
                     parcel = Parcel.query.get(payment.parcel_id)
                     if parcel:
                         parcel.status = 'created'  # Change from pending_payment to created
                         parcel.payment_status = 'paid'
                         
-                        # Send SMS notifications
+                        # Send parcel payment confirmation notifications
                         try:
-                            from maua.notifications.sms import send_sms
-                            msg_sender = (
-                                f"Maua Shark: Parcel {parcel.ref_code} payment confirmed from {parcel.origin_name} to {parcel.destination_name}. "
-                                f"Receiver: {parcel.receiver_name} ({parcel.receiver_phone}). Price KES {parcel.price}."
-                            )
-                            msg_receiver = (
-                                f"Maua Shark: A parcel for you ({parcel.receiver_name}) payment confirmed. Ref {parcel.ref_code}. "
-                                f"From {parcel.sender_name} ({parcel.sender_phone}) to be sent to {parcel.destination_name}."
-                            )
-                            send_sms(parcel.sender_phone, msg_sender, user_email=payment.user.email)
-                            send_sms(parcel.receiver_phone, msg_receiver, user_email=payment.user.email)
-                        except Exception:
-                            pass
+                            from maua.notifications.notification_service import NotificationService
+                            user_email = payment.user.email if payment.user else None
+                            NotificationService.notify_parcel_payment_confirmed(parcel, user_email=user_email)
+                            current_app.logger.info(f'Parcel payment confirmation sent for {parcel.ref_code}')
+                        except Exception as e:
+                            current_app.logger.error(f'Failed to send parcel notification: {e}')
                 
                 db.session.commit()
                 current_app.logger.info(f'Payment {payment.id} completed successfully')
@@ -247,27 +249,27 @@ def check_payment_status(payment_id):
                             from maua.booking.models import Ticket
                             ticket = Ticket(booking_id=booking.id, status='confirmed')
                             db.session.add(ticket)
+                            
+                            # Send booking confirmation notifications (SMS + Email)
+                            try:
+                                from maua.notifications.notification_service import NotificationService
+                                NotificationService.notify_booking_confirmed(booking)
+                            except Exception as e:
+                                current_app.logger.error(f'Failed to send booking confirmation: {e}')
+                                
                     elif payment.parcel_id:
                         parcel = Parcel.query.get(payment.parcel_id)
                         if parcel:
                             parcel.status = 'created'  # Change from pending_payment to created
                             parcel.payment_status = 'paid'
                             
-                            # Send SMS notifications
+                            # Send parcel payment confirmation notifications
                             try:
-                                from maua.notifications.sms import send_sms
-                                msg_sender = (
-                                    f"Maua Shark: Parcel {parcel.ref_code} payment confirmed from {parcel.origin_name} to {parcel.destination_name}. "
-                                    f"Receiver: {parcel.receiver_name} ({parcel.receiver_phone}). Price KES {parcel.price}."
-                                )
-                                msg_receiver = (
-                                    f"Maua Shark: A parcel for you ({parcel.receiver_name}) payment confirmed. Ref {parcel.ref_code}. "
-                                    f"From {parcel.sender_name} ({parcel.sender_phone}) to be sent to {parcel.destination_name}."
-                                )
-                                send_sms(parcel.sender_phone, msg_sender, user_email=payment.user.email)
-                                send_sms(parcel.receiver_phone, msg_receiver, user_email=payment.user.email)
-                            except Exception:
-                                pass
+                                from maua.notifications.notification_service import NotificationService
+                                user_email = payment.user.email if payment.user else None
+                                NotificationService.notify_parcel_payment_confirmed(parcel, user_email=user_email)
+                            except Exception as e:
+                                current_app.logger.error(f'Failed to send parcel notification: {e}')
                     
                     db.session.commit()
                     
