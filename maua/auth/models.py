@@ -1,6 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask_login import UserMixin
 from maua.extensions import db, login_manager, bcrypt
+import secrets
+import hashlib
 
 # This is a workaround for SQLAlchemy's handling of reserved words
 # We'll use 'user_' as a prefix for all column names to avoid conflicts
@@ -45,6 +47,95 @@ class User(UserMixin, db.Model):
     
     def __repr__(self):
         return f'<User {self.username}>'
+
+
+class PasswordResetToken(db.Model):
+    """Model for storing password reset tokens"""
+    __tablename__ = 'password_reset_token'
+    __table_args__ = {'extend_existing': True}
+    
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    token_hash = db.Column(db.String(256), nullable=False, unique=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False, nullable=False)
+    used_at = db.Column(db.DateTime, nullable=True)
+    
+    # Relationship
+    user = db.relationship('User', backref=db.backref('reset_tokens', lazy=True))
+    
+    # Token validity duration (30 minutes)
+    TOKEN_VALIDITY_MINUTES = 30
+    
+    @classmethod
+    def generate_token(cls, user):
+        """Generate a new password reset token for a user"""
+        # Invalidate any existing unused tokens for this user
+        cls.query.filter_by(user_id=user.id, used=False).update({'used': True})
+        db.session.commit()
+        
+        # Generate a secure random token
+        raw_token = secrets.token_urlsafe(32)
+        
+        # Hash the token for storage (we'll verify against this)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        
+        # Create the token record
+        reset_token = cls(
+            user_id=user.id,
+            token_hash=token_hash,
+            expires_at=datetime.utcnow() + timedelta(minutes=cls.TOKEN_VALIDITY_MINUTES)
+        )
+        
+        db.session.add(reset_token)
+        db.session.commit()
+        
+        # Return the raw token (this is what we send to the user)
+        return raw_token
+    
+    @classmethod
+    def verify_token(cls, token):
+        """Verify a password reset token and return the user if valid"""
+        # Hash the provided token
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        # Find the token in the database
+        reset_token = cls.query.filter_by(token_hash=token_hash, used=False).first()
+        
+        if not reset_token:
+            return None
+        
+        # Check if token has expired
+        if datetime.utcnow() > reset_token.expires_at:
+            return None
+        
+        return reset_token.user
+    
+    @classmethod
+    def use_token(cls, token):
+        """Mark a token as used"""
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        reset_token = cls.query.filter_by(token_hash=token_hash).first()
+        
+        if reset_token:
+            reset_token.used = True
+            reset_token.used_at = datetime.utcnow()
+            db.session.commit()
+            return True
+        return False
+    
+    @classmethod
+    def cleanup_expired(cls):
+        """Remove expired tokens (can be run periodically)"""
+        expired = cls.query.filter(cls.expires_at < datetime.utcnow()).all()
+        for token in expired:
+            db.session.delete(token)
+        db.session.commit()
+    
+    def __repr__(self):
+        return f'<PasswordResetToken user_id={self.user_id} expires={self.expires_at}>'
+
 
 @login_manager.user_loader
 def load_user(user_id):
