@@ -200,6 +200,25 @@
                 {% endwith %}
                 
                 {% block content %}{% endblock %}
+                
+                <!-- Developer Copyright Footer -->
+                <footer class="mt-auto pt-4 pb-3 border-top">
+                    <div class="text-center">
+                        <p class="text-muted small mb-1">
+                            &copy; <span id="current-year-admin"></span> MAUA SHARK SACCO. All rights reserved.
+                        </p>
+                        <p class="text-muted small mb-0">
+                            <i class="fas fa-code me-1"></i> Developed by 
+                            <a href="mailto:stephenngari885@gmail.com" class="text-primary text-decoration-none fw-semibold">
+                                Stephen Ngari
+                            </a>
+                            <span class="mx-2">|</span>
+                            <a href="mailto:stephenngari885@gmail.com" class="text-muted text-decoration-none">
+                                <i class="fas fa-envelope me-1"></i>stephenngari885@gmail.com
+                            </a>
+                        </p>
+                    </div>
+                </footer>
             </div>
         </div>
     </div>
@@ -249,6 +268,10 @@
                     overlay.classList.remove('show');
                 });
             }
+            
+            // Set current year
+            const yearEl = document.getElementById('current-year-admin');
+            if (yearEl) yearEl.textContent = new Date().getFullYear();
         })();
     </script>
     
