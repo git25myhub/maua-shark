@@ -29,21 +29,32 @@ def _twilio_client_or_none():
 
 def _send_email_sync(app, email_address: str, phone_number: str, message: str) -> bool:
     """Synchronous email send (runs in background thread)."""
+    logger = logging.getLogger(__name__)
+    logger.info('Starting email fallback send to %s', email_address)
     try:
         from flask_mail import Message
         
         with app.app_context():
+            mail = getattr(app, 'mail', None)
+            if mail is None:
+                # Try to get mail from extensions
+                mail = app.extensions.get('mail')
+            
+            if mail is None:
+                logger.error('Flask-Mail not configured - cannot send email fallback')
+                return False
+            
             msg = Message(
                 subject="MAUA SHARK - SMS Notification",
                 recipients=[email_address],
                 body=f"SMS intended for {phone_number}:\n\n{message}",
                 sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
             )
-            app.mail.send(msg)
-            logging.getLogger(__name__).info('Email fallback sent to %s for phone %s', email_address, phone_number)
+            mail.send(msg)
+            logger.info('Email fallback sent successfully to %s for phone %s', email_address, phone_number)
             return True
     except Exception as exc:
-        logging.getLogger(__name__).error('Email fallback failed: %s', exc)
+        logger.error('Email fallback failed to %s: %s', email_address, exc)
         return False
 
 
@@ -98,6 +109,7 @@ def normalize_phone(phone: str) -> str:
 
 def _send_twilio_async(app, client, phone: str, from_number: str, message: str, user_email: str = None):
     """Send Twilio SMS in background thread."""
+    logger = logging.getLogger(__name__)
     try:
         with app.app_context():
             client.messages.create(
@@ -105,12 +117,16 @@ def _send_twilio_async(app, client, phone: str, from_number: str, message: str, 
                 from_=from_number,
                 body=message,
             )
-            logging.getLogger(__name__).info('Twilio SMS sent to %s', phone)
+            logger.info('Twilio SMS sent to %s', phone)
     except Exception as exc:
-        logging.getLogger(__name__).warning('Twilio send failed: %s', exc)
+        logger.warning('Twilio send failed: %s', exc)
         # Try email fallback when Twilio fails
         if user_email:
+            logger.info('Attempting email fallback to %s for phone %s', user_email, phone)
+            # _send_email_sync creates its own app_context, so just call it directly
             _send_email_sync(app, user_email, phone, message)
+        else:
+            logger.warning('No email provided for fallback - SMS to %s will not be delivered', phone)
 
 
 def send_sms(phone_number: str, message: str, sender_id: Optional[str] = None, user_email: str = None) -> bool:
