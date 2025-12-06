@@ -156,6 +156,7 @@ def parcels_update_status(parcel_id: int):
                 NotificationService.notify_parcel_in_transit(
                     parcel, 
                     vehicle=parcel.vehicle_plate,
+                    driver_name=parcel.driver_name,
                     driver_phone=parcel.driver_phone
                 )
                 current_app.logger.info(f'In-transit notification sent for parcel {parcel.ref_code}')
@@ -190,15 +191,18 @@ def parcels_assign_tracking(parcel_id: int):
     # Backward-compat: accept tracking_number but prefer vehicle assignments
     tracking_number = request.form.get('tracking_number')
     vehicle_plate = request.form.get('vehicle_plate')
+    driver_name = request.form.get('driver_name')
     driver_phone = request.form.get('driver_phone')
-    if not any([tracking_number, vehicle_plate, driver_phone]):
-        flash('Provide vehicle plate/driver phone (or tracking number).', 'danger')
+    if not any([tracking_number, vehicle_plate, driver_name, driver_phone]):
+        flash('Provide vehicle plate, driver name, or driver phone.', 'danger')
         return redirect(url_for('staff.parcels_list'))
     try:
         if tracking_number:
             parcel.tracking_number = tracking_number
         if vehicle_plate:
             parcel.vehicle_plate = vehicle_plate
+        if driver_name:
+            parcel.driver_name = driver_name
         if driver_phone:
             parcel.driver_phone = driver_phone
         db.session.commit()
@@ -207,8 +211,10 @@ def parcels_assign_tracking(parcel_id: int):
             details = []
             if parcel.vehicle_plate:
                 details.append(f"Vehicle {parcel.vehicle_plate}")
+            if parcel.driver_name:
+                details.append(f"Driver: {parcel.driver_name}")
             if parcel.driver_phone:
-                details.append(f"Driver {parcel.driver_phone}")
+                details.append(f"Phone: {parcel.driver_phone}")
             if details:
                 info = ", ".join(details)
                 msg_sender = (

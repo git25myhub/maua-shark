@@ -131,6 +131,19 @@
                                 </span>
                             </td>
                         </tr>
+                        {% if parcel.vehicle_plate or parcel.driver_name or parcel.driver_phone %}
+                        <tr>
+                            <th class="bg-light">Vehicle</th>
+                            <td>{{ parcel.vehicle_plate or '—' }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Driver</th>
+                            <td>
+                                {{ parcel.driver_name or '—' }}
+                                {% if parcel.driver_phone %}<br><small class="text-muted"><i class="fas fa-phone me-1"></i>{{ parcel.driver_phone }}</small>{% endif %}
+                            </td>
+                        </tr>
+                        {% endif %}
                     </table>
                 </div>
                 

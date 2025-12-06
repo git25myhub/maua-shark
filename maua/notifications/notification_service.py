@@ -75,13 +75,14 @@ SMS_TEMPLATES = {
     
     'parcel_in_transit': (
         "MAUA SHARK: Parcel {ref_code} is now IN TRANSIT to {destination}. "
-        "Vehicle: {vehicle}. Driver contact: {driver_phone}. "
+        "Vehicle: {vehicle}. Driver: {driver_name} ({driver_phone}). "
         "Estimated arrival will be communicated. Thank you!"
     ),
     
     'parcel_in_transit_receiver': (
         "MAUA SHARK: Hello {receiver_name}! Parcel {ref_code} from {sender_name} "
-        "is now IN TRANSIT to {destination}. Please be available to receive it."
+        "is now IN TRANSIT to {destination}. Driver: {driver_name} ({driver_phone}). "
+        "Please be available to receive it."
     ),
     
     'parcel_delivered': (
@@ -877,7 +878,7 @@ class NotificationService:
         return results
     
     @classmethod
-    def notify_parcel_in_transit(cls, parcel, vehicle=None, driver_phone=None, user_email=None) -> dict:
+    def notify_parcel_in_transit(cls, parcel, vehicle=None, driver_name=None, driver_phone=None, user_email=None) -> dict:
         """Send parcel in transit notification"""
         results = {'sender_sms': False, 'receiver_sms': False}
         
@@ -892,6 +893,7 @@ class NotificationService:
                 'sender_name': parcel.sender_name,
                 'receiver_name': parcel.receiver_name,
                 'vehicle': vehicle or parcel.vehicle_plate or 'N/A',
+                'driver_name': driver_name or getattr(parcel, 'driver_name', None) or 'N/A',
                 'driver_phone': driver_phone or parcel.driver_phone or 'N/A',
             }
             
