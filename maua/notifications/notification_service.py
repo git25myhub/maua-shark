@@ -502,23 +502,44 @@ class NotificationService:
             return False
     
     @staticmethod
-    def send_email(to_email: str, subject: str, html_content: str) -> bool:
-        """Send Email notification"""
+    def _send_email_sync(app, to_email: str, subject: str, html_content: str):
+        """Synchronous email send (runs in background thread)"""
         try:
             from flask_mail import Message
             
-            msg = Message(
-                subject=f"MAUA SHARK - {subject}",
-                recipients=[to_email],
-                html=html_content,
-                sender=current_app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
-            )
-            
-            current_app.mail.send(msg)
-            logger.info(f"Email sent to {to_email}: {subject}")
-            return True
+            with app.app_context():
+                msg = Message(
+                    subject=f"MAUA SHARK - {subject}",
+                    recipients=[to_email],
+                    html=html_content,
+                    sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
+                )
+                app.mail.send(msg)
+                logger.info(f"Email sent to {to_email}: {subject}")
         except Exception as e:
             logger.error(f"Email send error to {to_email}: {e}")
+    
+    @staticmethod
+    def send_email(to_email: str, subject: str, html_content: str) -> bool:
+        """Send Email notification (non-blocking, runs in background thread)"""
+        try:
+            from threading import Thread
+            
+            # Get app instance for background thread
+            app = current_app._get_current_object()
+            
+            # Send in background thread to avoid blocking request
+            thread = Thread(
+                target=NotificationService._send_email_sync,
+                args=(app, to_email, subject, html_content)
+            )
+            thread.daemon = True
+            thread.start()
+            
+            logger.info(f"Email queued for {to_email}: {subject}")
+            return True
+        except Exception as e:
+            logger.error(f"Email queue error for {to_email}: {e}")
             return False
     
     # =========================================================================
