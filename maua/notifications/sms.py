@@ -50,6 +50,12 @@ def _send_email_sync(app, email_address: str, phone_number: str, message: str) -
                 return False
             
             logger.info('Creating email message for %s', email_address)
+            
+            # Log mail server being used
+            mail_server = app.config.get('MAIL_SERVER', 'unknown')
+            mail_port = app.config.get('MAIL_PORT', 'unknown')
+            logger.info('Using mail server: %s:%s', mail_server, mail_port)
+            
             msg = Message(
                 subject="MAUA SHARK - SMS Notification",
                 recipients=[email_address],

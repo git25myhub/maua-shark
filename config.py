@@ -31,15 +31,19 @@ class Config:
     UPLOAD_FOLDER = os.path.join('maua', 'static', 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
     
-    # Email settings - Using SSL (port 465) which is more reliable on cloud platforms
-    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    MAIL_PORT = int(os.environ.get('MAIL_PORT', 465))
-    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'true').lower() == 'true'
-    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'false').lower() == 'true'
-    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'kariukistephen964@gmail.com')
-    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', 'lszd yuds pgry pesv')  # App password
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'kariukistephen964@gmail.com')
-    MAIL_TIMEOUT = 10  # 10 second timeout for email operations
+    # Email settings - Using SendGrid SMTP relay (works on cloud platforms like Render)
+    # SendGrid: smtp.sendgrid.net, port 587, TLS, username="apikey", password=<API_KEY>
+    MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.sendgrid.net')
+    MAIL_PORT = int(os.environ.get('MAIL_PORT', 587))
+    MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'true').lower() == 'true'
+    MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'false').lower() == 'true'
+    MAIL_USERNAME = os.environ.get('MAIL_USERNAME', 'apikey')  # SendGrid uses "apikey" as username
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD', '')  # SendGrid API key goes here
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
+    MAIL_TIMEOUT = 30  # 30 second timeout for email operations
+    
+    # SendGrid API key (alternative to SMTP - for future use)
+    SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', os.environ.get('MAIL_PASSWORD', ''))
     
     # M-Pesa settings
     BASE_URL = os.environ.get('BASE_URL') or 'http://localhost:5000'
