@@ -163,14 +163,14 @@ def mpesa_callback():
                 elif payment.parcel_id:
                     parcel = Parcel.query.get(payment.parcel_id)
                     if parcel:
-                        parcel.status = 'created'  # Change from pending_payment to created
+                        parcel.status = 'pending'  # Change from pending_payment to pending (ready for dispatch)
                         parcel.payment_status = 'paid'
                         
-                        # Send parcel payment confirmation notifications
+                        # Send parcel payment confirmation notifications using parcel's stored emails
                         try:
                             from maua.notifications.notification_service import NotificationService
-                            user_email = payment.user.email if payment.user else None
-                            NotificationService.notify_parcel_payment_confirmed(parcel, user_email=user_email)
+                            # Use parcel's sender_email (collected during creation) for notifications
+                            NotificationService.notify_parcel_payment_confirmed(parcel)
                             current_app.logger.info(f'Parcel payment confirmation sent for {parcel.ref_code}')
                         except Exception as e:
                             current_app.logger.error(f'Failed to send parcel notification: {e}')
@@ -260,14 +260,14 @@ def check_payment_status(payment_id):
                     elif payment.parcel_id:
                         parcel = Parcel.query.get(payment.parcel_id)
                         if parcel:
-                            parcel.status = 'created'  # Change from pending_payment to created
+                            parcel.status = 'pending'  # Change from pending_payment to pending (ready for dispatch)
                             parcel.payment_status = 'paid'
                             
-                            # Send parcel payment confirmation notifications
+                            # Send parcel payment confirmation notifications using parcel's stored emails
                             try:
                                 from maua.notifications.notification_service import NotificationService
-                                user_email = payment.user.email if payment.user else None
-                                NotificationService.notify_parcel_payment_confirmed(parcel, user_email=user_email)
+                                # Use parcel's sender_email (collected during creation) for notifications
+                                NotificationService.notify_parcel_payment_confirmed(parcel)
                             except Exception as e:
                                 current_app.logger.error(f'Failed to send parcel notification: {e}')
                     

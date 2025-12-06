@@ -74,6 +74,9 @@
                                 <h6 class="text-muted mb-3"><i class="fas fa-user me-2 text-primary"></i>SENDER</h6>
                                 <p class="mb-1 fw-bold">{{ parcel.sender_name }}</p>
                                 <p class="mb-1 small"><i class="fas fa-phone me-2 text-muted"></i>{{ parcel.sender_phone }}</p>
+                                {% if parcel.sender_email %}
+                                <p class="mb-1 small"><i class="fas fa-envelope me-2 text-muted"></i>{{ parcel.sender_email }}</p>
+                                {% endif %}
                                 <p class="mb-0 small"><i class="fas fa-id-card me-2 text-muted"></i>{{ parcel.sender_id_number or 'N/A' }}</p>
                             </div>
                         </div>
@@ -84,6 +87,9 @@
                                 <h6 class="text-muted mb-3"><i class="fas fa-user-check me-2 text-success"></i>RECEIVER</h6>
                                 <p class="mb-1 fw-bold">{{ parcel.receiver_name }}</p>
                                 <p class="mb-1 small"><i class="fas fa-phone me-2 text-muted"></i>{{ parcel.receiver_phone }}</p>
+                                {% if parcel.receiver_email %}
+                                <p class="mb-1 small"><i class="fas fa-envelope me-2 text-muted"></i>{{ parcel.receiver_email }}</p>
+                                {% endif %}
                                 <p class="mb-0 small"><i class="fas fa-id-card me-2 text-muted"></i>{{ parcel.receiver_id_number or 'N/A' }}</p>
                             </div>
                         </div>

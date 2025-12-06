@@ -20,20 +20,27 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="sender_name" class="form-label fw-semibold">
                                         Sender Name <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="sender_name" name="sender_name" required>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="sender_phone" class="form-label fw-semibold">
                                         Sender Phone <span class="text-danger">*</span>
                                     </label>
                                     <input type="tel" class="form-control" id="sender_phone" name="sender_phone" 
                                            required placeholder="e.g. 0712345678">
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="sender_email" class="form-label fw-semibold">
+                                        Sender Email <span class="text-muted small">(for notifications)</span>
+                                    </label>
+                                    <input type="email" class="form-control" id="sender_email" name="sender_email" 
+                                           placeholder="e.g. sender@example.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="sender_id_number" class="form-label fw-semibold">Sender ID Number</label>
                                     <input type="text" class="form-control" id="sender_id_number" name="sender_id_number" 
                                            placeholder="National ID">
@@ -49,20 +56,27 @@
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="receiver_name" class="form-label fw-semibold">
                                         Receiver Name <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="receiver_name" name="receiver_name" required>
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label for="receiver_phone" class="form-label fw-semibold">
                                         Receiver Phone <span class="text-danger">*</span>
                                     </label>
                                     <input type="tel" class="form-control" id="receiver_phone" name="receiver_phone" 
                                            required placeholder="e.g. 0712345678">
                                 </div>
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="receiver_email" class="form-label fw-semibold">
+                                        Receiver Email <span class="text-muted small">(for notifications)</span>
+                                    </label>
+                                    <input type="email" class="form-control" id="receiver_email" name="receiver_email" 
+                                           placeholder="e.g. receiver@example.com">
+                                </div>
+                                <div class="col-md-6 mb-3">
                                     <label for="receiver_id_number" class="form-label fw-semibold">Receiver ID Number</label>
                                     <input type="text" class="form-control" id="receiver_id_number" name="receiver_id_number" 
                                            placeholder="National ID">

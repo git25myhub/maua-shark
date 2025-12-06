@@ -1,0 +1,157 @@
+{% extends 'staff/_layout.html' %}
+
+{% block title %}Payment Status - {{ parcel.ref_code }}{% endblock %}
+{% block page_title %}Parcel Payment Status{% endblock %}
+{% block page_subtitle %}Reference: {{ parcel.ref_code }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-info text-white text-center py-3">
+                <h5 class="mb-0"><i class="fas fa-mobile-alt me-2"></i>M-Pesa Payment</h5>
+            </div>
+            <div class="card-body text-center p-4">
+                <!-- Payment Status Display -->
+                <div id="payment-status-display">
+                    {% if parcel.payment_status == 'paid' %}
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success fa-5x"></i>
+                    </div>
+                    <h4 class="text-success mb-3">Payment Confirmed!</h4>
+                    <p class="text-muted">The customer has successfully completed the M-Pesa payment.</p>
+                    {% else %}
+                    <div class="mb-4">
+                        <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <h4 class="mb-3">Waiting for Payment...</h4>
+                    <p class="text-muted mb-4">
+                        STK push sent to <strong>{{ parcel.sender_phone }}</strong><br>
+                        Customer should enter their M-Pesa PIN on their phone.
+                    </p>
+                    {% endif %}
+                </div>
+                
+                <!-- Parcel Details -->
+                <div class="card bg-light mb-4">
+                    <div class="card-body">
+                        <div class="row text-start">
+                            <div class="col-6 mb-2">
+                                <small class="text-muted">Reference</small>
+                                <p class="mb-0 fw-bold">{{ parcel.ref_code }}</p>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <small class="text-muted">Amount</small>
+                                <p class="mb-0 fw-bold text-success">KES {{ "%.2f"|format(parcel.price|float) }}</p>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <small class="text-muted">Sender</small>
+                                <p class="mb-0">{{ parcel.sender_name }}</p>
+                            </div>
+                            <div class="col-6 mb-2">
+                                <small class="text-muted">Phone</small>
+                                <p class="mb-0">{{ parcel.sender_phone }}</p>
+                            </div>
+                            <div class="col-12">
+                                <small class="text-muted">Route</small>
+                                <p class="mb-0">{{ parcel.origin_name }} → {{ parcel.destination_name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 justify-content-center">
+                    {% if parcel.payment_status == 'paid' %}
+                    <a href="{{ url_for('staff.parcels_receipt', parcel_id=parcel.id) }}" class="btn btn-success btn-lg">
+                        <i class="fas fa-receipt me-2"></i>View Receipt
+                    </a>
+                    {% else %}
+                    <button id="check-status-btn" class="btn btn-primary">
+                        <i class="fas fa-sync-alt me-2"></i>Check Status
+                    </button>
+                    <a href="{{ url_for('staff.parcels_receipt', parcel_id=parcel.id) }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-receipt me-2"></i>View Receipt (Unpaid)
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <hr class="my-4">
+                
+                <div class="d-flex gap-2 justify-content-center">
+                    <a href="{{ url_for('staff.parcels_create') }}" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>New Parcel
+                    </a>
+                    <a href="{{ url_for('staff.parcels_list') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-list me-2"></i>All Parcels
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentId = {{ payment.id if payment else 'null' }};
+    const checkBtn = document.getElementById('check-status-btn');
+    const statusDisplay = document.getElementById('payment-status-display');
+    
+    if (!paymentId || !checkBtn) return;
+    
+    // Auto-check status every 5 seconds
+    let checkInterval = setInterval(checkPaymentStatus, 5000);
+    
+    // Manual check
+    checkBtn.addEventListener('click', function() {
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking...';
+        checkPaymentStatus();
+    });
+    
+    function checkPaymentStatus() {
+        fetch(`/payments/status/${paymentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'completed' || data.payment_status === 'paid') {
+                    clearInterval(checkInterval);
+                    // Reload page to show success state
+                    window.location.reload();
+                } else if (data.status === 'failed') {
+                    clearInterval(checkInterval);
+                    statusDisplay.innerHTML = `
+                        <div class="mb-4">
+                            <i class="fas fa-times-circle text-danger fa-5x"></i>
+                        </div>
+                        <h4 class="text-danger mb-3">Payment Failed</h4>
+                        <p class="text-muted">The M-Pesa payment was not completed. Customer can try again.</p>
+                    `;
+                }
+                
+                // Re-enable button
+                if (checkBtn) {
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Check Status';
+                }
+            })
+            .catch(err => {
+                console.error('Status check failed:', err);
+                if (checkBtn) {
+                    checkBtn.disabled = false;
+                    checkBtn.innerHTML = '<i class="fas fa-sync-alt me-2"></i>Check Status';
+                }
+            });
+    }
+    
+    // Stop checking after 2 minutes
+    setTimeout(() => {
+        clearInterval(checkInterval);
+    }, 120000);
+});
+</script>
+{% endblock %}
+

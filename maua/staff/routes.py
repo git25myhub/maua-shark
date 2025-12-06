@@ -149,31 +149,24 @@ def parcels_update_status(parcel_id: int):
         
         # Send notifications based on status change
         try:
-            # Get user email from parcel creator if available
-            user_email = None
-            if parcel.created_by:
-                from maua.auth.models import User
-                user = User.query.get(parcel.created_by)
-                if user and hasattr(user, 'email'):
-                    user_email = user.email
-            
+            # Use parcel's stored emails (sender_email, receiver_email) for notifications
+            # These are collected during parcel creation
             if new_status == 'in_transit':
                 # Send in-transit notification to sender and receiver
                 NotificationService.notify_parcel_in_transit(
                     parcel, 
                     vehicle=parcel.vehicle_plate,
-                    driver_phone=parcel.driver_phone,
-                    user_email=user_email
+                    driver_phone=parcel.driver_phone
                 )
                 current_app.logger.info(f'In-transit notification sent for parcel {parcel.ref_code}')
             elif new_status == 'delivered':
                 # Send delivery confirmation with appreciation message
-                NotificationService.notify_parcel_delivered(parcel, user_email=user_email)
+                NotificationService.notify_parcel_delivered(parcel)
                 current_app.logger.info(f'Delivery notification sent for parcel {parcel.ref_code}')
             elif new_status == 'pending':
                 # Simple SMS for pending status
                 msg = f"Maua Shark: Parcel {parcel.ref_code} is pending dispatch from {parcel.origin_name}."
-                send_sms(parcel.sender_phone, msg, user_email=user_email)
+                send_sms(parcel.sender_phone, msg, user_email=parcel.sender_email)
         except Exception as e:
             current_app.logger.error(f'Failed to send parcel notification: {e}')
         
@@ -209,7 +202,7 @@ def parcels_assign_tracking(parcel_id: int):
         if driver_phone:
             parcel.driver_phone = driver_phone
         db.session.commit()
-        # Notify customer of vehicle assignment
+        # Notify customer of vehicle assignment using parcel's stored emails
         try:
             details = []
             if parcel.vehicle_plate:
@@ -221,16 +214,11 @@ def parcels_assign_tracking(parcel_id: int):
                 msg_sender = (
                     f"Maua Shark: Parcel {parcel.ref_code} assigned to {info}. Track with your reference code."
                 )
-                user_email = None
-                if parcel.created_by:
-                    from maua.auth.models import User
-                    u = User.query.get(parcel.created_by)
-                    if u and hasattr(u, 'email'):
-                        user_email = u.email
-                send_sms(parcel.sender_phone, msg_sender, user_email=user_email)
+                # Use parcel's stored emails for notifications
+                send_sms(parcel.sender_phone, msg_sender, user_email=parcel.sender_email)
                 # Inform receiver as well
                 try:
-                    send_sms(parcel.receiver_phone, msg_sender, user_email=user_email)
+                    send_sms(parcel.receiver_phone, msg_sender, user_email=parcel.receiver_email)
                 except Exception:
                     pass
         except Exception:
@@ -531,9 +519,11 @@ def parcels_create():
     if request.method == 'POST':
         sender_name = request.form.get('sender_name')
         sender_phone = request.form.get('sender_phone')
+        sender_email = request.form.get('sender_email', '').strip() or None
         sender_id_number = request.form.get('sender_id_number')
         receiver_name = request.form.get('receiver_name')
         receiver_phone = request.form.get('receiver_phone')
+        receiver_email = request.form.get('receiver_email', '').strip() or None
         receiver_id_number = request.form.get('receiver_id_number')
         origin_name = request.form.get('origin_name')
         destination_name = request.form.get('destination_name')
@@ -559,9 +549,11 @@ def parcels_create():
             ref_code=ref_code,
             sender_name=sender_name,
             sender_phone=sender_phone,
+            sender_email=sender_email,
             sender_id_number=sender_id_number or 'N/A',
             receiver_name=receiver_name,
             receiver_phone=receiver_phone,
+            receiver_email=receiver_email,
             receiver_id_number=receiver_id_number or 'N/A',
             origin_name=origin_name,
             destination_name=destination_name,
@@ -587,15 +579,59 @@ def parcels_create():
         db.session.add(payment)
         db.session.commit()
         
+        # Handle M-Pesa payment - send STK push to sender's phone
+        if payment_method == 'mpesa':
+            try:
+                from maua.payment.mpesa_service import MpesaService
+                from maua.notifications.sms import normalize_phone
+                
+                # Initialize M-Pesa service
+                mpesa_service = MpesaService()
+                
+                # Use sender's phone number for STK push
+                stk_phone = normalize_phone(sender_phone)
+                
+                # Generate account reference
+                account_reference = f"PARCEL-{parcel.id}"
+                transaction_desc = f"Parcel {ref_code} from {origin_name} to {destination_name}"
+                
+                # Initiate STK push to sender's phone
+                stk_response = mpesa_service.initiate_stk_push(
+                    phone_number=stk_phone,
+                    amount=float(price),
+                    account_reference=account_reference,
+                    transaction_desc=transaction_desc
+                )
+                
+                if stk_response['success']:
+                    # Update payment with checkout request ID
+                    payment.payment_method = 'mpesa_stk'
+                    payment.transaction_id = stk_response.get('checkout_request_id')
+                    db.session.commit()
+                    
+                    flash(f'Parcel {ref_code} created! M-Pesa payment request sent to {sender_phone}. '
+                          f'Customer should check their phone to complete payment.', 'info')
+                    
+                    # Redirect to payment status page
+                    return redirect(url_for('staff.parcels_payment_status', parcel_id=parcel.id))
+                else:
+                    flash(f'Parcel {ref_code} created but M-Pesa request failed: {stk_response.get("message")}. '
+                          f'Customer can pay later.', 'warning')
+                    
+            except Exception as e:
+                current_app.logger.error(f'M-Pesa STK push failed for parcel {ref_code}: {e}')
+                flash(f'Parcel {ref_code} created but M-Pesa request failed. Customer can pay later.', 'warning')
+        
         # Send notifications to sender and receiver (SMS + Email if available)
         try:
-            NotificationService.notify_parcel_created(parcel, user_email=current_user.email)
+            NotificationService.notify_parcel_created(parcel)
             current_app.logger.info(f'Parcel creation notifications sent for {ref_code}')
         except Exception as e:
             current_app.logger.error(f'Failed to send parcel notifications: {e}')
             # SMS errors shouldn't block parcel creation
         
-        flash(f'Parcel {ref_code} created successfully!', 'success')
+        if payment_method == 'cash':
+            flash(f'Parcel {ref_code} created and paid successfully!', 'success')
         
         # Redirect to receipt printing
         return redirect(url_for('staff.parcels_receipt', parcel_id=parcel.id))
@@ -610,6 +646,16 @@ def parcels_receipt(parcel_id):
     """View parcel receipt - can be printed"""
     parcel = Parcel.query.get_or_404(parcel_id)
     return render_template('staff/parcels_receipt.html', parcel=parcel)
+
+
+@staff_bp.route('/parcels/<int:parcel_id>/payment-status')
+@login_required
+@staff_required
+def parcels_payment_status(parcel_id):
+    """View parcel payment status - for M-Pesa payments"""
+    parcel = Parcel.query.get_or_404(parcel_id)
+    payment = parcel.payment
+    return render_template('staff/parcels_payment_status.html', parcel=parcel, payment=payment)
 
 
 @staff_bp.route('/parcels/<int:parcel_id>/receipt.pdf')
@@ -683,10 +729,12 @@ def parcels_receipt_pdf(parcel_id):
     contact_data = [
         ['Sender:', parcel.sender_name],
         ['Sender Phone:', parcel.sender_phone],
+        ['Sender Email:', parcel.sender_email or 'N/A'],
         ['Sender ID:', parcel.sender_id_number],
         ['', ''],
         ['Receiver:', parcel.receiver_name],
         ['Receiver Phone:', parcel.receiver_phone],
+        ['Receiver Email:', parcel.receiver_email or 'N/A'],
         ['Receiver ID:', parcel.receiver_id_number],
     ]
     

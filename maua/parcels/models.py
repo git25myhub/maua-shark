@@ -8,9 +8,11 @@ class Parcel(db.Model):
     ref_code = db.Column(db.String(20), unique=True, nullable=False)
     sender_name = db.Column(db.String(120), nullable=False)
     sender_phone = db.Column(db.String(30), nullable=False)
+    sender_email = db.Column(db.String(120), nullable=True)  # Optional email for notifications
     sender_id_number = db.Column(db.String(30), nullable=False, default='N/A')
     receiver_name = db.Column(db.String(120), nullable=False)
     receiver_phone = db.Column(db.String(30), nullable=False)
+    receiver_email = db.Column(db.String(120), nullable=True)  # Optional email for notifications
     receiver_id_number = db.Column(db.String(30), nullable=False, default='N/A')
     origin_name = db.Column(db.String(120), nullable=False)
     destination_name = db.Column(db.String(120), nullable=False)

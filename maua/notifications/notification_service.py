@@ -373,6 +373,117 @@ EMAIL_TEMPLATES = {
 </body>
 </html>
 ''',
+
+    'parcel_receipt': '''
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: #f5f5f5; }
+        .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #059669 0%, #10b981 100%); color: white; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; }
+        .header p { margin: 10px 0 0; opacity: 0.9; }
+        .content { padding: 30px; }
+        .receipt-box { background: #f0fdf4; border: 2px solid #059669; border-radius: 10px; padding: 25px; margin: 20px 0; }
+        .ref-code { font-size: 32px; font-weight: bold; color: #059669; letter-spacing: 3px; text-align: center; margin-bottom: 20px; }
+        .route-display { background: #059669; color: white; padding: 15px; border-radius: 8px; text-align: center; margin: 15px 0; }
+        .route-display .from-to { font-size: 18px; font-weight: bold; }
+        .section-title { font-weight: bold; color: #059669; margin: 20px 0 10px; padding-bottom: 5px; border-bottom: 2px solid #059669; }
+        .detail-grid { display: table; width: 100%; }
+        .detail-row { display: table-row; }
+        .detail-label { display: table-cell; padding: 8px 10px 8px 0; color: #64748b; width: 40%; }
+        .detail-value { display: table-cell; padding: 8px 0; font-weight: 600; color: #1e293b; }
+        .amount-box { background: #dcfce7; padding: 15px; border-radius: 8px; text-align: center; margin: 20px 0; }
+        .amount { font-size: 28px; font-weight: bold; color: #059669; }
+        .status-badge { display: inline-block; background: #fef3c7; color: #92400e; padding: 8px 20px; border-radius: 20px; font-weight: bold; }
+        .paid-badge { background: #dcfce7; color: #059669; }
+        .track-info { background: #eff6ff; padding: 15px; border-radius: 8px; margin: 20px 0; text-align: center; }
+        .track-info p { margin: 5px 0; }
+        .footer { background: #1e293b; color: #94a3b8; padding: 20px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📦 MAUA SHARK SACCO</h1>
+            <p>Parcel Delivery Receipt</p>
+        </div>
+        <div class="content">
+            <p>Dear <strong>{{ recipient_name }}</strong>,</p>
+            <p>{{ message_intro }}</p>
+            
+            <div class="receipt-box">
+                <p style="text-align: center; margin: 0 0 5px; color: #64748b;">Tracking Reference</p>
+                <div class="ref-code">{{ ref_code }}</div>
+                
+                <div class="route-display">
+                    <span class="from-to">{{ origin }} → {{ destination }}</span>
+                </div>
+                
+                <p class="section-title">📋 Parcel Details</p>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">Date Created</span>
+                        <span class="detail-value">{{ date }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Weight</span>
+                        <span class="detail-value">{{ weight }} kg</span>
+                    </div>
+                </div>
+                
+                <p class="section-title">👤 Sender</p>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">{{ sender_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ sender_phone }}</span>
+                    </div>
+                </div>
+                
+                <p class="section-title">📍 Receiver</p>
+                <div class="detail-grid">
+                    <div class="detail-row">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">{{ receiver_name }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ receiver_phone }}</span>
+                    </div>
+                </div>
+                
+                <div class="amount-box">
+                    <p style="margin: 0 0 5px; color: #64748b;">Amount</p>
+                    <span class="amount">KES {{ price }}</span>
+                    <br>
+                    <span class="status-badge {{ 'paid-badge' if payment_status == 'Paid' else '' }}">{{ payment_status }}</span>
+                </div>
+            </div>
+            
+            <div class="track-info">
+                <p><strong>🔍 Track Your Parcel</strong></p>
+                <p>Visit: <strong>maua-shark.onrender.com/parcels/track</strong></p>
+                <p>Enter reference: <strong>{{ ref_code }}</strong></p>
+            </div>
+            
+            <p style="text-align: center; color: #64748b;">
+                Thank you for choosing Maua Shark Sacco for your delivery needs!
+            </p>
+        </div>
+        <div class="footer">
+            <p>© {{ year }} Maua Shark Sacco. All Rights Reserved.</p>
+            <p>This is your official parcel receipt. Please keep it for your records.</p>
+        </div>
+    </div>
+</body>
+</html>
+''',
 }
 
 
@@ -633,11 +744,16 @@ class NotificationService:
     
     @classmethod
     def notify_parcel_created(cls, parcel, user_email=None) -> dict:
-        """Send parcel creation notification to sender and receiver"""
-        results = {'sender_sms': False, 'receiver_sms': False, 'email': False}
+        """Send parcel creation notification and receipt to sender and receiver"""
+        results = {'sender_sms': False, 'receiver_sms': False, 'sender_email': False, 'receiver_email': False}
         
         try:
-            data = {
+            # Use parcel's stored emails, fallback to provided user_email
+            sender_email = getattr(parcel, 'sender_email', None) or user_email
+            receiver_email = getattr(parcel, 'receiver_email', None)
+            
+            # Basic data for SMS
+            sms_data = {
                 'ref_code': parcel.ref_code,
                 'origin': parcel.origin_name,
                 'destination': parcel.destination_name,
@@ -649,18 +765,49 @@ class NotificationService:
                 'year': datetime.now().year,
             }
             
-            # SMS to sender
-            sender_msg = SMS_TEMPLATES['parcel_created'].format(**data)
-            results['sender_sms'] = cls.send_sms(parcel.sender_phone, sender_msg, user_email=user_email)
+            # SMS to sender (with email fallback)
+            sender_msg = SMS_TEMPLATES['parcel_created'].format(**sms_data)
+            results['sender_sms'] = cls.send_sms(parcel.sender_phone, sender_msg, user_email=sender_email)
             
-            # SMS to receiver
-            receiver_msg = SMS_TEMPLATES['parcel_receiver_notification'].format(**data)
-            results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=user_email)
+            # SMS to receiver (with email fallback)
+            receiver_msg = SMS_TEMPLATES['parcel_receiver_notification'].format(**sms_data)
+            results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=receiver_email)
             
-            # Email to user if available
-            if user_email:
-                html = render_template_string(EMAIL_TEMPLATES['parcel_confirmation'], **data)
-                results['email'] = cls.send_email(user_email, "Parcel Registered!", html)
+            # Full receipt data for email
+            receipt_data = {
+                'ref_code': parcel.ref_code,
+                'origin': parcel.origin_name,
+                'destination': parcel.destination_name,
+                'sender_name': parcel.sender_name,
+                'sender_phone': parcel.sender_phone,
+                'receiver_name': parcel.receiver_name,
+                'receiver_phone': parcel.receiver_phone,
+                'price': f"{parcel.price:,.0f}",
+                'weight': f"{parcel.weight_kg:.1f}" if parcel.weight_kg else "N/A",
+                'date': parcel.created_at.strftime('%B %d, %Y at %I:%M %p') if parcel.created_at else 'N/A',
+                'payment_status': 'Paid' if parcel.payment_status == 'paid' else 'Pending',
+                'year': datetime.now().year,
+            }
+            
+            # Send receipt email to SENDER
+            if sender_email:
+                sender_receipt_data = receipt_data.copy()
+                sender_receipt_data['recipient_name'] = parcel.sender_name
+                sender_receipt_data['message_intro'] = 'Your parcel has been registered successfully! Here is your receipt:'
+                
+                html = render_template_string(EMAIL_TEMPLATES['parcel_receipt'], **sender_receipt_data)
+                results['sender_email'] = cls.send_email(sender_email, f"Parcel Receipt - {parcel.ref_code}", html)
+                logger.info(f"Receipt email sent to sender: {sender_email}")
+            
+            # Send receipt email to RECEIVER
+            if receiver_email:
+                receiver_receipt_data = receipt_data.copy()
+                receiver_receipt_data['recipient_name'] = parcel.receiver_name
+                receiver_receipt_data['message_intro'] = f'A parcel is being sent to you by {parcel.sender_name}. Here are the details:'
+                
+                html = render_template_string(EMAIL_TEMPLATES['parcel_receipt'], **receiver_receipt_data)
+                results['receiver_email'] = cls.send_email(receiver_email, f"Parcel Incoming - {parcel.ref_code}", html)
+                logger.info(f"Receipt email sent to receiver: {receiver_email}")
             
         except Exception as e:
             logger.error(f"Error sending parcel creation notification: {e}")
@@ -669,19 +816,60 @@ class NotificationService:
     
     @classmethod
     def notify_parcel_payment_confirmed(cls, parcel, user_email=None) -> dict:
-        """Send parcel payment confirmation"""
-        results = {'sms': False}
+        """Send parcel payment confirmation with receipt emails"""
+        results = {'sms': False, 'sender_email': False, 'receiver_email': False}
         
         try:
-            data = {
+            # Use parcel's stored emails
+            sender_email = getattr(parcel, 'sender_email', None) or user_email
+            receiver_email = getattr(parcel, 'receiver_email', None)
+            
+            sms_data = {
                 'ref_code': parcel.ref_code,
                 'origin': parcel.origin_name,
                 'destination': parcel.destination_name,
                 'price': f"{parcel.price:,.0f}",
             }
             
-            sms_message = SMS_TEMPLATES['parcel_payment_confirmed'].format(**data)
-            results['sms'] = cls.send_sms(parcel.sender_phone, sms_message, user_email=user_email)
+            # SMS to sender
+            sms_message = SMS_TEMPLATES['parcel_payment_confirmed'].format(**sms_data)
+            results['sms'] = cls.send_sms(parcel.sender_phone, sms_message, user_email=sender_email)
+            
+            # Full receipt data for email
+            receipt_data = {
+                'ref_code': parcel.ref_code,
+                'origin': parcel.origin_name,
+                'destination': parcel.destination_name,
+                'sender_name': parcel.sender_name,
+                'sender_phone': parcel.sender_phone,
+                'receiver_name': parcel.receiver_name,
+                'receiver_phone': parcel.receiver_phone,
+                'price': f"{parcel.price:,.0f}",
+                'weight': f"{parcel.weight_kg:.1f}" if parcel.weight_kg else "N/A",
+                'date': parcel.created_at.strftime('%B %d, %Y at %I:%M %p') if parcel.created_at else 'N/A',
+                'payment_status': 'Paid',
+                'year': datetime.now().year,
+            }
+            
+            # Send paid receipt email to SENDER
+            if sender_email:
+                sender_receipt_data = receipt_data.copy()
+                sender_receipt_data['recipient_name'] = parcel.sender_name
+                sender_receipt_data['message_intro'] = 'Payment confirmed! Your parcel is ready for dispatch. Here is your receipt:'
+                
+                html = render_template_string(EMAIL_TEMPLATES['parcel_receipt'], **sender_receipt_data)
+                results['sender_email'] = cls.send_email(sender_email, f"Payment Confirmed - Parcel {parcel.ref_code}", html)
+                logger.info(f"Payment receipt email sent to sender: {sender_email}")
+            
+            # Send notification to RECEIVER that parcel is paid and ready
+            if receiver_email:
+                receiver_receipt_data = receipt_data.copy()
+                receiver_receipt_data['recipient_name'] = parcel.receiver_name
+                receiver_receipt_data['message_intro'] = f'Great news! A parcel from {parcel.sender_name} has been paid for and is ready for dispatch to you:'
+                
+                html = render_template_string(EMAIL_TEMPLATES['parcel_receipt'], **receiver_receipt_data)
+                results['receiver_email'] = cls.send_email(receiver_email, f"Parcel Ready - {parcel.ref_code}", html)
+                logger.info(f"Payment notification email sent to receiver: {receiver_email}")
             
         except Exception as e:
             logger.error(f"Error sending parcel payment notification: {e}")
@@ -694,6 +882,10 @@ class NotificationService:
         results = {'sender_sms': False, 'receiver_sms': False}
         
         try:
+            # Use parcel's stored emails
+            sender_email = getattr(parcel, 'sender_email', None) or user_email
+            receiver_email = getattr(parcel, 'receiver_email', None)
+            
             data = {
                 'ref_code': parcel.ref_code,
                 'destination': parcel.destination_name,
@@ -703,13 +895,13 @@ class NotificationService:
                 'driver_phone': driver_phone or parcel.driver_phone or 'N/A',
             }
             
-            # SMS to sender
+            # SMS to sender (with email fallback)
             sender_msg = SMS_TEMPLATES['parcel_in_transit'].format(**data)
-            results['sender_sms'] = cls.send_sms(parcel.sender_phone, sender_msg, user_email=user_email)
+            results['sender_sms'] = cls.send_sms(parcel.sender_phone, sender_msg, user_email=sender_email)
             
-            # SMS to receiver
+            # SMS to receiver (with email fallback)
             receiver_msg = SMS_TEMPLATES['parcel_in_transit_receiver'].format(**data)
-            results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=user_email)
+            results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=receiver_email)
             
         except Exception as e:
             logger.error(f"Error sending parcel transit notification: {e}")
@@ -722,18 +914,22 @@ class NotificationService:
         results = {'sender_sms': False, 'receiver_sms': False}
         
         try:
+            # Use parcel's stored emails
+            sender_email = getattr(parcel, 'sender_email', None) or user_email
+            receiver_email = getattr(parcel, 'receiver_email', None)
+            
             data = {
                 'ref_code': parcel.ref_code,
                 'receiver_name': parcel.receiver_name,
             }
             
-            # SMS to sender
+            # SMS to sender (with email fallback)
             sender_msg = SMS_TEMPLATES['parcel_delivered'].format(**data)
-            results['sender_sms'] = cls.send_sms(parcel.sender_phone, sender_msg, user_email=user_email)
+            results['sender_sms'] = cls.send_sms(parcel.sender_phone, sender_msg, user_email=sender_email)
             
-            # SMS to receiver
+            # SMS to receiver (with email fallback)
             receiver_msg = SMS_TEMPLATES['parcel_delivered_receiver'].format(**data)
-            results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=user_email)
+            results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=receiver_email)
             
         except Exception as e:
             logger.error(f"Error sending parcel delivery notification: {e}")
