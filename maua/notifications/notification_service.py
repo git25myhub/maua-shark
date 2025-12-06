@@ -503,19 +503,37 @@ class NotificationService:
     
     @staticmethod
     def _send_email_sync(app, to_email: str, subject: str, html_content: str):
-        """Synchronous email send (runs in background thread)"""
+        """Synchronous email send via SendGrid API (runs in background thread)"""
         try:
-            from flask_mail import Message
+            from sendgrid import SendGridAPIClient
+            from sendgrid.helpers.mail import Mail, Email, To, Content, HtmlContent
             
             with app.app_context():
-                msg = Message(
+                # Get SendGrid API key from config
+                api_key = app.config.get('SENDGRID_API_KEY') or app.config.get('MAIL_PASSWORD')
+                from_email = app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
+                
+                if not api_key:
+                    logger.error('SendGrid API key not configured - cannot send email')
+                    return
+                
+                # Create email message with HTML content
+                email_message = Mail(
+                    from_email=Email(from_email),
+                    to_emails=To(to_email),
                     subject=f"MAUA SHARK - {subject}",
-                    recipients=[to_email],
-                    html=html_content,
-                    sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
+                    html_content=HtmlContent(html_content)
                 )
-                app.mail.send(msg)
-                logger.info(f"Email sent to {to_email}: {subject}")
+                
+                # Send via SendGrid API
+                sg = SendGridAPIClient(api_key)
+                response = sg.send(email_message)
+                
+                if response.status_code in [200, 201, 202]:
+                    logger.info(f"Email sent to {to_email}: {subject} (SendGrid status: {response.status_code})")
+                else:
+                    logger.error(f"SendGrid API error: status {response.status_code}")
+                    
         except Exception as e:
             logger.error(f"Email send error to {to_email}: {e}")
     

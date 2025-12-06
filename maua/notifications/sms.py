@@ -31,57 +31,53 @@ def _twilio_client_or_none():
         return None
 
 
-def _send_email_sync(app, email_address: str, phone_number: str, message: str) -> bool:
-    """Synchronous email send (runs in background thread)."""
+def _send_email_via_sendgrid_api(app, email_address: str, phone_number: str, message: str) -> bool:
+    """Send email via SendGrid Web API (not SMTP - works on cloud platforms)."""
     logger = logging.getLogger(__name__)
-    logger.info('Starting email fallback send to %s', email_address)
+    logger.info('Sending email via SendGrid API to %s', email_address)
+    
     try:
-        from flask_mail import Message
-        import smtplib
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To, Content
         
         with app.app_context():
-            mail = getattr(app, 'mail', None)
-            if mail is None:
-                # Try to get mail from extensions
-                mail = app.extensions.get('mail')
+            # Get SendGrid API key from config
+            api_key = app.config.get('SENDGRID_API_KEY') or app.config.get('MAIL_PASSWORD')
+            from_email = app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
             
-            if mail is None:
-                logger.error('Flask-Mail not configured - cannot send email fallback')
+            if not api_key:
+                logger.error('SendGrid API key not configured')
                 return False
             
-            logger.info('Creating email message for %s', email_address)
+            logger.info('Using SendGrid API with sender: %s', from_email)
             
-            # Log mail server being used
-            mail_server = app.config.get('MAIL_SERVER', 'unknown')
-            mail_port = app.config.get('MAIL_PORT', 'unknown')
-            logger.info('Using mail server: %s:%s', mail_server, mail_port)
-            
-            msg = Message(
+            # Create email message
+            email_message = Mail(
+                from_email=Email(from_email),
+                to_emails=To(email_address),
                 subject="MAUA SHARK - SMS Notification",
-                recipients=[email_address],
-                body=f"SMS intended for {phone_number}:\n\n{message}",
-                sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
+                plain_text_content=Content("text/plain", f"SMS intended for {phone_number}:\n\n{message}")
             )
             
-            logger.info('Sending email via SMTP to %s...', email_address)
-            mail.send(msg)
-            logger.info('Email fallback sent successfully to %s for phone %s', email_address, phone_number)
-            return True
-    except smtplib.SMTPAuthenticationError as exc:
-        logger.error('Email auth failed (check MAIL_USERNAME/PASSWORD): %s', exc)
-        return False
-    except smtplib.SMTPException as exc:
-        logger.error('SMTP error sending to %s: %s', email_address, exc)
-        return False
-    except socket.timeout as exc:
-        logger.error('Email timeout sending to %s: %s', email_address, exc)
-        return False
-    except socket.error as exc:
-        logger.error('Socket error sending email to %s: %s', email_address, exc)
-        return False
+            # Send via API
+            sg = SendGridAPIClient(api_key)
+            response = sg.send(email_message)
+            
+            if response.status_code in [200, 201, 202]:
+                logger.info('SendGrid API: Email sent successfully to %s (status: %s)', email_address, response.status_code)
+                return True
+            else:
+                logger.error('SendGrid API error: status %s, body: %s', response.status_code, response.body)
+                return False
+                
     except Exception as exc:
-        logger.error('Email fallback failed to %s: %s (type: %s)', email_address, exc, type(exc).__name__)
+        logger.error('SendGrid API failed to %s: %s (type: %s)', email_address, exc, type(exc).__name__)
         return False
+
+
+def _send_email_sync(app, email_address: str, phone_number: str, message: str) -> bool:
+    """Synchronous email send - uses SendGrid API (SMTP is blocked on cloud platforms)."""
+    return _send_email_via_sendgrid_api(app, email_address, phone_number, message)
 
 
 def _send_email_fallback(phone_number: str, message: str, user_email: str = None) -> bool:
