@@ -439,29 +439,29 @@ class NotificationService:
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.user.email if booking.user else None
+                user_email=booking.passenger.email if booking.passenger else None
             )
             
             # Send Email if user has email
-            if booking.user and booking.user.email:
+            if booking.passenger and booking.passenger.email:
                 html = render_template_string(EMAIL_TEMPLATES['booking_confirmation'], **data)
                 results['email'] = cls.send_email(
-                    booking.user.email,
+                    booking.passenger.email,
                     "Booking Confirmed!",
                     html
                 )
             
             # Check if first-time customer
-            if booking.user:
+            if booking.passenger:
                 from maua.booking.models import Booking
-                booking_count = Booking.query.filter_by(user_id=booking.user.id).count()
+                booking_count = Booking.query.filter_by(user_id=booking.passenger.id).count()
                 if booking_count == 1:
                     # First booking - send welcome message
                     welcome_msg = SMS_TEMPLATES['thank_you_first_booking'].format(
                         passenger_name=booking.passenger_name
                     )
                     cls.send_sms(booking.passenger_phone, welcome_msg,
-                                user_email=booking.user.email if booking.user else None)
+                                user_email=booking.passenger.email if booking.passenger else None)
                 elif booking_count % 5 == 0:
                     # Loyalty appreciation every 5 bookings
                     loyalty_msg = SMS_TEMPLATES['loyalty_appreciation'].format(
@@ -469,7 +469,7 @@ class NotificationService:
                         booking_count=booking_count
                     )
                     cls.send_sms(booking.passenger_phone, loyalty_msg,
-                                user_email=booking.user.email if booking.user else None)
+                                user_email=booking.passenger.email if booking.passenger else None)
             
             logger.info(f"Booking confirmation sent for {booking.reference}")
             
@@ -498,7 +498,7 @@ class NotificationService:
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.user.email if booking.user else None
+                user_email=booking.passenger.email if booking.passenger else None
             )
             
         except Exception as e:
@@ -523,7 +523,7 @@ class NotificationService:
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.user.email if booking.user else None
+                user_email=booking.passenger.email if booking.passenger else None
             )
             
         except Exception as e:
@@ -549,14 +549,14 @@ class NotificationService:
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.user.email if booking.user else None
+                user_email=booking.passenger.email if booking.passenger else None
             )
             
             # Email
-            if booking.user and booking.user.email:
+            if booking.passenger and booking.passenger.email:
                 html = render_template_string(EMAIL_TEMPLATES['thank_you'], **data)
                 results['email'] = cls.send_email(
-                    booking.user.email,
+                    booking.passenger.email,
                     "Thank You for Traveling with Us!",
                     html
                 )
@@ -580,7 +580,7 @@ class NotificationService:
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.user.email if booking.user else None
+                user_email=booking.passenger.email if booking.passenger else None
             )
             
         except Exception as e:
@@ -610,14 +610,14 @@ class NotificationService:
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.user.email if booking.user else None
+                user_email=booking.passenger.email if booking.passenger else None
             )
             
             # Email
-            if booking.user and booking.user.email:
+            if booking.passenger and booking.passenger.email:
                 html = render_template_string(EMAIL_TEMPLATES['trip_reminder'], **data)
                 results['email'] = cls.send_email(
-                    booking.user.email,
+                    booking.passenger.email,
                     "Trip Reminder - Tomorrow!",
                     html
                 )
