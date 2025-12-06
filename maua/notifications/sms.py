@@ -1,9 +1,13 @@
 import os
 import logging
+import socket
 from typing import Optional
 from threading import Thread
 
 from flask import current_app
+
+# Set default socket timeout for SMTP operations
+socket.setdefaulttimeout(30)  # 30 seconds max for any socket operation
 
 
 def _twilio_client_or_none():
@@ -33,6 +37,7 @@ def _send_email_sync(app, email_address: str, phone_number: str, message: str) -
     logger.info('Starting email fallback send to %s', email_address)
     try:
         from flask_mail import Message
+        import smtplib
         
         with app.app_context():
             mail = getattr(app, 'mail', None)
@@ -44,17 +49,32 @@ def _send_email_sync(app, email_address: str, phone_number: str, message: str) -
                 logger.error('Flask-Mail not configured - cannot send email fallback')
                 return False
             
+            logger.info('Creating email message for %s', email_address)
             msg = Message(
                 subject="MAUA SHARK - SMS Notification",
                 recipients=[email_address],
                 body=f"SMS intended for {phone_number}:\n\n{message}",
                 sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@mauashark.com')
             )
+            
+            logger.info('Sending email via SMTP to %s...', email_address)
             mail.send(msg)
             logger.info('Email fallback sent successfully to %s for phone %s', email_address, phone_number)
             return True
+    except smtplib.SMTPAuthenticationError as exc:
+        logger.error('Email auth failed (check MAIL_USERNAME/PASSWORD): %s', exc)
+        return False
+    except smtplib.SMTPException as exc:
+        logger.error('SMTP error sending to %s: %s', email_address, exc)
+        return False
+    except socket.timeout as exc:
+        logger.error('Email timeout sending to %s: %s', email_address, exc)
+        return False
+    except socket.error as exc:
+        logger.error('Socket error sending email to %s: %s', email_address, exc)
+        return False
     except Exception as exc:
-        logger.error('Email fallback failed to %s: %s', email_address, exc)
+        logger.error('Email fallback failed to %s: %s (type: %s)', email_address, exc, type(exc).__name__)
         return False
 
 
