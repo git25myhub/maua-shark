@@ -1,0 +1,139 @@
+{% extends 'staff/_layout.html' %}
+
+{% block title %}Notifications{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block page_subtitle %}View all staff notifications{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 mx-auto">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="badge bg-primary">{{ notifications|selectattr('is_read', 'false')|list|length }} unread</span>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary btn-sm" id="markAllRead">
+                    <i class="fas fa-check-double me-1"></i>Mark All Read
+                </button>
+                <button class="btn btn-outline-danger btn-sm" id="clearAllNotifications">
+                    <i class="fas fa-trash-alt me-1"></i>Clear All
+                </button>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-body p-0">
+                {% if notifications %}
+                    <div class="list-group list-group-flush" id="notificationList">
+                        {% for n in notifications %}
+                        <div class="list-group-item list-group-item-action {% if not n.is_read %}border-start border-4 border-{{ n.color }}{% endif %}" 
+                             data-notification-id="{{ n.id }}" style="{% if not n.is_read %}background: rgba(var(--bs-{{ n.color }}-rgb), 0.05);{% endif %}">
+                            <div class="d-flex align-items-start">
+                                <div class="notification-icon me-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-{{ n.color }} text-white" 
+                                         style="width: 48px; height: 48px;">
+                                        <i class="fas {{ n.icon }} fa-lg"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <h6 class="mb-1 {% if not n.is_read %}fw-bold{% endif %}">{{ n.title }}</h6>
+                                        <small class="text-muted ms-2">{{ n._time_ago() }}</small>
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ n.message }}</p>
+                                    <div class="d-flex align-items-center gap-2 mt-2">
+                                        <span class="badge bg-{{ n.color }}-subtle text-{{ n.color }}">{{ n.notification_type|title }}</span>
+                                        {% if n.link %}
+                                        <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-arrow-right me-1"></i>View
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% if not n.is_read %}
+                                <span class="badge bg-{{ n.color }} rounded-pill ms-2">New</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No notifications yet</h5>
+                        <p class="text-muted mb-0">Notifications about bookings, trips, and parcels will appear here.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Mark all as read
+    document.getElementById('markAllRead')?.addEventListener('click', async function() {
+        try {
+            const res = await fetch('/notifications/api/staff/mark-all-read', { method: 'POST' });
+            if (res.ok) {
+                document.querySelectorAll('.list-group-item').forEach(item => {
+                    item.classList.remove('border-start', 'border-4');
+                    item.style.background = '';
+                    item.querySelector('.badge.rounded-pill')?.remove();
+                    item.querySelector('h6')?.classList.remove('fw-bold');
+                });
+                // Update badge count in header
+                const badge = document.querySelector('.notification-badge');
+                if (badge) badge.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Error marking all as read:', e);
+        }
+    });
+    
+    // Clear all notifications
+    document.getElementById('clearAllNotifications')?.addEventListener('click', async function() {
+        if (!confirm('Clear all notifications? This cannot be undone.')) return;
+        try {
+            const res = await fetch('/notifications/api/staff/clear-all', { method: 'POST' });
+            if (res.ok) {
+                document.getElementById('notificationList').innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No notifications</h5>
+                        <p class="text-muted mb-0">All notifications have been cleared.</p>
+                    </div>`;
+                // Update badge count in header
+                const badge = document.querySelector('.notification-badge');
+                if (badge) badge.style.display = 'none';
+            }
+        } catch (e) {
+            console.error('Error clearing notifications:', e);
+        }
+    });
+    
+    // Mark individual as read on click
+    document.querySelectorAll('.list-group-item').forEach(item => {
+        item.addEventListener('click', async function(e) {
+            if (e.target.closest('a')) return; // Don't trigger on link clicks
+            
+            const id = this.dataset.notificationId;
+            if (!this.classList.contains('border-start')) return;
+            
+            try {
+                await fetch(`/notifications/api/staff/mark-read/${id}`, { method: 'POST' });
+                this.classList.remove('border-start', 'border-4');
+                this.style.background = '';
+                this.querySelector('.badge.rounded-pill')?.remove();
+                this.querySelector('h6')?.classList.remove('fw-bold');
+            } catch (e) {
+                console.error('Error marking as read:', e);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+

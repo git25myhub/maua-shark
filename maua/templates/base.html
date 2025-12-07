@@ -69,6 +69,45 @@
                     
                     <ul class="navbar-nav ms-auto">
                         {% if current_user.is_authenticated %}
+                            <!-- Notification Bell for Customers -->
+                            <li class="nav-item dropdown me-2">
+                                <a class="nav-link position-relative" href="#" id="customerNotificationBell" 
+                                   role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-bell"></i>
+                                    <span class="customer-notification-badge position-absolute translate-middle badge rounded-pill bg-danger" 
+                                          style="display: none; font-size: 0.6rem; top: 8px; left: 24px;">
+                                        0
+                                    </span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-end notification-dropdown shadow-lg" 
+                                     style="width: 350px; max-height: 420px; overflow: hidden;">
+                                    <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                        <h6 class="mb-0 fw-bold">
+                                            <i class="fas fa-bell text-primary me-2"></i>Notifications
+                                        </h6>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-link btn-sm text-decoration-none p-0" id="customerMarkAllRead" title="Mark all as read">
+                                                <i class="fas fa-check-double"></i>
+                                            </button>
+                                            <button class="btn btn-link btn-sm text-decoration-none p-0 text-danger" id="customerClearAll" title="Clear all">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="customer-notification-list" style="max-height: 320px; overflow-y: auto;">
+                                        <div class="text-center py-4 text-muted" id="customerNotificationLoading">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>Loading...
+                                        </div>
+                                        <div id="customerNotificationItems"></div>
+                                    </div>
+                                    <div class="border-top p-2 text-center">
+                                        <a href="{{ url_for('notifications.customer_notifications_page') }}" class="btn btn-sm btn-outline-primary w-100">
+                                            <i class="fas fa-list me-1"></i>View All
+                                        </a>
+                                    </div>
+                                </div>
+                            </li>
+                            
                             <!-- Staff/Admin Quick Access -->
                             {% if current_user.is_admin or current_user.is_staff %}
                                 <li class="nav-item dropdown">
@@ -339,7 +378,152 @@
                 });
             }
         })();
+        
+        // Customer Notification Bell System
+        {% if current_user.is_authenticated %}
+        (function() {
+            const badge = document.querySelector('.customer-notification-badge');
+            const itemsContainer = document.getElementById('customerNotificationItems');
+            const loading = document.getElementById('customerNotificationLoading');
+            const bell = document.getElementById('customerNotificationBell');
+            let lastCount = 0;
+            
+            async function fetchNotifications() {
+                try {
+                    const res = await fetch('/notifications/api/customer/list');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    
+                    // Update badge
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                        badge.style.display = 'block';
+                        
+                        // Ring animation if new notifications
+                        if (data.unread_count > lastCount && lastCount !== 0) {
+                            bell.classList.add('notification-ring');
+                            setTimeout(() => bell.classList.remove('notification-ring'), 1000);
+                        }
+                        lastCount = data.unread_count;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Render notifications
+                    if (loading) loading.style.display = 'none';
+                    
+                    if (data.notifications.length === 0) {
+                        itemsContainer.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p class="mb-0 small">No notifications yet</p>
+                                <p class="mb-0 small text-muted">Book a trip to get started!</p>
+                            </div>`;
+                        return;
+                    }
+                    
+                    itemsContainer.innerHTML = data.notifications.slice(0, 8).map(n => `
+                        <a href="${n.link || '#'}" class="dropdown-item notification-item py-2 px-3 ${!n.is_read ? 'bg-light' : ''}" 
+                           data-id="${n.id}">
+                            <div class="d-flex align-items-start">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-${n.color} text-white me-2" 
+                                     style="width: 32px; height: 32px; min-width: 32px;">
+                                    <i class="fas ${n.icon} small"></i>
+                                </div>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <span class="fw-semibold small">${n.title}</span>
+                                        <small class="text-muted ms-2" style="white-space: nowrap; font-size: 0.7rem;">${n.time_ago}</small>
+                                    </div>
+                                    <p class="mb-0 small text-muted" style="font-size: 0.8rem;">${n.message.substring(0, 60)}${n.message.length > 60 ? '...' : ''}</p>
+                                </div>
+                            </div>
+                        </a>
+                    `).join('');
+                    
+                } catch (e) {
+                    console.error('Error fetching notifications:', e);
+                    if (loading) loading.innerHTML = '<div class="text-center py-3 text-muted small">Failed to load</div>';
+                }
+            }
+            
+            // Initial fetch
+            fetchNotifications();
+            
+            // Poll every 45 seconds
+            setInterval(fetchNotifications, 45000);
+            
+            // Fetch on dropdown open
+            bell?.addEventListener('show.bs.dropdown', fetchNotifications);
+            
+            // Mark notification as read on click
+            itemsContainer?.addEventListener('click', async function(e) {
+                const item = e.target.closest('.notification-item');
+                if (!item) return;
+                
+                const id = item.dataset.id;
+                try {
+                    await fetch(`/notifications/api/customer/mark-read/${id}`, { method: 'POST' });
+                    item.classList.remove('bg-light');
+                    const currentCount = parseInt(badge.textContent) || 0;
+                    if (currentCount > 1) {
+                        badge.textContent = currentCount - 1;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch (e) {}
+            });
+            
+            // Mark all as read
+            document.getElementById('customerMarkAllRead')?.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                    await fetch('/notifications/api/customer/mark-all-read', { method: 'POST' });
+                    badge.style.display = 'none';
+                    document.querySelectorAll('#customerNotificationItems .notification-item').forEach(item => {
+                        item.classList.remove('bg-light');
+                    });
+                } catch (e) {}
+            });
+            
+            // Clear all notifications
+            document.getElementById('customerClearAll')?.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!confirm('Clear all notifications? This cannot be undone.')) return;
+                try {
+                    const res = await fetch('/notifications/api/customer/clear-all', { method: 'POST' });
+                    if (res.ok) {
+                        badge.style.display = 'none';
+                        itemsContainer.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p class="mb-0 small">No notifications yet</p>
+                                <p class="mb-0 small text-muted">Book a trip to get started!</p>
+                            </div>`;
+                    }
+                } catch (e) {
+                    console.error('Error clearing notifications:', e);
+                }
+            });
+        })();
+        {% endif %}
     </script>
+    
+    <style>
+        .notification-dropdown .notification-item:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+        }
+        .notification-ring {
+            animation: ring 0.5s ease-in-out;
+        }
+        @keyframes ring {
+            0%, 100% { transform: rotate(0); }
+            20%, 60% { transform: rotate(15deg); }
+            40%, 80% { transform: rotate(-15deg); }
+        }
+    </style>
     
     {% block extra_js %}{% endblock %}
 </body>

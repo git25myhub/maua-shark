@@ -7,8 +7,11 @@ from collections import defaultdict
 
 @bp.route('/routes')
 def routes():
-    # Only show scheduled trips
-    trips_all = Trip.query.filter_by(status='scheduled').order_by(Trip.depart_at.asc(), Trip.id.asc()).limit(500).all()
+    # Only show scheduled trips that are not marked as full
+    trips_all = Trip.query.filter(
+        Trip.status == 'scheduled',
+        Trip.is_full == False
+    ).order_by(Trip.depart_at.asc(), Trip.id.asc()).limit(500).all()
 
     # Group by route_id and pick the first trip (earliest) that still has available seats
     route_to_active_trip = {}
@@ -41,12 +44,17 @@ def trip_detail(trip_id: int):
     if trip is None:
         abort(404)
 
+    # If trip is marked as full, redirect to routes page
+    if trip.is_full:
+        return redirect(url_for('catalog.routes'))
+
     # Enforce one car at a time per route: if another trip (earliest) on this route has seats
     # and it is not this one, redirect to that one
     try:
         siblings = Trip.query.filter(
             Trip.status == 'scheduled',
             Trip.route_id == trip.route_id,
+            Trip.is_full == False,
         ).order_by(Trip.depart_at.asc(), Trip.id.asc()).all()
         if siblings:
             active = None

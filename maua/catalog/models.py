@@ -58,6 +58,7 @@ class Trip(db.Model):
     arrive_eta = db.Column(db.DateTime(timezone=True))
     base_fare = db.Column(db.Numeric(10,2), nullable=False)
     status = db.Column(db.String(20), default='scheduled')  # scheduled, in_progress, completed, cancelled
+    is_full = db.Column(db.Boolean, default=False)  # Marked full by staff (physical check-ins)
     # Operational fields
     driver_name = db.Column(db.String(120))
     driver_phone = db.Column(db.String(30))
@@ -73,12 +74,15 @@ class Trip(db.Model):
     @property
     def available_seats(self):
         # Returns a list of available seat numbers
+        # If trip is marked as full, no seats are available
+        if self.is_full:
+            return []
         if not self.vehicle or not self.vehicle.seat_layout:
             return []
         from datetime import datetime
         now = datetime.utcnow()
         booked_seats = {booking.seat_number for booking in self.bookings 
-                       if booking.status in ['confirmed', 'reserved'] and (not getattr(booking, 'hold_expires_at', None) or booking.hold_expires_at > now)}
+                       if booking.status in ['confirmed', 'reserved', 'checked_in'] and (not getattr(booking, 'hold_expires_at', None) or booking.hold_expires_at > now)}
         
         return [seat['seat'] for seat in self.vehicle.seat_layout 
                if seat['seat'] not in booked_seats]

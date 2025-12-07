@@ -289,6 +289,13 @@ def trips_update_status(trip_id: int):
     try:
         trip.status = new_status
         db.session.commit()
+        
+        # Send bell notifications to customers about trip status change
+        try:
+            NotificationService.notify_trip_status_change(trip, new_status)
+        except Exception as e:
+            current_app.logger.error(f'Failed to send trip status notifications: {e}')
+        
         # When trip is completed, mark relevant bookings as completed
         if new_status == 'completed':
             try:
@@ -489,6 +496,67 @@ def trip_seat_checkin(trip_id: int, seat: str):
     except Exception:
         db.session.rollback()
         flash('Failed to check in.', 'danger')
+    return redirect(url_for('staff.trip_seat_map', trip_id=trip.id))
+
+
+@staff_bp.route('/trips/<int:trip_id>/mark-full', methods=['POST'])
+@login_required
+@staff_required
+def trip_mark_full(trip_id: int):
+    """Mark a trip as full (physical check-ins). Creates bookings for empty seats."""
+    import uuid
+    trip = Trip.query.get_or_404(trip_id)
+    
+    # Toggle the is_full flag
+    new_state = not trip.is_full
+    
+    try:
+        if new_state:
+            # Marking as full - create bookings for all remaining empty seats
+            seat_layout = trip.vehicle.seat_layout or []
+            all_seats = {s['seat'] for s in seat_layout}
+            
+            # Get currently booked seats
+            booked_seats = {b.seat_number for b in trip.bookings 
+                          if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']}
+            
+            # Find empty seats
+            empty_seats = all_seats - booked_seats
+            
+            # Create "walk-in" bookings for empty seats
+            for seat in empty_seats:
+                ref = f"WI-{uuid.uuid4().hex[:8].upper()}"
+                booking = Booking(
+                    trip_id=trip.id,
+                    user_id=None,  # No user account (physical walk-in)
+                    seat_number=seat,
+                    status='checked_in',
+                    fare=trip.base_fare,
+                    reference=ref,
+                    hold_expires_at=None,
+                    passenger_name='Walk-in Passenger',
+                    passenger_sex='other',
+                    passenger_age=0,
+                    passenger_phone='N/A',
+                    passenger_id_number='N/A',
+                    pickup_location=None
+                )
+                db.session.add(booking)
+            
+            trip.is_full = True
+            db.session.commit()
+            flash(f'Trip marked as full. {len(empty_seats)} walk-in passenger(s) added.', 'success')
+        else:
+            # Unmarking - just toggle the flag (keep bookings)
+            trip.is_full = False
+            db.session.commit()
+            flash('Trip unmarked as full. Existing bookings retained.', 'info')
+            
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Failed to mark trip {trip_id} as full: {e}')
+        flash('Failed to update trip.', 'danger')
+    
     return redirect(url_for('staff.trip_seat_map', trip_id=trip.id))
 
 

@@ -137,6 +137,46 @@
                 </div>
                 
                 <div class="d-flex align-items-center gap-3">
+                    <!-- Notification Bell -->
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm rounded-circle position-relative" type="button" 
+                                id="notificationBell" data-bs-toggle="dropdown" aria-expanded="false"
+                                style="width: 36px; height: 36px;">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                  style="display: none; font-size: 0.65rem;">
+                                0
+                            </span>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end notification-dropdown shadow-lg" 
+                             style="width: 380px; max-height: 450px; overflow: hidden;" aria-labelledby="notificationBell">
+                            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                <h6 class="mb-0 fw-bold">
+                                    <i class="fas fa-bell text-primary me-2"></i>Notifications
+                                </h6>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0" id="markAllReadDropdown" title="Mark all as read">
+                                        <i class="fas fa-check-double"></i>
+                                    </button>
+                                    <button class="btn btn-link btn-sm text-decoration-none p-0 text-danger" id="clearAllNotifications" title="Clear all">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="notification-list" style="max-height: 350px; overflow-y: auto;">
+                                <div class="text-center py-4 text-muted" id="notificationLoading">
+                                    <i class="fas fa-spinner fa-spin me-2"></i>Loading...
+                                </div>
+                                <div id="notificationItems"></div>
+                            </div>
+                            <div class="border-top p-2 text-center">
+                                <a href="{{ url_for('notifications.staff_notifications_page') }}" class="btn btn-sm btn-outline-primary w-100">
+                                    <i class="fas fa-list me-1"></i>View All Notifications
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button id="theme-toggle-dashboard" class="btn btn-light btn-sm rounded-circle" style="width: 36px; height: 36px;">
                         <i class="fas fa-moon"></i>
                     </button>
@@ -269,7 +309,152 @@
             const yearEl = document.getElementById('current-year-staff');
             if (yearEl) yearEl.textContent = new Date().getFullYear();
         })();
+        
+        // Notification Bell System
+        (function() {
+            const badge = document.querySelector('.notification-badge');
+            const itemsContainer = document.getElementById('notificationItems');
+            const loading = document.getElementById('notificationLoading');
+            const bell = document.getElementById('notificationBell');
+            let lastCount = 0;
+            
+            async function fetchNotifications() {
+                try {
+                    const res = await fetch('/notifications/api/staff/list');
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    
+                    // Update badge
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                        badge.style.display = 'block';
+                        
+                        // Ring animation if new notifications
+                        if (data.unread_count > lastCount && lastCount !== 0) {
+                            bell.classList.add('notification-ring');
+                            setTimeout(() => bell.classList.remove('notification-ring'), 1000);
+                        }
+                        lastCount = data.unread_count;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                    
+                    // Render notifications
+                    if (loading) loading.style.display = 'none';
+                    
+                    if (data.notifications.length === 0) {
+                        itemsContainer.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p class="mb-0 small">No notifications</p>
+                            </div>`;
+                        return;
+                    }
+                    
+                    itemsContainer.innerHTML = data.notifications.slice(0, 10).map(n => `
+                        <a href="${n.link || '#'}" class="dropdown-item notification-item py-2 px-3 ${!n.is_read ? 'bg-light' : ''}" 
+                           data-id="${n.id}">
+                            <div class="d-flex align-items-start">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center bg-${n.color} text-white me-2" 
+                                     style="width: 36px; height: 36px; min-width: 36px;">
+                                    <i class="fas ${n.icon}"></i>
+                                </div>
+                                <div class="flex-grow-1" style="min-width: 0;">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <span class="fw-semibold small text-truncate">${n.title}</span>
+                                        <small class="text-muted ms-2" style="white-space: nowrap;">${n.time_ago}</small>
+                                    </div>
+                                    <p class="mb-0 small text-muted text-truncate">${n.message}</p>
+                                </div>
+                                ${!n.is_read ? '<span class="badge bg-primary rounded-pill ms-1" style="font-size: 0.6rem;">•</span>' : ''}
+                            </div>
+                        </a>
+                    `).join('');
+                    
+                } catch (e) {
+                    console.error('Error fetching notifications:', e);
+                    if (loading) loading.innerHTML = '<div class="text-center py-3 text-muted small">Failed to load</div>';
+                }
+            }
+            
+            // Initial fetch
+            fetchNotifications();
+            
+            // Poll every 30 seconds
+            setInterval(fetchNotifications, 30000);
+            
+            // Fetch on dropdown open
+            bell?.addEventListener('show.bs.dropdown', fetchNotifications);
+            
+            // Mark notification as read on click
+            itemsContainer?.addEventListener('click', async function(e) {
+                const item = e.target.closest('.notification-item');
+                if (!item) return;
+                
+                const id = item.dataset.id;
+                try {
+                    await fetch(`/notifications/api/staff/mark-read/${id}`, { method: 'POST' });
+                    item.classList.remove('bg-light');
+                    item.querySelector('.badge')?.remove();
+                    // Update count
+                    const currentCount = parseInt(badge.textContent) || 0;
+                    if (currentCount > 1) {
+                        badge.textContent = currentCount - 1;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch (e) {}
+            });
+            
+            // Mark all as read
+            document.getElementById('markAllReadDropdown')?.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                try {
+                    await fetch('/notifications/api/staff/mark-all-read', { method: 'POST' });
+                    badge.style.display = 'none';
+                    document.querySelectorAll('.notification-item').forEach(item => {
+                        item.classList.remove('bg-light');
+                        item.querySelector('.badge')?.remove();
+                    });
+                } catch (e) {}
+            });
+            
+            // Clear all notifications
+            document.getElementById('clearAllNotifications')?.addEventListener('click', async function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (!confirm('Clear all notifications? This cannot be undone.')) return;
+                try {
+                    const res = await fetch('/notifications/api/staff/clear-all', { method: 'POST' });
+                    if (res.ok) {
+                        badge.style.display = 'none';
+                        itemsContainer.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-bell-slash fa-2x mb-2"></i>
+                                <p class="mb-0 small">No notifications</p>
+                            </div>`;
+                    }
+                } catch (e) {
+                    console.error('Error clearing notifications:', e);
+                }
+            });
+        })();
     </script>
+    
+    <style>
+        .notification-dropdown .notification-item:hover {
+            background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+        }
+        .notification-ring {
+            animation: ring 0.5s ease-in-out;
+        }
+        @keyframes ring {
+            0%, 100% { transform: rotate(0); }
+            20%, 60% { transform: rotate(15deg); }
+            40%, 80% { transform: rotate(-15deg); }
+        }
+    </style>
     
     {% block extra_js %}{% endblock %}
 </body>

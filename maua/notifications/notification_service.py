@@ -489,7 +489,7 @@ EMAIL_TEMPLATES = {
 
 
 class NotificationService:
-    """Unified notification service for SMS and Email"""
+    """Unified notification service for SMS, Email, and In-App Bell Notifications"""
     
     @staticmethod
     def send_sms(phone_number: str, message: str, user_email: str = None) -> bool:
@@ -500,6 +500,61 @@ class NotificationService:
         except Exception as e:
             logger.error(f"SMS send error: {e}")
             return False
+    
+    @staticmethod
+    def create_bell_notification_for_customer(user_id, notification_type, title, message,
+                                               icon='fa-bell', color='primary', link=None,
+                                               booking_id=None, trip_id=None, parcel_id=None):
+        """Create in-app bell notification for a customer"""
+        try:
+            from maua.notifications.models import Notification
+            from maua.extensions import db
+            
+            notification = Notification.create_for_customer(
+                user_id=user_id,
+                notification_type=notification_type,
+                title=title,
+                message=message,
+                icon=icon,
+                color=color,
+                link=link,
+                booking_id=booking_id,
+                trip_id=trip_id,
+                parcel_id=parcel_id
+            )
+            db.session.commit()
+            logger.info(f"Bell notification created for customer {user_id}: {title}")
+            return notification
+        except Exception as e:
+            logger.error(f"Error creating customer bell notification: {e}")
+            return None
+    
+    @staticmethod
+    def create_bell_notification_for_staff(notification_type, title, message,
+                                            icon='fa-bell', color='primary', link=None,
+                                            booking_id=None, trip_id=None, parcel_id=None):
+        """Create in-app bell notification for staff"""
+        try:
+            from maua.notifications.models import Notification
+            from maua.extensions import db
+            
+            notification = Notification.create_for_staff(
+                notification_type=notification_type,
+                title=title,
+                message=message,
+                icon=icon,
+                color=color,
+                link=link,
+                booking_id=booking_id,
+                trip_id=trip_id,
+                parcel_id=parcel_id
+            )
+            db.session.commit()
+            logger.info(f"Bell notification created for staff: {title}")
+            return notification
+        except Exception as e:
+            logger.error(f"Error creating staff bell notification: {e}")
+            return None
     
     @staticmethod
     def _send_email_sync(app, to_email: str, subject: str, html_content: str):
@@ -566,8 +621,8 @@ class NotificationService:
     
     @classmethod
     def notify_booking_confirmed(cls, booking) -> dict:
-        """Send booking confirmation SMS and Email"""
-        results = {'sms': False, 'email': False}
+        """Send booking confirmation SMS, Email, and Bell notification"""
+        results = {'sms': False, 'email': False, 'bell': False}
         
         try:
             # Prepare data
@@ -601,6 +656,33 @@ class NotificationService:
                     "Booking Confirmed!",
                     html
                 )
+            
+            # Create bell notification for customer
+            if booking.user_id:
+                cls.create_bell_notification_for_customer(
+                    user_id=booking.user_id,
+                    notification_type='booking',
+                    title='Booking Confirmed! 🎫',
+                    message=f"Your trip from {data['origin']} to {data['destination']} on {data['date']} is confirmed. Seat: {data['seat_number']}",
+                    icon='fa-ticket-alt',
+                    color='success',
+                    link=f"/booking/confirmation/{booking.id}",
+                    booking_id=booking.id,
+                    trip_id=booking.trip_id
+                )
+                results['bell'] = True
+            
+            # Create bell notification for staff (new online booking)
+            cls.create_bell_notification_for_staff(
+                notification_type='booking',
+                title='New Online Booking! 🎫',
+                message=f"{booking.passenger_name} booked seat {booking.seat_number} on {data['origin']} → {data['destination']} ({data['date']} {data['time']})",
+                icon='fa-ticket-alt',
+                color='info',
+                link=f"/staff/trips/{booking.trip_id}/seats",
+                booking_id=booking.id,
+                trip_id=booking.trip_id
+            )
             
             # Check if first-time customer
             if booking.passenger:
@@ -659,8 +741,8 @@ class NotificationService:
     
     @classmethod
     def notify_booking_checked_in(cls, booking) -> dict:
-        """Send check-in notification"""
-        results = {'sms': False}
+        """Send check-in notification with bell"""
+        results = {'sms': False, 'bell': False}
         
         try:
             data = {
@@ -677,6 +759,21 @@ class NotificationService:
                 user_email=booking.passenger.email if booking.passenger else None
             )
             
+            # Create bell notification for customer
+            if booking.user_id:
+                cls.create_bell_notification_for_customer(
+                    user_id=booking.user_id,
+                    notification_type='booking',
+                    title='Checked In! ✅',
+                    message=f"You're checked in for your trip from {data['origin']} to {data['destination']}. Have a safe journey!",
+                    icon='fa-check-circle',
+                    color='success',
+                    link=f"/booking/confirmation/{booking.id}",
+                    booking_id=booking.id,
+                    trip_id=booking.trip_id
+                )
+                results['bell'] = True
+            
         except Exception as e:
             logger.error(f"Error sending check-in notification: {e}")
         
@@ -684,8 +781,8 @@ class NotificationService:
     
     @classmethod
     def notify_booking_completed(cls, booking) -> dict:
-        """Send trip completion thank you notification"""
-        results = {'sms': False, 'email': False}
+        """Send trip completion thank you notification with bell"""
+        results = {'sms': False, 'email': False, 'bell': False}
         
         try:
             data = {
@@ -711,6 +808,21 @@ class NotificationService:
                     "Thank You for Traveling with Us!",
                     html
                 )
+            
+            # Create bell notification for customer
+            if booking.user_id:
+                cls.create_bell_notification_for_customer(
+                    user_id=booking.user_id,
+                    notification_type='trip',
+                    title='Trip Completed! 🎉',
+                    message=f"Thank you for traveling with us from {data['origin']} to {data['destination']}. We hope to see you again!",
+                    icon='fa-flag-checkered',
+                    color='success',
+                    link=f"/booking/confirmation/{booking.id}",
+                    booking_id=booking.id,
+                    trip_id=booking.trip_id
+                )
+                results['bell'] = True
             
         except Exception as e:
             logger.error(f"Error sending completion notification: {e}")
@@ -785,12 +897,24 @@ class NotificationService:
     @classmethod
     def notify_parcel_created(cls, parcel, user_email=None) -> dict:
         """Send parcel creation notification and receipt to sender and receiver"""
-        results = {'sender_sms': False, 'receiver_sms': False, 'sender_email': False, 'receiver_email': False}
+        results = {'sender_sms': False, 'receiver_sms': False, 'sender_email': False, 'receiver_email': False, 'bell': False}
         
         try:
             # Use parcel's stored emails, fallback to provided user_email
             sender_email = getattr(parcel, 'sender_email', None) or user_email
             receiver_email = getattr(parcel, 'receiver_email', None)
+            
+            # Create bell notification for staff (new parcel created)
+            cls.create_bell_notification_for_staff(
+                notification_type='parcel',
+                title='New Parcel Created! 📦',
+                message=f"Parcel {parcel.ref_code} from {parcel.sender_name} to {parcel.receiver_name} ({parcel.origin_name} → {parcel.destination_name})",
+                icon='fa-box',
+                color='success',
+                link=f"/staff/parcels",
+                parcel_id=parcel.id
+            )
+            results['bell'] = True
             
             # Basic data for SMS
             sms_data = {
@@ -918,8 +1042,8 @@ class NotificationService:
     
     @classmethod
     def notify_parcel_in_transit(cls, parcel, vehicle=None, driver_name=None, driver_phone=None, user_email=None) -> dict:
-        """Send parcel in transit notification"""
-        results = {'sender_sms': False, 'receiver_sms': False}
+        """Send parcel in transit notification with bell for customers who created it"""
+        results = {'sender_sms': False, 'receiver_sms': False, 'bell': False}
         
         try:
             # Use parcel's stored emails
@@ -944,6 +1068,18 @@ class NotificationService:
             receiver_msg = SMS_TEMPLATES['parcel_in_transit_receiver'].format(**data)
             results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=receiver_email)
             
+            # Create bell notification for staff
+            cls.create_bell_notification_for_staff(
+                notification_type='parcel',
+                title='Parcel In Transit! 🚚',
+                message=f"Parcel {parcel.ref_code} is now in transit to {parcel.destination_name}",
+                icon='fa-truck',
+                color='warning',
+                link=f"/staff/parcels",
+                parcel_id=parcel.id
+            )
+            results['bell'] = True
+            
         except Exception as e:
             logger.error(f"Error sending parcel transit notification: {e}")
         
@@ -951,8 +1087,8 @@ class NotificationService:
     
     @classmethod
     def notify_parcel_delivered(cls, parcel, user_email=None) -> dict:
-        """Send parcel delivery notification with appreciation"""
-        results = {'sender_sms': False, 'receiver_sms': False}
+        """Send parcel delivery notification with appreciation and bell"""
+        results = {'sender_sms': False, 'receiver_sms': False, 'bell': False}
         
         try:
             # Use parcel's stored emails
@@ -972,8 +1108,74 @@ class NotificationService:
             receiver_msg = SMS_TEMPLATES['parcel_delivered_receiver'].format(**data)
             results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=receiver_email)
             
+            # Create bell notification for staff
+            cls.create_bell_notification_for_staff(
+                notification_type='parcel',
+                title='Parcel Delivered! ✅',
+                message=f"Parcel {parcel.ref_code} has been delivered to {parcel.receiver_name} at {parcel.destination_name}",
+                icon='fa-check-circle',
+                color='success',
+                link=f"/staff/parcels",
+                parcel_id=parcel.id
+            )
+            results['bell'] = True
+            
         except Exception as e:
             logger.error(f"Error sending parcel delivery notification: {e}")
+        
+        return results
+
+
+    @classmethod
+    def notify_trip_status_change(cls, trip, new_status) -> dict:
+        """Notify all passengers when trip status changes (in_progress, completed)"""
+        results = {'notifications_sent': 0}
+        
+        try:
+            from maua.booking.models import Booking
+            
+            # Get all active bookings for this trip
+            bookings = Booking.query.filter(
+                Booking.trip_id == trip.id,
+                Booking.status.in_(['confirmed', 'checked_in'])
+            ).all()
+            
+            origin = trip.route.origin.town
+            destination = trip.route.destination.town
+            
+            if new_status == 'in_progress':
+                title = 'Trip Started! 🚌'
+                message = f"Your trip from {origin} to {destination} has started. Have a safe journey!"
+                icon = 'fa-bus'
+                color = 'warning'
+            elif new_status == 'completed':
+                title = 'Trip Completed! 🎉'
+                message = f"Your trip from {origin} to {destination} has been completed. Thank you for traveling with us!"
+                icon = 'fa-flag-checkered'
+                color = 'success'
+            else:
+                return results
+            
+            # Create bell notifications for each customer with an account
+            for booking in bookings:
+                if booking.user_id:
+                    cls.create_bell_notification_for_customer(
+                        user_id=booking.user_id,
+                        notification_type='trip',
+                        title=title,
+                        message=message,
+                        icon=icon,
+                        color=color,
+                        link=f"/booking/confirmation/{booking.id}",
+                        booking_id=booking.id,
+                        trip_id=trip.id
+                    )
+                    results['notifications_sent'] += 1
+            
+            logger.info(f"Trip status change notifications sent: {results['notifications_sent']} for trip {trip.id}")
+            
+        except Exception as e:
+            logger.error(f"Error sending trip status notifications: {e}")
         
         return results
 

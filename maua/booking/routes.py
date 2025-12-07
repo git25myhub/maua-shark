@@ -24,10 +24,14 @@ def index():
 def book(trip_id):
     trip = Trip.query.get_or_404(trip_id)
     
-    # Disallow booking for completed or cancelled trips
+    # Disallow booking for completed, cancelled, or full trips
     if trip.status in ['completed', 'cancelled']:
         flash('This trip is not open for booking.', 'warning')
         return redirect(url_for('catalog.trip_detail', trip_id=trip_id))
+    
+    if trip.is_full:
+        flash('This trip is full. Please select another trip.', 'warning')
+        return redirect(url_for('catalog.routes'))
     
     if request.method == 'POST':
         # Process seat selection
