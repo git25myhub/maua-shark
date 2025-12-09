@@ -4,6 +4,25 @@
 {% block page_title %}Schedule New Trip{% endblock %}
 {% block page_subtitle %}Create a new trip with route, vehicle, and driver{% endblock %}
 
+{% block extra_css %}
+<!-- Flatpickr CSS for cross-browser date/time picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/airbnb.css">
+<style>
+    .flatpickr-calendar {
+        font-family: 'Poppins', sans-serif;
+    }
+    .flatpickr-day.selected {
+        background: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+    .flatpickr-time input:hover,
+    .flatpickr-time .flatpickr-am-pm:hover {
+        background: rgba(13, 110, 253, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
@@ -38,7 +57,8 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Departure Date & Time <span class="text-danger">*</span></label>
-                            <input class="form-control form-control-lg" type="datetime-local" name="depart_at" required>
+                            <input class="form-control form-control-lg" type="text" id="depart_at" name="depart_at" 
+                                   placeholder="Select date and time" required autocomplete="off">
                         </div>
                         
                         <div class="col-md-6 mb-3">
@@ -105,4 +125,44 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Flatpickr JS for cross-browser date/time picker -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr for departure date/time
+    flatpickr("#depart_at", {
+        enableTime: true,
+        dateFormat: "Y-m-d H:i",
+        altInput: true,
+        altFormat: "F j, Y at h:i K",  // Display format: "December 9, 2025 at 10:30 AM"
+        time_24hr: false,
+        minDate: "today",
+        minuteIncrement: 5,
+        defaultHour: 6,
+        defaultMinute: 0,
+        allowInput: false,
+        animate: true,
+        position: "auto",
+        static: false,
+        // Callback when date is selected
+        onChange: function(selectedDates, dateStr, instance) {
+            // Format is already correct for backend (Y-m-d H:i -> 2025-12-09 10:30)
+            // Convert to ISO format for datetime-local compatibility
+            if (selectedDates.length > 0) {
+                const date = selectedDates[0];
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                // Set the hidden input value to ISO format
+                document.getElementById('depart_at').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+        }
+    });
+});
+</script>
 {% endblock %}
