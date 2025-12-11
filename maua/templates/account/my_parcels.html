@@ -1,0 +1,121 @@
+{% extends 'account/_layout.html' %}
+
+{% block title %}My Parcels - MAUA SHARK SACCO{% endblock %}
+
+{% block account_content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fas fa-box text-warning me-2"></i>My Parcels
+        </h4>
+        <a href="{{ url_for('parcels.track') }}" class="btn btn-warning btn-sm">
+            <i class="fas fa-search me-1"></i>Track Parcel
+        </a>
+    </div>
+    <div class="card-body">
+        {% if parcels %}
+        <!-- Status Legend -->
+        <div class="d-flex flex-wrap gap-2 mb-4">
+            <span class="badge bg-secondary">Pending</span>
+            <span class="badge bg-info">In Transit</span>
+            <span class="badge bg-success">Delivered</span>
+            <span class="badge bg-danger">Cancelled</span>
+        </div>
+        
+        <div class="row g-4">
+            {% for parcel in parcels %}
+            <div class="col-md-6">
+                <div class="card h-100 {% if parcel.status == 'delivered' %}border-success{% elif parcel.status == 'in_transit' %}border-info{% else %}border-warning{% endif %}">
+                    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                        <span class="fw-bold text-primary">{{ parcel.ref_code }}</span>
+                        {% set status_class = {
+                            'pending': 'bg-secondary',
+                            'in_transit': 'bg-info',
+                            'delivered': 'bg-success',
+                            'cancelled': 'bg-danger'
+                        } %}
+                        <span class="badge {{ status_class.get(parcel.status, 'bg-secondary') }}">
+                            {{ parcel.status|replace('_', ' ')|title }}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="fas fa-map-marker-alt text-success me-2"></i>
+                                <div>
+                                    <small class="text-muted d-block">From</small>
+                                    <strong>{{ parcel.origin_name }}</strong>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                                <div>
+                                    <small class="text-muted d-block">To</small>
+                                    <strong>{{ parcel.destination_name }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="row g-2 small">
+                            <div class="col-6">
+                                <span class="text-muted">Receiver:</span>
+                                <div>{{ parcel.receiver_name }}</div>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted">Phone:</span>
+                                <div>{{ parcel.receiver_phone }}</div>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted">Weight:</span>
+                                <div>{{ parcel.weight_kg or 'N/A' }} kg</div>
+                            </div>
+                            <div class="col-6">
+                                <span class="text-muted">Price:</span>
+                                <div class="text-success fw-bold">KES {{ parcel.price }}</div>
+                            </div>
+                        </div>
+                        
+                        {% if parcel.vehicle_plate %}
+                        <div class="mt-3 pt-2 border-top">
+                            <small class="text-muted">
+                                <i class="fas fa-truck me-1"></i>Vehicle: {{ parcel.vehicle_plate }}
+                                {% if parcel.driver_name %}| Driver: {{ parcel.driver_name }}{% endif %}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                {{ parcel.created_at.strftime('%b %d, %Y') if parcel.created_at else 'N/A' }}
+                            </small>
+                            <a href="{{ url_for('parcels.status', ref_code=parcel.ref_code) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>Track
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-4x text-muted mb-3"></i>
+            <h5 class="text-muted">No Parcels Found</h5>
+            <p class="text-muted mb-4">
+                You don't have any parcels linked to your account yet.<br>
+                To send a parcel, visit any Maua Shark depot.
+            </p>
+            <a href="{{ url_for('parcels.track') }}" class="btn btn-warning">
+                <i class="fas fa-search me-2"></i>Track by Reference
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

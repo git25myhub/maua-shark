@@ -582,6 +582,127 @@ def trip_seat_booking_json(trip_id: int, seat: str):
 
 
 # ============================================================================
+# STAFF BOOKING - Create bookings for walk-in customers
+# ============================================================================
+
+@staff_bp.route('/trips/<int:trip_id>/seats/<seat>/book', methods=['POST'])
+@login_required
+@staff_required
+def trip_seat_book(trip_id: int, seat: str):
+    """Staff creates a booking for a walk-in customer on a specific seat"""
+    import uuid
+    trip = Trip.query.get_or_404(trip_id)
+    
+    # Check if seat is already booked
+    existing = Booking.query.filter_by(trip_id=trip.id, seat_number=seat).first()
+    if existing and existing.status not in ['cancelled']:
+        return jsonify({'success': False, 'message': 'Seat is already booked'}), 400
+    
+    # Get form data
+    passenger_name = request.form.get('passenger_name', '').strip()
+    passenger_phone = request.form.get('passenger_phone', '').strip()
+    passenger_sex = request.form.get('passenger_sex', 'other')
+    passenger_age = request.form.get('passenger_age', type=int) or 18
+    passenger_id_number = request.form.get('passenger_id_number', '').strip() or 'N/A'
+    pickup_location = request.form.get('pickup_location', '').strip() or None
+    payment_method = request.form.get('payment_method', 'cash')
+    
+    if not passenger_name or not passenger_phone:
+        return jsonify({'success': False, 'message': 'Name and phone are required'}), 400
+    
+    try:
+        # Generate reference
+        ref = f"ST-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Create booking
+        booking = Booking(
+            trip_id=trip.id,
+            user_id=None,  # No user account (staff booking)
+            seat_number=seat,
+            status='confirmed' if payment_method == 'cash' else 'pending_payment',
+            fare=trip.base_fare,
+            reference=ref,
+            hold_expires_at=None,
+            passenger_name=passenger_name,
+            passenger_sex=passenger_sex,
+            passenger_age=passenger_age,
+            passenger_phone=passenger_phone,
+            passenger_id_number=passenger_id_number,
+            pickup_location=pickup_location
+        )
+        db.session.add(booking)
+        db.session.commit()
+        
+        # Create payment record
+        from maua.payment.models import Payment
+        payment = Payment(
+            amount=float(trip.base_fare),
+            payment_method=payment_method,
+            status='completed' if payment_method == 'cash' else 'pending',
+            user_id=current_user.id,
+            booking_id=booking.id
+        )
+        db.session.add(payment)
+        db.session.commit()
+        
+        # Send SMS notification to passenger
+        try:
+            msg = (
+                f"Maua Shark: Booking confirmed! Ref: {ref}. "
+                f"Seat {seat} on {trip.route.origin.town} → {trip.route.destination.town}, "
+                f"{trip.depart_at.strftime('%b %d at %H:%M')}. "
+                f"Fare: KES {trip.base_fare}. Safe travels!"
+            )
+            send_sms(passenger_phone, msg)
+        except Exception as e:
+            current_app.logger.error(f'Failed to send booking SMS: {e}')
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Booking created! Reference: {ref}',
+            'reference': ref,
+            'booking_id': booking.id
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Failed to create staff booking: {e}')
+        return jsonify({'success': False, 'message': 'Failed to create booking'}), 500
+
+
+@staff_bp.route('/bookings/quick')
+@login_required
+@staff_required
+def bookings_quick():
+    """Quick booking page - shows available trips for immediate booking"""
+    # Get active trips with available seats
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
+    
+    trips = Trip.query.filter(
+        Trip.status.in_(['scheduled', 'in_progress']),
+        Trip.depart_at >= now - timedelta(hours=1)  # Include trips departing in the last hour
+    ).order_by(Trip.depart_at.asc()).limit(50).all()
+    
+    # Calculate available seats for each trip
+    trip_data = []
+    for trip in trips:
+        seat_layout = trip.vehicle.seat_layout or []
+        total_seats = len(seat_layout)
+        booked_seats = len([b for b in trip.bookings if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']])
+        available = total_seats - booked_seats
+        
+        trip_data.append({
+            'trip': trip,
+            'total_seats': total_seats,
+            'booked_seats': booked_seats,
+            'available_seats': available
+        })
+    
+    return render_template('staff/bookings_quick.html', trip_data=trip_data)
+
+
+# ============================================================================
 # PARCEL MANAGEMENT - Staff creates parcels, customers only track
 # ============================================================================
 

@@ -44,9 +44,15 @@
                     <div class="sidebar-section-title">Operations</div>
                 </div>
                 
-                <a href="{{ url_for('staff.bookings_routes') }}" class="sidebar-link {% if 'booking' in request.endpoint|default('') %}active{% endif %}">
+                <a href="{{ url_for('staff.bookings_routes') }}" class="sidebar-link {% if request.endpoint in ['staff.bookings_routes', 'staff.bookings_route_trips', 'staff.bookings_list'] %}active{% endif %}">
                     <i class="fas fa-ticket-alt"></i>
                     <span>Bookings</span>
+                </a>
+                
+                <a href="{{ url_for('staff.bookings_quick') }}" class="sidebar-link {% if request.endpoint == 'staff.bookings_quick' %}active{% endif %}">
+                    <i class="fas fa-bolt"></i>
+                    <span>Quick Book</span>
+                    <span class="badge bg-success ms-auto">NEW</span>
                 </a>
                 
                 <a href="{{ url_for('staff.parcels_list') }}" class="sidebar-link {% if request.endpoint == 'staff.parcels_list' %}active{% endif %}">

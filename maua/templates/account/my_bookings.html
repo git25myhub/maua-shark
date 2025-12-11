@@ -1,0 +1,198 @@
+{% extends 'account/_layout.html' %}
+
+{% block title %}My Bookings - MAUA SHARK SACCO{% endblock %}
+
+{% block account_content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fas fa-ticket-alt text-success me-2"></i>My Bookings
+        </h4>
+        <a href="{{ url_for('catalog.routes') }}" class="btn btn-success btn-sm">
+            <i class="fas fa-plus me-1"></i>Book New Trip
+        </a>
+    </div>
+    <div class="card-body">
+        <!-- Filter Tabs -->
+        <ul class="nav nav-pills mb-4" id="bookingTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button">
+                    All <span class="badge bg-secondary ms-1">{{ bookings|length }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming" type="button">
+                    Upcoming <span class="badge bg-primary ms-1">{{ upcoming_count }}</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="completed-tab" data-bs-toggle="tab" data-bs-target="#completed" type="button">
+                    Completed <span class="badge bg-success ms-1">{{ completed_count }}</span>
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="bookingTabsContent">
+            <!-- All Bookings Tab -->
+            <div class="tab-pane fade show active" id="all" role="tabpanel">
+                {% if bookings %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Reference</th>
+                                <th>Route</th>
+                                <th>Date</th>
+                                <th>Seat</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in bookings %}
+                            <tr>
+                                <td>
+                                    <strong class="text-primary">{{ booking.reference }}</strong>
+                                </td>
+                                <td>
+                                    <div>{{ booking.trip.route.origin.town }}</div>
+                                    <small class="text-muted">→ {{ booking.trip.route.destination.town }}</small>
+                                </td>
+                                <td>
+                                    <div>{{ booking.trip.depart_at.strftime('%b %d, %Y') }}</div>
+                                    <small class="text-muted">{{ booking.trip.depart_at.strftime('%H:%M') }}</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-dark fs-6">{{ booking.seat_number }}</span>
+                                </td>
+                                <td>
+                                    {% set status_class = {
+                                        'confirmed': 'bg-primary',
+                                        'pending_payment': 'bg-warning text-dark',
+                                        'checked_in': 'bg-info',
+                                        'completed': 'bg-success',
+                                        'cancelled': 'bg-danger'
+                                    } %}
+                                    <span class="badge {{ status_class.get(booking.status, 'bg-secondary') }}">
+                                        {{ booking.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('booking.booking_confirmation', booking_id=booking.id) }}" 
+                                           class="btn btn-outline-primary" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if booking.status == 'confirmed' %}
+                                        <a href="{{ url_for('booking.download_receipt', booking_id=booking.id) }}" 
+                                           class="btn btn-outline-success" title="Download Receipt">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                        {% endif %}
+                                        {% if booking.status in ['pending_payment'] %}
+                                        <a href="{{ url_for('booking.payment', booking_id=booking.id) }}" 
+                                           class="btn btn-warning" title="Pay Now">
+                                            <i class="fas fa-credit-card"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-ticket-alt fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No Bookings Yet</h5>
+                    <p class="text-muted mb-4">You haven't made any trip bookings yet.</p>
+                    <a href="{{ url_for('catalog.routes') }}" class="btn btn-primary">
+                        <i class="fas fa-search me-2"></i>Find a Trip
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Upcoming Tab -->
+            <div class="tab-pane fade" id="upcoming" role="tabpanel">
+                {% set upcoming = bookings|selectattr('status', 'in', ['confirmed', 'pending_payment', 'checked_in'])|list %}
+                {% if upcoming %}
+                <div class="row g-3">
+                    {% for booking in upcoming %}
+                    <div class="col-md-6">
+                        <div class="card border-primary h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">{{ booking.reference }}</h5>
+                                    <span class="badge bg-primary">{{ booking.status|replace('_', ' ')|title }}</span>
+                                </div>
+                                <p class="card-text">
+                                    <i class="fas fa-route text-muted me-2"></i>
+                                    {{ booking.trip.route.origin.town }} → {{ booking.trip.route.destination.town }}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar text-muted me-2"></i>
+                                    {{ booking.trip.depart_at.strftime('%b %d, %Y at %H:%M') }}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-chair text-muted me-2"></i>
+                                    Seat {{ booking.seat_number }}
+                                </p>
+                                <a href="{{ url_for('booking.booking_confirmation', booking_id=booking.id) }}" 
+                                   class="btn btn-outline-primary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-calendar-check fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No upcoming trips</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Completed Tab -->
+            <div class="tab-pane fade" id="completed" role="tabpanel">
+                {% set completed = bookings|selectattr('status', 'equalto', 'completed')|list %}
+                {% if completed %}
+                <div class="row g-3">
+                    {% for booking in completed %}
+                    <div class="col-md-6">
+                        <div class="card border-success h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0">{{ booking.reference }}</h5>
+                                    <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                                </div>
+                                <p class="card-text">
+                                    <i class="fas fa-route text-muted me-2"></i>
+                                    {{ booking.trip.route.origin.town }} → {{ booking.trip.route.destination.town }}
+                                </p>
+                                <p class="card-text">
+                                    <i class="fas fa-calendar text-muted me-2"></i>
+                                    {{ booking.trip.depart_at.strftime('%b %d, %Y') }}
+                                </p>
+                                <a href="{{ url_for('booking.download_receipt', booking_id=booking.id) }}" 
+                                   class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-download me-1"></i>Receipt
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No completed trips yet</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

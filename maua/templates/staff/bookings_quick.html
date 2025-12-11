@@ -1,0 +1,109 @@
+{% extends 'staff/_layout.html' %}
+
+{% block title %}Quick Booking{% endblock %}
+{% block page_title %}Quick Booking{% endblock %}
+{% block page_subtitle %}Select a trip to book a seat for a walk-in customer{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="alert alert-info d-flex align-items-center">
+            <i class="fas fa-info-circle fa-2x me-3"></i>
+            <div>
+                <strong>How to book:</strong> Select a trip below, then click on any available (red) seat to book it for a customer.
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if trip_data %}
+<div class="row g-4">
+    {% for item in trip_data %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 {% if item.available_seats == 0 %}border-secondary{% elif item.available_seats <= 3 %}border-warning{% else %}border-success{% endif %}">
+            <div class="card-header d-flex justify-content-between align-items-center 
+                        {% if item.available_seats == 0 %}bg-secondary text-white{% elif item.available_seats <= 3 %}bg-warning{% else %}bg-success text-white{% endif %}">
+                <span>
+                    <i class="fas fa-route me-2"></i>
+                    {{ item.trip.route.origin.town }} → {{ item.trip.route.destination.town }}
+                </span>
+                {% if item.available_seats == 0 %}
+                <span class="badge bg-dark">FULL</span>
+                {% elif item.available_seats <= 3 %}
+                <span class="badge bg-danger">{{ item.available_seats }} left</span>
+                {% else %}
+                <span class="badge bg-light text-dark">{{ item.available_seats }} seats</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Departure</small>
+                        <strong>{{ item.trip.depart_at.strftime('%b %d') }}</strong>
+                        <span class="text-primary">{{ item.trip.depart_at.strftime('%H:%M') }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Vehicle</small>
+                        <strong>{{ item.trip.vehicle.plate_no }}</strong>
+                    </div>
+                </div>
+                
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Fare</small>
+                        <strong class="text-success fs-5">KES {{ item.trip.base_fare }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Seats</small>
+                        <div class="progress" style="height: 20px;">
+                            {% set pct = ((item.booked_seats / item.total_seats) * 100) | int if item.total_seats > 0 else 0 %}
+                            <div class="progress-bar {% if pct >= 90 %}bg-danger{% elif pct >= 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                                 style="width: {{ pct }}%">
+                                {{ item.booked_seats }}/{{ item.total_seats }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if item.trip.driver_name %}
+                <div class="mb-3">
+                    <small class="text-muted d-block">Driver</small>
+                    <span><i class="fas fa-user me-1"></i>{{ item.trip.driver_name }}</span>
+                    {% if item.trip.driver_phone %}
+                    <a href="tel:{{ item.trip.driver_phone }}" class="ms-2 text-muted">
+                        <i class="fas fa-phone"></i>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer bg-light">
+                {% if item.available_seats > 0 %}
+                <a href="{{ url_for('staff.trip_seat_map', trip_id=item.trip.id) }}" 
+                   class="btn btn-success w-100">
+                    <i class="fas fa-chair me-2"></i>Select Seat & Book
+                </a>
+                {% else %}
+                <button class="btn btn-secondary w-100" disabled>
+                    <i class="fas fa-ban me-2"></i>No Available Seats
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="fas fa-bus fa-4x text-muted mb-3"></i>
+        <h4 class="text-muted">No Active Trips</h4>
+        <p class="text-muted mb-4">There are no scheduled trips available for booking right now.</p>
+        <a href="{{ url_for('staff.trips_create') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Schedule a Trip
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

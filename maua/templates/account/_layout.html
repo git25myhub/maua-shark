@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <!-- Account Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <!-- Mobile Toggle -->
+            <button class="btn btn-primary d-lg-none w-100 mb-3" type="button" 
+                    data-bs-toggle="collapse" data-bs-target="#accountSidebar">
+                <i class="fas fa-bars me-2"></i>Account Menu
+            </button>
+            
+            <div class="collapse d-lg-block" id="accountSidebar">
+                <div class="card shadow-sm">
+                    <!-- User Profile Header -->
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <div class="rounded-circle bg-white text-primary d-inline-flex align-items-center justify-content-center mb-2" 
+                             style="width: 70px; height: 70px; font-size: 1.8rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h5 class="mb-1">{{ current_user.username }}</h5>
+                        <small class="opacity-75">{{ current_user.email }}</small>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="list-group list-group-flush">
+                        <a href="{{ url_for('auth.profile') }}" 
+                           class="list-group-item list-group-item-action d-flex align-items-center {% if request.endpoint == 'auth.profile' %}active{% endif %}">
+                            <i class="fas fa-user-circle me-3 {% if request.endpoint == 'auth.profile' %}text-white{% else %}text-primary{% endif %}"></i>
+                            <div>
+                                <strong>My Profile</strong>
+                                <small class="d-block {% if request.endpoint == 'auth.profile' %}text-white-50{% else %}text-muted{% endif %}">View & edit details</small>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('auth.my_bookings') }}" 
+                           class="list-group-item list-group-item-action d-flex align-items-center {% if request.endpoint == 'auth.my_bookings' %}active{% endif %}">
+                            <i class="fas fa-ticket-alt me-3 {% if request.endpoint == 'auth.my_bookings' %}text-white{% else %}text-success{% endif %}"></i>
+                            <div>
+                                <strong>My Bookings</strong>
+                                <small class="d-block {% if request.endpoint == 'auth.my_bookings' %}text-white-50{% else %}text-muted{% endif %}">View trip history</small>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('auth.my_parcels') }}" 
+                           class="list-group-item list-group-item-action d-flex align-items-center {% if request.endpoint == 'auth.my_parcels' %}active{% endif %}">
+                            <i class="fas fa-box me-3 {% if request.endpoint == 'auth.my_parcels' %}text-white{% else %}text-warning{% endif %}"></i>
+                            <div>
+                                <strong>My Parcels</strong>
+                                <small class="d-block {% if request.endpoint == 'auth.my_parcels' %}text-white-50{% else %}text-muted{% endif %}">Track shipments</small>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('notifications.customer_notifications_page') }}" 
+                           class="list-group-item list-group-item-action d-flex align-items-center {% if 'notifications' in request.endpoint|default('') %}active{% endif %}">
+                            <i class="fas fa-bell me-3 {% if 'notifications' in request.endpoint|default('') %}text-white{% else %}text-info{% endif %}"></i>
+                            <div>
+                                <strong>Notifications</strong>
+                                <small class="d-block {% if 'notifications' in request.endpoint|default('') %}text-white-50{% else %}text-muted{% endif %}">Updates & alerts</small>
+                            </div>
+                        </a>
+                        
+                        <a href="{{ url_for('auth.change_password') }}" 
+                           class="list-group-item list-group-item-action d-flex align-items-center {% if request.endpoint == 'auth.change_password' %}active{% endif %}">
+                            <i class="fas fa-lock me-3 {% if request.endpoint == 'auth.change_password' %}text-white{% else %}text-secondary{% endif %}"></i>
+                            <div>
+                                <strong>Security</strong>
+                                <small class="d-block {% if request.endpoint == 'auth.change_password' %}text-white-50{% else %}text-muted{% endif %}">Change password</small>
+                            </div>
+                        </a>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="card-footer bg-light">
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('catalog.routes') }}" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus me-2"></i>Book a Trip
+                            </a>
+                            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Help Card -->
+                <div class="card mt-3 border-info">
+                    <div class="card-body text-center">
+                        <i class="fas fa-headset fa-2x text-info mb-2"></i>
+                        <h6>Need Help?</h6>
+                        <p class="small text-muted mb-2">Contact our support team</p>
+                        <a href="{{ url_for('main.contact') }}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-envelope me-1"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="col-lg-9">
+            {% block account_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

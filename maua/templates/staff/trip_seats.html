@@ -53,34 +53,36 @@
             </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2 justify-content-center" id="seat-grid" data-trip-id="{{ trip.id }}">
-                    {% for s in seat_layout %}
-                        {% set code = s['seat'] %}
-                        {% set b = seat_to_booking.get(code) %}
-                        {% set color = 'danger' %}
-                        {% if b %}
-                            {% if b.status in ['checked_in', 'completed'] %}
-                                {% set color = 'success' %}
-                            {% else %}
-                                {% set color = 'primary' %}
-                            {% endif %}
-                        {% endif %}
-                        <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge" 
-                             data-seat="{{ code }}" style="min-width: 70px; cursor: pointer;">
-                            <div class="fw-bold">{{ code }}</div>
+                        {% for s in seat_layout %}
+                            {% set code = s['seat'] %}
+                            {% set b = seat_to_booking.get(code) %}
+                            {% set color = 'danger' %}
+                            {% set is_available = not b %}
                             {% if b %}
-                                <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
-                                {% if b.status not in ['checked_in', 'completed'] %}
-                                <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
-                                    <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">
-                                        Check In
-                                    </button>
-                                </form>
+                                {% if b.status in ['checked_in', 'completed'] %}
+                                    {% set color = 'success' %}
+                                {% else %}
+                                    {% set color = 'primary' %}
                                 {% endif %}
-                            {% else %}
-                                <small class="d-block" style="font-size: 0.65rem;">Available</small>
                             {% endif %}
-                        </div>
-                    {% endfor %}
+                            <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                 data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}"
+                                 style="min-width: 70px; cursor: pointer; transition: transform 0.2s;">
+                                <div class="fw-bold">{{ code }}</div>
+                                {% if b %}
+                                    <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                    {% if b.status not in ['checked_in', 'completed'] %}
+                                    <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                        <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">
+                                            Check In
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                {% else %}
+                                    <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
                 </div>
             </div>
         </div>
@@ -137,7 +139,7 @@
     </div>
 </div>
 
-<!-- Seat Info Modal -->
+<!-- Seat Info Modal (for booked seats) -->
 <div class="modal fade" id="seatInfoModal" tabindex="-1" aria-labelledby="seatInfoLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -156,6 +158,138 @@
         </div>
     </div>
 </div>
+
+<!-- Quick Booking Modal (for available seats) -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title mb-0" id="bookingModalLabel">
+                    <i class="fas fa-ticket-alt me-2"></i>Quick Booking - Seat <span id="bookingSeatNumber"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="quickBookingForm">
+                <div class="modal-body">
+                    <input type="hidden" id="bookingSeat" name="seat">
+                    
+                    <!-- Trip Info Banner -->
+                    <div class="alert alert-light border mb-4">
+                        <div class="row text-center">
+                            <div class="col-4">
+                                <small class="text-muted d-block">Route</small>
+                                <strong>{{ trip.route.origin.town }} → {{ trip.route.destination.town }}</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Departure</small>
+                                <strong>{{ trip.depart_at.strftime('%b %d, %H:%M') }}</strong>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block">Fare</small>
+                                <strong class="text-success">KES {{ trip.base_fare }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Passenger Details -->
+                    <h6 class="mb-3 text-primary"><i class="fas fa-user me-2"></i>Passenger Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" name="passenger_name" 
+                                   placeholder="Full name" required autofocus>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Phone <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control form-control-lg" name="passenger_phone" 
+                                   placeholder="0712345678" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Gender</label>
+                            <select class="form-select" name="passenger_sex">
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Age</label>
+                            <input type="number" class="form-control" name="passenger_age" 
+                                   value="25" min="1" max="120">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">ID Number</label>
+                            <input type="text" class="form-control" name="passenger_id_number" 
+                                   placeholder="National ID">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Pickup Location <span class="text-muted small">(optional)</span></label>
+                            <input type="text" class="form-control" name="pickup_location" 
+                                   placeholder="e.g. Kenol Stage, Near Shell Petrol">
+                        </div>
+                    </div>
+                    
+                    <!-- Payment -->
+                    <h6 class="mt-4 mb-3 text-primary"><i class="fas fa-money-bill-wave me-2"></i>Payment</h6>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="form-check card p-3 border h-100">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="payment_cash_booking" value="cash" checked>
+                                <label class="form-check-label ms-2" for="payment_cash_booking">
+                                    <i class="fas fa-money-bill-alt text-success me-2"></i>
+                                    <strong>Cash</strong>
+                                    <small class="d-block text-muted">Paid at counter</small>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check card p-3 border h-100">
+                                <input class="form-check-input" type="radio" name="payment_method" 
+                                       id="payment_mpesa_booking" value="mpesa">
+                                <label class="form-check-label ms-2" for="payment_mpesa_booking">
+                                    <i class="fas fa-mobile-alt text-success me-2"></i>
+                                    <strong>M-Pesa</strong>
+                                    <small class="d-block text-muted">Pay later</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg" id="submitBookingBtn">
+                        <i class="fas fa-check me-2"></i>Book Seat
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="successToast" class="toast align-items-center text-white bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                <i class="fas fa-check-circle me-2"></i>Booking created successfully!
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .seat-available:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    .seat-box {
+        user-select: none;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -163,10 +297,25 @@
 document.addEventListener('DOMContentLoaded', function () {
     const grid = document.getElementById('seat-grid');
     const tripId = grid.getAttribute('data-trip-id');
-    const modalEl = document.getElementById('seatInfoModal');
-    const modal = new bootstrap.Modal(modalEl);
-    const body = document.getElementById('seatInfoBody');
-    const titleEl = document.getElementById('seatInfoLabel');
+    
+    // Info modal for booked seats
+    const infoModalEl = document.getElementById('seatInfoModal');
+    const infoModal = new bootstrap.Modal(infoModalEl);
+    const infoBody = document.getElementById('seatInfoBody');
+    const infoTitleEl = document.getElementById('seatInfoLabel');
+    
+    // Booking modal for available seats
+    const bookingModalEl = document.getElementById('bookingModal');
+    const bookingModal = new bootstrap.Modal(bookingModalEl);
+    const bookingSeatNumber = document.getElementById('bookingSeatNumber');
+    const bookingSeatInput = document.getElementById('bookingSeat');
+    const bookingForm = document.getElementById('quickBookingForm');
+    const submitBtn = document.getElementById('submitBookingBtn');
+    
+    // Toast for success messages
+    const toastEl = document.getElementById('successToast');
+    const toast = new bootstrap.Toast(toastEl);
+    const toastMessage = document.getElementById('toastMessage');
 
     grid.addEventListener('click', async function (e) {
         const target = e.target.closest('.seat-badge');
@@ -174,78 +323,142 @@ document.addEventListener('DOMContentLoaded', function () {
         if (e.target.tagName === 'BUTTON') return; // Don't trigger for check-in button
         
         const seat = target.getAttribute('data-seat');
-        titleEl.textContent = `Seat Details — ${seat}`;
-        body.innerHTML = '<div class="text-center py-4 text-muted">Loading…</div>';
-        modal.show();
+        const isAvailable = target.getAttribute('data-available') === 'true';
+        
+        if (isAvailable) {
+            // Open booking modal for available seats
+            bookingSeatNumber.textContent = seat;
+            bookingSeatInput.value = seat;
+            bookingForm.reset();
+            bookingModal.show();
+            
+            // Focus on name field after modal opens
+            bookingModalEl.addEventListener('shown.bs.modal', function handler() {
+                bookingForm.querySelector('[name="passenger_name"]').focus();
+                bookingModalEl.removeEventListener('shown.bs.modal', handler);
+            });
+        } else {
+            // Show info modal for booked seats
+            infoTitleEl.textContent = `Seat Details — ${seat}`;
+            infoBody.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading…</div>';
+            infoModal.show();
+            
+            try {
+                const res = await fetch(`/staff/trips/${tripId}/seats/${seat}/booking.json`, { headers: { 'Accept': 'application/json' } });
+                if (!res.ok) {
+                    infoBody.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-question-circle fa-3x text-muted mb-3"></i>
+                            <h5>No booking data</h5>
+                        </div>`;
+                    return;
+                }
+                const data = await res.json();
+                const b = data.booking;
+                const statusBadgeClass = (s => {
+                    if (['checked_in','completed'].includes(s)) return 'bg-success';
+                    if (['confirmed','reserved'].includes(s)) return 'bg-primary';
+                    if (['cancelled'].includes(s)) return 'bg-danger';
+                    return 'bg-secondary';
+                })(b.status || '');
+
+                infoBody.innerHTML = `
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="text-muted small">SEAT</label>
+                            <div class="h4 fw-bold">${b.seat_number}</div>
+                        </div>
+                        <div class="col-6 text-end">
+                            <span class="badge ${statusBadgeClass} fs-6">${(b.status || '').replace('_',' ').toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">PASSENGER</label>
+                            <div class="fw-bold">${b.passenger_name}</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">PHONE</label>
+                            <div><a href="tel:${b.passenger_phone}">${b.passenger_phone}</a></div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">GENDER / AGE</label>
+                            <div>${b.passenger_sex}, ${b.passenger_age} years</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">NATIONAL ID</label>
+                            <div>${b.passenger_id_number}</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small">PICKUP LOCATION</label>
+                            <div>${b.pickup_location || '—'}</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small">REFERENCE</label>
+                            <div class="fw-bold text-primary fs-5">${b.reference}</div>
+                        </div>
+                    </div>`;
+            } catch (err) {
+                infoBody.innerHTML = `<div class="alert alert-danger">Error loading seat details.</div>`;
+            }
+        }
+    });
+    
+    // Handle booking form submission
+    bookingForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const seat = bookingSeatInput.value;
+        const formData = new FormData(bookingForm);
+        
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Booking...';
         
         try {
-            const res = await fetch(`/staff/trips/${tripId}/seats/${seat}/booking.json`, { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) {
-                body.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                        <h5>Seat ${seat} is Available</h5>
-                        <p class="text-muted">No booking found for this seat.</p>
-                    </div>`;
-                return;
-            }
+            const res = await fetch(`/staff/trips/${tripId}/seats/${seat}/book`, {
+                method: 'POST',
+                body: formData
+            });
+            
             const data = await res.json();
-            if (!data.found) {
-                body.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                        <h5>Seat ${seat} is Available</h5>
-                        <p class="text-muted">No booking found for this seat.</p>
-                    </div>`;
-                return;
+            
+            if (data.success) {
+                bookingModal.hide();
+                
+                // Show success toast
+                toastMessage.innerHTML = `<i class="fas fa-check-circle me-2"></i>${data.message}`;
+                toast.show();
+                
+                // Update the seat in the grid
+                const seatBox = document.querySelector(`.seat-badge[data-seat="${seat}"]`);
+                if (seatBox) {
+                    seatBox.classList.remove('bg-danger', 'seat-available');
+                    seatBox.classList.add('bg-primary');
+                    seatBox.setAttribute('data-available', 'false');
+                    
+                    const nameInput = formData.get('passenger_name');
+                    const displayName = nameInput.length > 10 ? nameInput.substring(0, 10) + '...' : nameInput;
+                    seatBox.innerHTML = `
+                        <div class="fw-bold">${seat}</div>
+                        <small class="d-block" style="font-size: 0.65rem;">${displayName}</small>
+                        <form method="post" action="/staff/trips/${tripId}/seats/${seat}/checkin" class="mt-1">
+                            <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">
+                                Check In
+                            </button>
+                        </form>
+                    `;
+                }
+            } else {
+                alert(data.message || 'Failed to create booking');
             }
-            const b = data.booking;
-            const statusBadgeClass = (s => {
-                if (['checked_in','completed'].includes(s)) return 'bg-success';
-                if (['confirmed','reserved'].includes(s)) return 'bg-primary';
-                if (['cancelled'].includes(s)) return 'bg-danger';
-                return 'bg-secondary';
-            })(b.status || '');
-
-            body.innerHTML = `
-                <div class="row mb-3">
-                    <div class="col-6">
-                        <label class="text-muted small">SEAT</label>
-                        <div class="h4 fw-bold">${b.seat_number}</div>
-                    </div>
-                    <div class="col-6 text-end">
-                        <span class="badge ${statusBadgeClass} fs-6">${(b.status || '').replace('_',' ').toUpperCase()}</span>
-                    </div>
-                </div>
-                <hr>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="text-muted small">PASSENGER</label>
-                        <div class="fw-bold">${b.passenger_name}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small">PHONE</label>
-                        <div>${b.passenger_phone}</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small">GENDER / AGE</label>
-                        <div>${b.passenger_sex}, ${b.passenger_age} years</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="text-muted small">NATIONAL ID</label>
-                        <div>${b.passenger_id_number}</div>
-                    </div>
-                    <div class="col-12">
-                        <label class="text-muted small">PICKUP LOCATION</label>
-                        <div>${b.pickup_location || '—'}</div>
-                    </div>
-                    <div class="col-12">
-                        <label class="text-muted small">REFERENCE</label>
-                        <div class="fw-bold text-primary">${b.reference}</div>
-                    </div>
-                </div>`;
         } catch (err) {
-            body.innerHTML = `<div class="alert alert-danger">Error loading seat details.</div>`;
+            console.error('Booking error:', err);
+            alert('Failed to create booking. Please try again.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Book Seat';
         }
     });
 });

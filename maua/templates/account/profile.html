@@ -1,0 +1,107 @@
+{% extends 'account/_layout.html' %}
+
+{% block title %}My Profile - MAUA SHARK SACCO{% endblock %}
+
+{% block account_content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">
+            <i class="fas fa-user-circle text-primary me-2"></i>My Profile
+        </h4>
+        <span class="badge bg-success">Active Account</span>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('auth.profile') }}">
+            <div class="row g-4">
+                <!-- Account Info Section -->
+                <div class="col-12">
+                    <h5 class="text-muted mb-3">
+                        <i class="fas fa-info-circle me-2"></i>Account Information
+                    </h5>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Username</label>
+                    <input type="text" class="form-control form-control-lg" name="username" 
+                           value="{{ current_user.username }}" required>
+                    <small class="text-muted">This is your display name</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Email Address</label>
+                    <input type="email" class="form-control form-control-lg" name="email" 
+                           value="{{ current_user.email }}" required>
+                    <small class="text-muted">Used for login and notifications</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Phone Number</label>
+                    <input type="tel" class="form-control form-control-lg" name="phone" 
+                           value="{{ current_user.phone }}" required
+                           placeholder="e.g. 0712345678">
+                    <small class="text-muted">For SMS notifications</small>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Member Since</label>
+                    <input type="text" class="form-control form-control-lg bg-light" 
+                           value="{{ current_user.date_joined.strftime('%B %d, %Y') if current_user.date_joined else 'N/A' }}" 
+                           readonly disabled>
+                </div>
+                
+                <!-- Divider -->
+                <div class="col-12">
+                    <hr class="my-2">
+                </div>
+                
+                <!-- Stats Section -->
+                <div class="col-12">
+                    <h5 class="text-muted mb-3">
+                        <i class="fas fa-chart-bar me-2"></i>Your Activity
+                    </h5>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-primary bg-opacity-10 border-0">
+                        <div class="card-body text-center">
+                            <i class="fas fa-ticket-alt fa-2x text-primary mb-2"></i>
+                            <h3 class="mb-0 text-primary">{{ booking_count }}</h3>
+                            <small class="text-muted">Total Bookings</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-success bg-opacity-10 border-0">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                            <h3 class="mb-0 text-success">{{ completed_trips }}</h3>
+                            <small class="text-muted">Completed Trips</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-warning bg-opacity-10 border-0">
+                        <div class="card-body text-center">
+                            <i class="fas fa-box fa-2x text-warning mb-2"></i>
+                            <h3 class="mb-0 text-warning">{{ parcel_count }}</h3>
+                            <small class="text-muted">Parcels Sent</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+

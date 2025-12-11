@@ -200,6 +200,146 @@ def reset_password(token):
 
 
 # =============================================================================
+# CUSTOMER ACCOUNT PAGES
+# =============================================================================
+
+@auth_bp.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    """Customer profile page"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        phone = request.form.get('phone', '').strip()
+        
+        # Validate
+        if not username or not email or not phone:
+            flash('All fields are required.', 'danger')
+            return redirect(url_for('auth.profile'))
+        
+        # Check username uniqueness (if changed)
+        if username != current_user.username:
+            existing = User.query.filter_by(username=username).first()
+            if existing:
+                flash('Username already taken.', 'danger')
+                return redirect(url_for('auth.profile'))
+        
+        # Check email uniqueness (if changed)
+        if email != current_user.email:
+            existing = User.query.filter_by(email=email).first()
+            if existing:
+                flash('Email already in use.', 'danger')
+                return redirect(url_for('auth.profile'))
+        
+        try:
+            current_user.username = username
+            current_user.email = email
+            current_user.phone = phone
+            db.session.commit()
+            flash('Profile updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'Profile update error: {e}')
+            flash('Failed to update profile.', 'danger')
+        
+        return redirect(url_for('auth.profile'))
+    
+    # Get stats for profile page
+    from maua.booking.models import Booking
+    from maua.parcels.models import Parcel
+    
+    booking_count = Booking.query.filter_by(user_id=current_user.id).count()
+    completed_trips = Booking.query.filter_by(user_id=current_user.id, status='completed').count()
+    parcel_count = Parcel.query.filter(
+        (Parcel.sender_phone == current_user.phone) | 
+        (Parcel.sender_email == current_user.email)
+    ).count()
+    
+    return render_template('account/profile.html',
+                          booking_count=booking_count,
+                          completed_trips=completed_trips,
+                          parcel_count=parcel_count)
+
+
+@auth_bp.route('/my-bookings')
+@login_required
+def my_bookings():
+    """Customer bookings page"""
+    from maua.booking.models import Booking
+    
+    bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
+    
+    # Count for tabs
+    upcoming_count = len([b for b in bookings if b.status in ['confirmed', 'pending_payment', 'checked_in']])
+    completed_count = len([b for b in bookings if b.status == 'completed'])
+    
+    return render_template('account/my_bookings.html',
+                          bookings=bookings,
+                          upcoming_count=upcoming_count,
+                          completed_count=completed_count)
+
+
+@auth_bp.route('/my-parcels')
+@login_required
+def my_parcels():
+    """Customer parcels page"""
+    from maua.parcels.models import Parcel
+    
+    # Find parcels where user is sender (by phone or email)
+    parcels = Parcel.query.filter(
+        (Parcel.sender_phone == current_user.phone) | 
+        (Parcel.sender_email == current_user.email)
+    ).order_by(Parcel.created_at.desc()).all()
+    
+    return render_template('account/my_parcels.html', parcels=parcels)
+
+
+@auth_bp.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    """Change password for logged-in users"""
+    if request.method == 'POST':
+        current_password = request.form.get('current_password', '')
+        new_password = request.form.get('new_password', '')
+        confirm_password = request.form.get('confirm_password', '')
+        
+        # Validate current password
+        if not bcrypt.check_password_hash(current_user.password_hash, current_password):
+            flash('Current password is incorrect.', 'danger')
+            return redirect(url_for('auth.change_password'))
+        
+        # Validate new password
+        if len(new_password) < 8:
+            flash('New password must be at least 8 characters.', 'danger')
+            return redirect(url_for('auth.change_password'))
+        
+        if new_password != confirm_password:
+            flash('New passwords do not match.', 'danger')
+            return redirect(url_for('auth.change_password'))
+        
+        try:
+            current_user.set_password(new_password)
+            db.session.commit()
+            
+            # Send confirmation
+            try:
+                send_password_changed_email(current_user)
+            except Exception:
+                pass
+            
+            flash('Password changed successfully!', 'success')
+            return redirect(url_for('auth.profile'))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f'Password change error: {e}')
+            flash('Failed to change password.', 'danger')
+        
+        return redirect(url_for('auth.change_password'))
+    
+    return render_template('account/change_password.html')
+
+
+# =============================================================================
 # EMAIL FUNCTIONS
 # =============================================================================
 

@@ -161,13 +161,23 @@
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('booking.index') }}">
-                                            <i class="fas fa-ticket-alt me-2"></i> My Bookings
+                                        <a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                                            <i class="fas fa-user text-primary me-2"></i> My Profile
                                         </a>
                                     </li>
                                     <li>
-                                        <a class="dropdown-item" href="{{ url_for('parcels.track') }}">
-                                            <i class="fas fa-box me-2"></i> Track Parcel
+                                        <a class="dropdown-item" href="{{ url_for('auth.my_bookings') }}">
+                                            <i class="fas fa-ticket-alt text-success me-2"></i> My Bookings
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('auth.my_parcels') }}">
+                                            <i class="fas fa-box text-warning me-2"></i> My Parcels
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('auth.change_password') }}">
+                                            <i class="fas fa-lock text-secondary me-2"></i> Security
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
