@@ -374,7 +374,7 @@ def send_password_reset_email(user, reset_url):
         </div>
         <div class="content">
             <p>Hello <strong>{user.username}</strong>,</p>
-            <p>We received a request to reset your password for your MAUA SHARK SACCO account.</p>
+            <p>We received a request to reset your password for your MAUA SHARK EXPRESS account.</p>
             
             <div class="reset-box">
                 <p style="margin: 0 0 15px; color: #dc2626; font-weight: 600;">Click the button below to reset your password:</p>
@@ -393,7 +393,7 @@ def send_password_reset_email(user, reset_url):
             <p style="margin-top: 20px;">If you have any questions, please contact our support team.</p>
         </div>
         <div class="footer">
-            <p>© {datetime.now().year} MAUA SHARK SACCO. All Rights Reserved.</p>
+            <p>© {datetime.now().year} MAUA SHARK EXPRESS. All Rights Reserved.</p>
             <p>This is an automated message. Please do not reply directly to this email.</p>
         </div>
     </div>
@@ -465,7 +465,7 @@ def send_password_changed_email(user):
             <div class="success-box">
                 <div class="success-icon">🔒</div>
                 <h2 style="color: #059669; margin: 10px 0;">Your password has been changed!</h2>
-                <p style="color: #64748b; margin: 0;">Your MAUA SHARK SACCO account password was successfully updated.</p>
+                <p style="color: #64748b; margin: 0;">Your MAUA SHARK EXPRESS account password was successfully updated.</p>
             </div>
             
             <p><strong>Change Details:</strong></p>
@@ -485,7 +485,7 @@ def send_password_changed_email(user):
             <p>You can now log in with your new password.</p>
         </div>
         <div class="footer">
-            <p>© {datetime.now().year} MAUA SHARK SACCO. All Rights Reserved.</p>
+            <p>© {datetime.now().year} MAUA SHARK EXPRESS. All Rights Reserved.</p>
         </div>
     </div>
 </body>

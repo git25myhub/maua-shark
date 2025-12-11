@@ -1,5 +1,5 @@
 """
-Comprehensive Notification Service for MAUA SHARK SACCO
+Comprehensive Notification Service for MAUA SHARK EXPRESS
 Handles SMS and Email notifications for bookings and parcels
 """
 
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 SMS_TEMPLATES = {
     # BOOKING MESSAGES
     'booking_confirmed': (
-        "MAUA SHARK SACCO: Dear {passenger_name}, your booking {reference} is CONFIRMED! "
+        "MAUA SHARK EXPRESS: Dear {passenger_name}, your booking {reference} is CONFIRMED! "
         "Route: {origin} to {destination}. Date: {date} at {time}. "
         "Seat: {seat_number}. Vehicle: {vehicle}. Fare: KES {fare}. "
         "Please arrive 30 mins early. Safe travels!"
@@ -27,7 +27,7 @@ SMS_TEMPLATES = {
     'booking_payment_received': (
         "MAUA SHARK: Payment of KES {amount} received for booking {reference}. "
         "Your seat {seat_number} is now confirmed on {route} departing {date} at {time}. "
-        "Thank you for choosing Maua Shark Sacco!"
+        "Thank you for choosing Maua Shark Express!"
     ),
     
     'booking_reminder': (
@@ -87,18 +87,18 @@ SMS_TEMPLATES = {
     
     'parcel_delivered': (
         "MAUA SHARK: Parcel {ref_code} has been DELIVERED successfully! "
-        "Thank you for choosing Maua Shark Sacco for your parcel delivery. "
+        "Thank you for choosing Maua Shark Express for your parcel delivery. "
         "We appreciate your business and welcome you to send again!"
     ),
     
     'parcel_delivered_receiver': (
         "MAUA SHARK: Hello {receiver_name}! Parcel {ref_code} has been delivered to you. "
-        "Thank you for choosing Maua Shark Sacco!"
+        "Thank you for choosing Maua Shark Express!"
     ),
     
     # APPRECIATION MESSAGES
     'thank_you_first_booking': (
-        "MAUA SHARK: Welcome to the Maua Shark family, {passenger_name}! "
+        "MAUA SHARK: Welcome to the Maua Shark Express family, {passenger_name}! "
         "Thank you for your first booking with us. "
         "We're committed to providing you safe and comfortable travels. "
         "Save this number for easy booking!"
@@ -107,7 +107,7 @@ SMS_TEMPLATES = {
     'loyalty_appreciation': (
         "MAUA SHARK: Dear {passenger_name}, thank you for being a loyal customer! "
         "This is your {booking_count}th trip with us. "
-        "We truly appreciate your continued trust in Maua Shark Sacco!"
+        "We truly appreciate your continued trust in Maua Shark Express!"
     ),
 }
 
@@ -148,12 +148,12 @@ EMAIL_TEMPLATES = {
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚌 MAUA SHARK SACCO</h1>
+            <h1>🚌 MAUA SHARK EXPRESS</h1>
             <p>Your Booking is Confirmed!</p>
         </div>
         <div class="content">
             <p>Dear <strong>{{ passenger_name }}</strong>,</p>
-            <p>Thank you for booking with Maua Shark Sacco! Your trip has been confirmed.</p>
+            <p>Thank you for booking with Maua Shark Express! Your trip has been confirmed.</p>
             
             <div class="ticket-box">
                 <div class="ticket-header">
@@ -204,10 +204,10 @@ EMAIL_TEMPLATES = {
                 <li>Email: support@mauashark.com</li>
             </ul>
             
-            <p>Thank you for choosing Maua Shark Sacco. Have a safe journey!</p>
+            <p>Thank you for choosing Maua Shark Express. Have a safe journey!</p>
         </div>
         <div class="footer">
-            <p>© {{ year }} Maua Shark Sacco. All Rights Reserved.</p>
+            <p>© {{ year }} Maua Shark Express. All Rights Reserved.</p>
             <p>This is an automated message. Please do not reply directly to this email.</p>
         </div>
     </div>
@@ -238,7 +238,7 @@ EMAIL_TEMPLATES = {
 <body>
     <div class="container">
         <div class="header">
-            <h1>📦 MAUA SHARK SACCO</h1>
+            <h1>📦 MAUA SHARK EXPRESS</h1>
             <p>Parcel Registered Successfully!</p>
         </div>
         <div class="content">
@@ -278,10 +278,10 @@ EMAIL_TEMPLATES = {
             </div>
             
             <p>Track your parcel anytime using the reference code above.</p>
-            <p>Thank you for choosing Maua Shark Sacco!</p>
+            <p>Thank you for choosing Maua Shark Express!</p>
         </div>
         <div class="footer">
-            <p>© {{ year }} Maua Shark Sacco. All Rights Reserved.</p>
+            <p>© {{ year }} Maua Shark Express. All Rights Reserved.</p>
         </div>
     </div>
 </body>
@@ -330,7 +330,7 @@ EMAIL_TEMPLATES = {
             <p>Safe travels!</p>
         </div>
         <div class="footer">
-            <p>© {{ year }} Maua Shark Sacco</p>
+            <p>© {{ year }} Maua Shark Express</p>
         </div>
     </div>
 </body>
@@ -361,14 +361,14 @@ EMAIL_TEMPLATES = {
             <div class="emoji">🎉</div>
             <h2>Trip Completed Successfully!</h2>
             <p>Dear <strong>{{ passenger_name }}</strong>,</p>
-            <p>Thank you for traveling with Maua Shark Sacco from <strong>{{ origin }}</strong> to <strong>{{ destination }}</strong>.</p>
+            <p>Thank you for traveling with Maua Shark Express from <strong>{{ origin }}</strong> to <strong>{{ destination }}</strong>.</p>
             <p>We hope you had a pleasant and comfortable journey!</p>
             <p>Your satisfaction is our priority. We look forward to serving you again soon.</p>
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 30px 0;">
             <p style="color: #64748b;">Have feedback? We'd love to hear from you!</p>
         </div>
         <div class="footer">
-            <p>© {{ year }} Maua Shark Sacco. Safe Travels, Always!</p>
+            <p>© {{ year }} Maua Shark Express. Safe Travels, Always!</p>
         </div>
     </div>
 </body>
@@ -408,7 +408,7 @@ EMAIL_TEMPLATES = {
 <body>
     <div class="container">
         <div class="header">
-            <h1>📦 MAUA SHARK SACCO</h1>
+            <h1>📦 MAUA SHARK EXPRESS</h1>
             <p>Parcel Delivery Receipt</p>
         </div>
         <div class="content">
@@ -474,11 +474,11 @@ EMAIL_TEMPLATES = {
             </div>
             
             <p style="text-align: center; color: #64748b;">
-                Thank you for choosing Maua Shark Sacco for your delivery needs!
+                Thank you for choosing Maua Shark Express for your delivery needs!
             </p>
         </div>
         <div class="footer">
-            <p>© {{ year }} Maua Shark Sacco. All Rights Reserved.</p>
+            <p>© {{ year }} Maua Shark Express. All Rights Reserved.</p>
             <p>This is your official parcel receipt. Please keep it for your records.</p>
         </div>
     </div>

@@ -1,4 +1,4 @@
-// Main JavaScript file for MAUA SHARK SACCO
+// Main JavaScript file for MAUA SHARK EXPRESS
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips

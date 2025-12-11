@@ -166,7 +166,7 @@ def parcels_update_status(parcel_id: int):
                 current_app.logger.info(f'Delivery notification sent for parcel {parcel.ref_code}')
             elif new_status == 'pending':
                 # Simple SMS for pending status
-                msg = f"Maua Shark: Parcel {parcel.ref_code} is pending dispatch from {parcel.origin_name}."
+                msg = f"Maua Shark Express: Parcel {parcel.ref_code} is pending dispatch from {parcel.origin_name}."
                 send_sms(parcel.sender_phone, msg, user_email=parcel.sender_email)
         except Exception as e:
             current_app.logger.error(f'Failed to send parcel notification: {e}')
@@ -218,7 +218,7 @@ def parcels_assign_tracking(parcel_id: int):
             if details:
                 info = ", ".join(details)
                 msg_sender = (
-                    f"Maua Shark: Parcel {parcel.ref_code} assigned to {info}. Track with your reference code."
+                    f"Maua Shark Express: Parcel {parcel.ref_code} assigned to {info}. Track with your reference code."
                 )
                 # Use parcel's stored emails for notifications
                 send_sms(parcel.sender_phone, msg_sender, user_email=parcel.sender_email)
@@ -307,8 +307,8 @@ def trips_update_status(trip_id: int):
                     b.status = 'completed'
                     try:
                         msg = (
-                            f"Maua Shark: Trip completed. Thank you for traveling with us, {b.passenger_name}. "
-                            f"We appreciate you and welcome you to ride with MAUA SHARK again."
+                            f"Maua Shark Express: Trip completed. Thank you for traveling with us, {b.passenger_name}. "
+                            f"We appreciate you and welcome you to ride with MAUA SHARK EXPRESS again."
                         )
                         user_email = b.user.email if b.user and hasattr(b.user, 'email') else None
                         send_sms(b.passenger_phone, msg, user_email=user_email)
@@ -648,7 +648,7 @@ def trip_seat_book(trip_id: int, seat: str):
         # Send SMS notification to passenger
         try:
             msg = (
-                f"Maua Shark: Booking confirmed! Ref: {ref}. "
+                f"Maua Shark Express: Booking confirmed! Ref: {ref}. "
                 f"Seat {seat} on {trip.route.origin.town} → {trip.route.destination.town}, "
                 f"{trip.depart_at.strftime('%b %d at %H:%M')}. "
                 f"Fare: KES {trip.base_fare}. Safe travels!"
@@ -893,7 +893,7 @@ def parcels_receipt_pdf(parcel_id):
     story = []
     
     # Header
-    story.append(Paragraph("MAUA SHARK SACCO", title_style))
+    story.append(Paragraph("MAUA SHARK EXPRESS", title_style))
     story.append(Paragraph("Parcel Delivery Receipt", normal_style))
     story.append(Spacer(1, 20))
     
@@ -943,7 +943,7 @@ def parcels_receipt_pdf(parcel_id):
     story.append(Spacer(1, 20))
     
     # Footer
-    story.append(Paragraph("Thank you for choosing Maua Shark Sacco!", normal_style))
+    story.append(Paragraph("Thank you for choosing Maua Shark Express!", normal_style))
     story.append(Paragraph(f"Track your parcel at: mauasharksacco.co.ke/parcels/track?ref={parcel.ref_code}", normal_style))
     
     doc.build(story)

@@ -310,7 +310,7 @@ def download_receipt(booking_id: int):
     c.rect(0, height-40, width, 40, fill=1, stroke=0)
     c.setFillColor(colors.white)
     c.setFont('Helvetica-Bold', 16)
-    c.drawString(20*mm, height-28, 'MAUA SHARK SACCO - E-Ticket Receipt')
+    c.drawString(20*mm, height-28, 'MAUA SHARK EXPRESS - E-Ticket Receipt')
 
     y = height - 60
     c.setFillColor(colors.black)
@@ -360,7 +360,7 @@ def download_receipt(booking_id: int):
     c.setFont('Helvetica-Oblique', 9)
     c.setFillColor(colors.grey)
     c.drawString(20*mm, 15*mm, 'Please present this e-ticket and a valid ID during boarding.')
-    c.drawString(20*mm, 10*mm, 'Thank you for choosing Maua Shark Sacco.')
+    c.drawString(20*mm, 10*mm, 'Thank you for choosing Maua Shark Express.')
 
     c.showPage()
     c.save()

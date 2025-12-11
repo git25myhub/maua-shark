@@ -69,7 +69,7 @@ def create():
     Parcel creation is now handled by staff at depots.
     Redirect customers to tracking page with instructions.
     """
-    flash('To send a parcel, please visit any Maua Shark Sacco depot. '
+    flash('To send a parcel, please visit any Maua Shark Express depot. '
           'Our staff will help you register your parcel and provide a tracking code.', 'info')
     return redirect(url_for('parcels.track'))
 
