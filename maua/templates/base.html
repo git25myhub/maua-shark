@@ -108,9 +108,9 @@
                                 </div>
                             </li>
                             
-                            <!-- Staff/Admin Quick Access -->
+                            <!-- Staff/Admin Quick Access - Desktop (hidden on mobile) -->
                             {% if current_user.is_admin or current_user.is_staff %}
-                                <li class="nav-item dropdown">
+                                <li class="nav-item dropdown d-none d-lg-block">
                                     <a class="nav-link dropdown-toggle" href="#" id="staffDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                         <i class="fas fa-tools me-1"></i> 
                                         {% if current_user.is_admin %}Admin{% else %}Staff{% endif %}
@@ -146,10 +146,50 @@
                                         {% endif %}
                                     </ul>
                                 </li>
+                                
+                                <!-- Staff/Admin - Mobile Menu Items -->
+                                <li class="nav-item d-lg-none">
+                                    <div class="px-3 py-2 mb-1">
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-tools me-1"></i>
+                                            {% if current_user.is_admin %}Admin{% else %}Staff{% endif %} Tools
+                                        </span>
+                                    </div>
+                                </li>
+                                <li class="nav-item d-lg-none">
+                                    <a class="nav-link py-2" href="{{ url_for('staff.dashboard') }}">
+                                        <i class="fas fa-tachometer-alt text-info me-2"></i> Staff Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item d-lg-none">
+                                    <a class="nav-link py-2" href="{{ url_for('staff.bookings_routes') }}">
+                                        <i class="fas fa-ticket-alt text-info me-2"></i> Manage Bookings
+                                    </a>
+                                </li>
+                                <li class="nav-item d-lg-none">
+                                    <a class="nav-link py-2" href="{{ url_for('staff.parcels_list') }}">
+                                        <i class="fas fa-box text-success me-2"></i> Manage Parcels
+                                    </a>
+                                </li>
+                                <li class="nav-item d-lg-none">
+                                    <a class="nav-link py-2" href="{{ url_for('staff.trips_list') }}">
+                                        <i class="fas fa-bus text-warning me-2"></i> Manage Trips
+                                    </a>
+                                </li>
+                                {% if current_user.is_admin %}
+                                <li class="nav-item d-lg-none">
+                                    <a class="nav-link py-2" href="{{ url_for('admin.dashboard') }}">
+                                        <i class="fas fa-user-shield text-danger me-2"></i> Admin Panel
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li class="nav-item d-lg-none">
+                                    <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                                </li>
                             {% endif %}
                             
-                            <!-- User Account -->
-                            <li class="nav-item dropdown">
+                            <!-- User Account - Desktop Dropdown (hidden on mobile) -->
+                            <li class="nav-item dropdown d-none d-lg-block">
                                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-user-circle me-1"></i> {{ current_user.username }}
                                 </a>
@@ -187,6 +227,50 @@
                                         </a>
                                     </li>
                                 </ul>
+                            </li>
+                            
+                            <!-- User Account - Mobile Menu (visible only on mobile) -->
+                            <li class="nav-item d-lg-none">
+                                <div class="mobile-user-header px-3 py-2 mb-2 rounded" style="background: rgba(255,255,255,0.1);">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center me-2" 
+                                             style="width: 36px; height: 36px;">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-white">{{ current_user.username }}</div>
+                                            <small class="text-white-50">{{ current_user.email }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link py-2" href="{{ url_for('auth.profile') }}">
+                                    <i class="fas fa-user text-info me-2"></i> My Profile
+                                </a>
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link py-2" href="{{ url_for('auth.my_bookings') }}">
+                                    <i class="fas fa-ticket-alt text-success me-2"></i> My Bookings
+                                </a>
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link py-2" href="{{ url_for('auth.my_parcels') }}">
+                                    <i class="fas fa-box text-warning me-2"></i> My Parcels
+                                </a>
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link py-2" href="{{ url_for('auth.change_password') }}">
+                                    <i class="fas fa-lock text-secondary me-2"></i> Security
+                                </a>
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <hr class="my-2" style="border-color: rgba(255,255,255,0.2);">
+                            </li>
+                            <li class="nav-item d-lg-none">
+                                <a class="nav-link py-2 text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                </a>
                             </li>
                         {% else %}
                             <li class="nav-item">
@@ -388,54 +472,6 @@
                 });
             }
             
-            // ============================================
-            // FIX: Mobile navbar dropdown behavior
-            // Prevent navbar from closing when clicking dropdowns on mobile
-            // ============================================
-            const navbarCollapse = document.getElementById('navbarNav');
-            const navbarToggler = document.querySelector('.navbar-toggler');
-            
-            if (navbarCollapse) {
-                // Stop dropdown toggles from closing the navbar
-                const dropdownToggles = navbarCollapse.querySelectorAll('.dropdown-toggle');
-                dropdownToggles.forEach(function(toggle) {
-                    toggle.addEventListener('click', function(e) {
-                        // On mobile (when navbar is collapsible), prevent collapse close
-                        if (window.innerWidth < 992) {
-                            e.stopPropagation();
-                        }
-                    });
-                });
-                
-                // Close navbar only when clicking actual menu items (not dropdown toggles)
-                const menuItems = navbarCollapse.querySelectorAll('.dropdown-item, .nav-link:not(.dropdown-toggle)');
-                menuItems.forEach(function(item) {
-                    item.addEventListener('click', function() {
-                        // On mobile, close the navbar after clicking a link
-                        if (window.innerWidth < 992 && navbarCollapse.classList.contains('show')) {
-                            const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
-                            if (bsCollapse) {
-                                bsCollapse.hide();
-                            }
-                        }
-                    });
-                });
-                
-                // Also handle clicking outside to close dropdowns properly on mobile
-                document.addEventListener('click', function(e) {
-                    if (window.innerWidth < 992) {
-                        const openDropdowns = navbarCollapse.querySelectorAll('.dropdown-menu.show');
-                        openDropdowns.forEach(function(menu) {
-                            if (!menu.contains(e.target) && !menu.previousElementSibling.contains(e.target)) {
-                                const dropdown = bootstrap.Dropdown.getInstance(menu.previousElementSibling);
-                                if (dropdown) {
-                                    dropdown.hide();
-                                }
-                            }
-                        });
-                    }
-                });
-            }
         })();
         
         // Customer Notification Bell System
@@ -583,54 +619,32 @@
             40%, 80% { transform: rotate(-15deg); }
         }
         
-        /* Mobile navbar dropdown improvements */
+        /* Mobile navbar improvements */
         @media (max-width: 991.98px) {
-            .navbar-nav .dropdown-menu {
-                position: static !important;
-                transform: none !important;
-                border: none;
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 8px;
-                margin: 0.5rem 0;
-                padding: 0.5rem;
+            /* Mobile user header styling */
+            .mobile-user-header {
+                margin-top: 0.5rem;
             }
-            .navbar-nav .dropdown-menu .dropdown-item {
-                color: rgba(255, 255, 255, 0.9);
-                padding: 0.6rem 1rem;
+            
+            /* Nav links on mobile - better touch targets */
+            .navbar-nav .nav-link {
+                padding: 0.75rem 1rem !important;
                 border-radius: 6px;
                 margin: 2px 0;
             }
-            .navbar-nav .dropdown-menu .dropdown-item:hover,
-            .navbar-nav .dropdown-menu .dropdown-item:focus {
-                background: rgba(255, 255, 255, 0.15);
-                color: #fff;
+            .navbar-nav .nav-link:hover,
+            .navbar-nav .nav-link:active {
+                background: rgba(255, 255, 255, 0.1);
             }
-            .navbar-nav .dropdown-menu .dropdown-item i {
-                width: 20px;
-            }
-            .navbar-nav .dropdown-menu .dropdown-divider {
-                border-color: rgba(255, 255, 255, 0.2);
-            }
-            .navbar-nav .dropdown-menu .dropdown-item-text {
-                color: rgba(255, 255, 255, 0.7);
-            }
-            .navbar-nav .dropdown-menu .dropdown-item.text-danger {
-                color: #f87171 !important;
-            }
-            .navbar-nav .dropdown-menu .dropdown-item.text-danger:hover {
-                background: rgba(239, 68, 68, 0.2);
-            }
-            /* Make dropdown toggle more visible when active */
-            .navbar-nav .dropdown.show > .dropdown-toggle {
-                background: rgba(255, 255, 255, 0.15);
-                border-radius: 6px;
-            }
-            /* Notification dropdown on mobile */
-            .navbar-nav .notification-dropdown {
+            
+            /* Notification dropdown on mobile - position it better */
+            .notification-dropdown {
+                position: fixed !important;
+                top: 60px !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
                 width: calc(100vw - 2rem) !important;
-                max-width: 350px;
-                margin-left: auto;
-                margin-right: auto;
+                max-width: 380px !important;
             }
         }
     </style>
