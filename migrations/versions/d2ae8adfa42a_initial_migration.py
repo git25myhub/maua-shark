@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 7eccdf4c6c52
+Revision ID: d2ae8adfa42a
 Revises: 
-Create Date: 2025-11-22 21:40:55.128228
+Create Date: 2025-12-21 17:48:57.063670
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '7eccdf4c6c52'
+revision = 'd2ae8adfa42a'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -38,6 +38,7 @@ def upgrade():
     sa.Column('phone', sa.String(length=15), nullable=False),
     sa.Column('password_hash', sa.String(length=256), nullable=False),
     sa.Column('is_admin', sa.Boolean(), nullable=True),
+    sa.Column('is_staff', sa.Boolean(), nullable=True),
     sa.Column('is_active', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
     sa.Column('updated_at', sa.DateTime(), nullable=True),
@@ -62,9 +63,11 @@ def upgrade():
     sa.Column('ref_code', sa.String(length=20), nullable=False),
     sa.Column('sender_name', sa.String(length=120), nullable=False),
     sa.Column('sender_phone', sa.String(length=30), nullable=False),
+    sa.Column('sender_email', sa.String(length=120), nullable=True),
     sa.Column('sender_id_number', sa.String(length=30), nullable=False),
     sa.Column('receiver_name', sa.String(length=120), nullable=False),
     sa.Column('receiver_phone', sa.String(length=30), nullable=False),
+    sa.Column('receiver_email', sa.String(length=120), nullable=True),
     sa.Column('receiver_id_number', sa.String(length=30), nullable=False),
     sa.Column('origin_name', sa.String(length=120), nullable=False),
     sa.Column('destination_name', sa.String(length=120), nullable=False),
@@ -73,6 +76,7 @@ def upgrade():
     sa.Column('status', sa.String(length=20), nullable=True),
     sa.Column('payment_status', sa.String(length=20), nullable=True),
     sa.Column('vehicle_plate', sa.String(length=20), nullable=True),
+    sa.Column('driver_name', sa.String(length=120), nullable=True),
     sa.Column('driver_phone', sa.String(length=30), nullable=True),
     sa.Column('created_by', sa.Integer(), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -80,6 +84,18 @@ def upgrade():
     sa.ForeignKeyConstraint(['created_by'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('ref_code')
+    )
+    op.create_table('password_reset_token',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('token_hash', sa.String(length=256), nullable=False),
+    sa.Column('created_at', sa.DateTime(), nullable=False),
+    sa.Column('expires_at', sa.DateTime(), nullable=False),
+    sa.Column('used', sa.Boolean(), nullable=False),
+    sa.Column('used_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('token_hash')
     )
     op.create_table('routes',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -102,6 +118,7 @@ def upgrade():
     sa.Column('arrive_eta', sa.DateTime(timezone=True), nullable=True),
     sa.Column('base_fare', sa.Numeric(precision=10, scale=2), nullable=False),
     sa.Column('status', sa.String(length=20), nullable=True),
+    sa.Column('is_full', sa.Boolean(), nullable=True),
     sa.Column('driver_name', sa.String(length=120), nullable=True),
     sa.Column('driver_phone', sa.String(length=30), nullable=True),
     sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -134,6 +151,28 @@ def upgrade():
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('reference'),
     sa.UniqueConstraint('trip_id', 'seat_number', name='uq_trip_seat')
+    )
+    op.create_table('notifications',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('notification_type', sa.String(length=30), nullable=False),
+    sa.Column('audience', sa.String(length=20), nullable=True),
+    sa.Column('title', sa.String(length=200), nullable=False),
+    sa.Column('message', sa.Text(), nullable=False),
+    sa.Column('icon', sa.String(length=50), nullable=True),
+    sa.Column('color', sa.String(length=20), nullable=True),
+    sa.Column('link', sa.String(length=255), nullable=True),
+    sa.Column('booking_id', sa.Integer(), nullable=True),
+    sa.Column('trip_id', sa.Integer(), nullable=True),
+    sa.Column('parcel_id', sa.Integer(), nullable=True),
+    sa.Column('is_read', sa.Boolean(), nullable=True),
+    sa.Column('read_at', sa.DateTime(), nullable=True),
+    sa.Column('created_at', sa.DateTime(), nullable=True),
+    sa.ForeignKeyConstraint(['booking_id'], ['bookings.id'], ),
+    sa.ForeignKeyConstraint(['parcel_id'], ['parcels.id'], ),
+    sa.ForeignKeyConstraint(['trip_id'], ['trips.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('payments',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -169,12 +208,14 @@ def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table('tickets')
     op.drop_table('payments')
+    op.drop_table('notifications')
     op.drop_table('bookings')
     with op.batch_alter_table('trips', schema=None) as batch_op:
         batch_op.drop_index(batch_op.f('ix_trips_depart_at'))
 
     op.drop_table('trips')
     op.drop_table('routes')
+    op.drop_table('password_reset_token')
     op.drop_table('parcels')
     op.drop_table('vehicles')
     op.drop_table('user')
