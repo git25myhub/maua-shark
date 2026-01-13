@@ -21,26 +21,16 @@
                         {{ form.hidden_tag() }}
                         <input type="hidden" name="seat_number" id="selectedSeat">
                         
-                        <div class="bus-layout p-4 border rounded">
-                            <div class="bus-driver text-center mb-4">
-                                <div class="bus-icon">
-                                    <i class="fas fa-bus fa-3x text-muted"></i>
-                                </div>
-                                <div class="driver-text text-muted">Driver's Cabin</div>
-                            </div>
-                            
-                            <div class="bus-layout-kenya" role="radiogroup" aria-label="Seat selection">
-                                {% set total = seat_layout|length %}
-                                {% set back_count = 4 if total >= 10 else (total % 3) %}
-                                {% set front_count = total - back_count %}
-                                {% set rows = seat_layout[:front_count] | batch(3, None) %}
-                                {% set back_row = seat_layout[front_count:] %}
-
-                                {% for row in rows %}
-                                <div class="bus-row">
-                                    {% for s in row[:2] %}
-                                        {% if s is not none %}
-                                            {% set code = s['seat'] %}
+                        <div class="matatu-layout p-4 border rounded">
+                            <!-- Matatu 16-Seater Layout -->
+                            <div class="matatu-body" role="radiogroup" aria-label="Seat selection">
+                                
+                                <!-- Row 1: Front - Seats 1, 2 + Driver -->
+                                <div class="matatu-row front-row">
+                                    {% for seat_num in ['1', '2'] %}
+                                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                                        {% if seat_data %}
+                                            {% set code = seat_data['seat'] %}
                                             {% set is_taken = code in taken %}
                                             <div class="seat-container">
                                                 <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
@@ -55,10 +45,43 @@
                                             </div>
                                         {% endif %}
                                     {% endfor %}
-                                    <div class="aisle" aria-hidden="true"></div>
-                                    {% set s = (row[2] if (row|length) > 2 else None) %}
-                                    {% if s is not none %}
-                                        {% set code = s['seat'] %}
+                                    <div class="driver-seat">
+                                        <i class="fas fa-steering-wheel"></i>
+                                        <span>Driver</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Row 2: Seats 3, 4, 5, 6 with Door -->
+                                <div class="matatu-row with-door">
+                                    <div class="door-indicator">
+                                        <i class="fas fa-door-open"></i>
+                                        <span>Door</span>
+                                    </div>
+                                    {% for seat_num in ['3', '4', '5', '6'] %}
+                                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                                        {% if seat_data %}
+                                            {% set code = seat_data['seat'] %}
+                                            {% set is_taken = code in taken %}
+                                            <div class="seat-container">
+                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                    <span class="seat-number">{{ code }}</span>
+                                                    {% if is_taken %}
+                                                        <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                    {% else %}
+                                                        <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                
+                                <!-- Row 3: Seat 7 (single), aisle, Seats 8, 9 -->
+                                <div class="matatu-row aisle-row">
+                                    {% set seat_data = seat_layout | selectattr('seat', 'equalto', '7') | first %}
+                                    {% if seat_data %}
+                                        {% set code = seat_data['seat'] %}
                                         {% set is_taken = code in taken %}
                                         <div class="seat-container">
                                             <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
@@ -72,13 +95,32 @@
                                             </label>
                                         </div>
                                     {% endif %}
+                                    <div class="aisle-space"></div>
+                                    {% for seat_num in ['8', '9'] %}
+                                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                                        {% if seat_data %}
+                                            {% set code = seat_data['seat'] %}
+                                            {% set is_taken = code in taken %}
+                                            <div class="seat-container">
+                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                    <span class="seat-number">{{ code }}</span>
+                                                    {% if is_taken %}
+                                                        <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                    {% else %}
+                                                        <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
                                 </div>
-                                {% endfor %}
-
-                                {% if back_row %}
-                                <div class="bus-row back-row justify-content-center">
-                                    {% for s in back_row %}
-                                        {% set code = s['seat'] %}
+                                
+                                <!-- Row 4: Seat 10 (single), aisle, Seats 11, 12 -->
+                                <div class="matatu-row aisle-row">
+                                    {% set seat_data = seat_layout | selectattr('seat', 'equalto', '10') | first %}
+                                    {% if seat_data %}
+                                        {% set code = seat_data['seat'] %}
                                         {% set is_taken = code in taken %}
                                         <div class="seat-container">
                                             <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
@@ -91,14 +133,50 @@
                                                 {% endif %}
                                             </label>
                                         </div>
+                                    {% endif %}
+                                    <div class="aisle-space"></div>
+                                    {% for seat_num in ['11', '12'] %}
+                                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                                        {% if seat_data %}
+                                            {% set code = seat_data['seat'] %}
+                                            {% set is_taken = code in taken %}
+                                            <div class="seat-container">
+                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                    <span class="seat-number">{{ code }}</span>
+                                                    {% if is_taken %}
+                                                        <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                    {% else %}
+                                                        <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endif %}
                                     {% endfor %}
                                 </div>
-                                {% endif %}
-                            </div>
-                            
-                            <div class="bus-exit text-center mt-4 pt-3 border-top" aria-hidden="true">
-                                <i class="fas fa-door-open fa-2x text-muted"></i>
-                                <div class="text-muted">Exit</div>
+                                
+                                <!-- Row 5: Back row - Seats 13, 14, 15, 16 -->
+                                <div class="matatu-row back-row">
+                                    {% for seat_num in ['13', '14', '15', '16'] %}
+                                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                                        {% if seat_data %}
+                                            {% set code = seat_data['seat'] %}
+                                            {% set is_taken = code in taken %}
+                                            <div class="seat-container">
+                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
+                                                    <span class="seat-number">{{ code }}</span>
+                                                    {% if is_taken %}
+                                                        <span class="seat-status"><i class="fas fa-times"></i></span>
+                                                    {% else %}
+                                                        <span class="seat-status"><i class="fas fa-check"></i></span>
+                                                    {% endif %}
+                                                </label>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                
                             </div>
                         </div>
                     </form>
@@ -148,9 +226,128 @@
 </div>
 
 <style>
+/* Matatu Layout Styles */
+.matatu-layout {
+    background: linear-gradient(180deg, #e9ecef 0%, #f8f9fa 100%);
+    border-radius: 20px 20px 10px 10px;
+    max-width: 380px;
+    margin: 0 auto;
+    position: relative;
+    padding: 20px 15px;
+    border: 3px solid #dee2e6;
+}
+
+.matatu-layout::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 16px;
+    background: linear-gradient(180deg, #6c757d 0%, #adb5bd 100%);
+    border-radius: 10px 10px 0 0;
+}
+
+.matatu-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.matatu-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Front row with driver */
+.matatu-row.front-row {
+    background: rgba(108, 117, 125, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+.driver-seat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    color: white;
+    border-radius: 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.driver-seat i {
+    font-size: 1.2rem;
+    margin-bottom: 4px;
+}
+
+/* Door indicator row */
+.matatu-row.with-door {
+    position: relative;
+}
+
+.door-indicator {
+    position: absolute;
+    left: -50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.65rem;
+    font-weight: 600;
+}
+
+.door-indicator i {
+    font-size: 1.2rem;
+    color: #dc3545;
+}
+
+/* Aisle rows */
+.matatu-row.aisle-row {
+    justify-content: flex-start;
+    padding-left: 20px;
+}
+
+.aisle-space {
+    width: 50px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.aisle-space::before {
+    content: '';
+    width: 2px;
+    height: 30px;
+    background: repeating-linear-gradient(
+        to bottom,
+        #dee2e6 0px,
+        #dee2e6 4px,
+        transparent 4px,
+        transparent 8px
+    );
+}
+
+/* Back row */
+.matatu-row.back-row {
+    background: rgba(108, 117, 125, 0.1);
+    padding: 10px;
+    border-radius: 10px;
+    margin-top: 5px;
+}
+
+/* Seat styles */
 .seat-container {
     position: relative;
-    margin: 5px;
 }
 
 .seat-label {
@@ -158,56 +355,60 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 70px;
-    height: 70px;
+    width: 65px;
+    height: 65px;
     border: 2px solid #dee2e6;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
-    background-color: #f8f9fa;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .seat-number {
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: 700;
+    font-size: 1rem;
 }
 
 .seat-status {
-    font-size: 0.7rem;
-    opacity: 0.7;
+    font-size: 0.65rem;
+    opacity: 0.8;
     margin-top: 2px;
 }
 
 .seat-label.available {
-    background-color: #f8f9fa;
-    color: #198754;
-    border-color: #198754;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    color: #155724;
+    border-color: #28a745;
 }
 
 .seat-label.available:hover {
-    background-color: #d1e7dd;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(40, 167, 69, 0.3);
 }
 
 .seat-label.selected {
-    background-color: #0d6efd;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
     color: white;
-    border-color: #0d6efd;
+    border-color: #0056b3;
+    transform: scale(1.05);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
 }
 
 .seat-label.taken {
-    background-color: #f8d7da;
-    color: #dc3545;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    color: #721c24;
     border-color: #dc3545;
     cursor: not-allowed;
-    opacity: 0.7;
+    opacity: 0.8;
 }
 
 .seat-label:focus-within {
-    outline: 2px solid #0d6efd;
+    outline: 3px solid #007bff;
     outline-offset: 2px;
 }
 
@@ -216,65 +417,64 @@
     opacity: 0;
     width: 0;
     height: 0;
-  background-color: #007bff;
-  color: white;
-  border-color: #0056b3;
-  transform: scale(1.05);
-  box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
 }
 
-.seat-status {
-  font-size: 0.7rem;
-  font-weight: normal;
-  display: block;
-  margin-top: 2px;
-}
-
+/* Legend styles */
 .seat-legend {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    display: inline-block;
 }
 
 .seat-legend.available {
-  background-color: #e9f7ef;
-  border: 1px solid #28a745;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border: 1px solid #28a745;
 }
 
 .seat-legend.selected {
-  background-color: #007bff;
-  border: 1px solid #0056b3;
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: 1px solid #0056b3;
 }
 
 .seat-legend.taken {
-  background-color: #f8d7da;
-  border: 1px solid #dc3545;
-  opacity: 0.7;
-}
-
-.bus-layout {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #dee2e6;
-}
-
-.bus-driver, .bus-exit {
-  color: #6c757d;
-  padding: 10px;
-  background-color: #e9ecef;
-  border-radius: 8px;
-  margin: 0 auto;
-  max-width: 200px;
+    background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+    border: 1px solid #dc3545;
+    opacity: 0.8;
 }
 
 .selected-seat-info {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  margin: 15px 0;
-  padding: 15px;
-  border: 1px dashed #dee2e6;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 15px 0;
+    padding: 15px;
+    border: 1px dashed #dee2e6;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .matatu-layout {
+        max-width: 320px;
+        padding: 15px 10px;
+    }
+    
+    .seat-label {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .driver-seat {
+        width: 55px;
+        height: 55px;
+    }
+    
+    .door-indicator {
+        left: -40px;
+    }
+    
+    .aisle-space {
+        width: 40px;
+    }
 }
 </style>
 

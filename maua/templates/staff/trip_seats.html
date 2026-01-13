@@ -52,9 +52,86 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="d-flex flex-wrap gap-2 justify-content-center" id="seat-grid" data-trip-id="{{ trip.id }}">
-                        {% for s in seat_layout %}
-                            {% set code = s['seat'] %}
+                <div class="matatu-staff-layout" id="seat-grid" data-trip-id="{{ trip.id }}">
+                    
+                    <!-- Row 1: Front - Seats 1, 2 + Driver -->
+                    <div class="matatu-staff-row front-row">
+                        {% for seat_num in ['1', '2'] %}
+                            {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                            {% if seat_data %}
+                                {% set code = seat_data['seat'] %}
+                                {% set b = seat_to_booking.get(code) %}
+                                {% set color = 'danger' %}
+                                {% set is_available = not b %}
+                                {% if b %}
+                                    {% if b.status in ['checked_in', 'completed'] %}
+                                        {% set color = 'success' %}
+                                    {% else %}
+                                        {% set color = 'primary' %}
+                                    {% endif %}
+                                {% endif %}
+                                <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                     data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
+                                    <div class="fw-bold">{{ code }}</div>
+                                    {% if b %}
+                                        <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                        {% if b.status not in ['checked_in', 'completed'] %}
+                                        <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                            <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
+                                        </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                        <div class="driver-box">
+                            <i class="fas fa-steering-wheel"></i>
+                            <span>Driver</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Row 2: Seats 3, 4, 5, 6 with Door -->
+                    <div class="matatu-staff-row with-door">
+                        <div class="door-label"><i class="fas fa-door-open text-danger"></i><br>Door</div>
+                        {% for seat_num in ['3', '4', '5', '6'] %}
+                            {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                            {% if seat_data %}
+                                {% set code = seat_data['seat'] %}
+                                {% set b = seat_to_booking.get(code) %}
+                                {% set color = 'danger' %}
+                                {% set is_available = not b %}
+                                {% if b %}
+                                    {% if b.status in ['checked_in', 'completed'] %}
+                                        {% set color = 'success' %}
+                                    {% else %}
+                                        {% set color = 'primary' %}
+                                    {% endif %}
+                                {% endif %}
+                                <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                     data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
+                                    <div class="fw-bold">{{ code }}</div>
+                                    {% if b %}
+                                        <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                        {% if b.status not in ['checked_in', 'completed'] %}
+                                        <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                            <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
+                                        </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Row 3: Seat 7, aisle, Seats 8, 9 -->
+                    <div class="matatu-staff-row aisle-row">
+                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', '7') | first %}
+                        {% if seat_data %}
+                            {% set code = seat_data['seat'] %}
                             {% set b = seat_to_booking.get(code) %}
                             {% set color = 'danger' %}
                             {% set is_available = not b %}
@@ -66,23 +143,150 @@
                                 {% endif %}
                             {% endif %}
                             <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
-                                 data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}"
-                                 style="min-width: 70px; cursor: pointer; transition: transform 0.2s;">
+                                 data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
                                 <div class="fw-bold">{{ code }}</div>
                                 {% if b %}
                                     <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
                                     {% if b.status not in ['checked_in', 'completed'] %}
                                     <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
-                                        <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">
-                                            Check In
-                                        </button>
+                                        <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
                                     </form>
                                     {% endif %}
                                 {% else %}
                                     <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
                                 {% endif %}
                             </div>
+                        {% endif %}
+                        <div class="aisle-gap"></div>
+                        {% for seat_num in ['8', '9'] %}
+                            {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                            {% if seat_data %}
+                                {% set code = seat_data['seat'] %}
+                                {% set b = seat_to_booking.get(code) %}
+                                {% set color = 'danger' %}
+                                {% set is_available = not b %}
+                                {% if b %}
+                                    {% if b.status in ['checked_in', 'completed'] %}
+                                        {% set color = 'success' %}
+                                    {% else %}
+                                        {% set color = 'primary' %}
+                                    {% endif %}
+                                {% endif %}
+                                <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                     data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
+                                    <div class="fw-bold">{{ code }}</div>
+                                    {% if b %}
+                                        <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                        {% if b.status not in ['checked_in', 'completed'] %}
+                                        <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                            <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
+                                        </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
                         {% endfor %}
+                    </div>
+                    
+                    <!-- Row 4: Seat 10, aisle, Seats 11, 12 -->
+                    <div class="matatu-staff-row aisle-row">
+                        {% set seat_data = seat_layout | selectattr('seat', 'equalto', '10') | first %}
+                        {% if seat_data %}
+                            {% set code = seat_data['seat'] %}
+                            {% set b = seat_to_booking.get(code) %}
+                            {% set color = 'danger' %}
+                            {% set is_available = not b %}
+                            {% if b %}
+                                {% if b.status in ['checked_in', 'completed'] %}
+                                    {% set color = 'success' %}
+                                {% else %}
+                                    {% set color = 'primary' %}
+                                {% endif %}
+                            {% endif %}
+                            <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                 data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
+                                <div class="fw-bold">{{ code }}</div>
+                                {% if b %}
+                                    <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                    {% if b.status not in ['checked_in', 'completed'] %}
+                                    <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                        <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
+                                    </form>
+                                    {% endif %}
+                                {% else %}
+                                    <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                        <div class="aisle-gap"></div>
+                        {% for seat_num in ['11', '12'] %}
+                            {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                            {% if seat_data %}
+                                {% set code = seat_data['seat'] %}
+                                {% set b = seat_to_booking.get(code) %}
+                                {% set color = 'danger' %}
+                                {% set is_available = not b %}
+                                {% if b %}
+                                    {% if b.status in ['checked_in', 'completed'] %}
+                                        {% set color = 'success' %}
+                                    {% else %}
+                                        {% set color = 'primary' %}
+                                    {% endif %}
+                                {% endif %}
+                                <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                     data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
+                                    <div class="fw-bold">{{ code }}</div>
+                                    {% if b %}
+                                        <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                        {% if b.status not in ['checked_in', 'completed'] %}
+                                        <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                            <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
+                                        </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Row 5: Back row - Seats 13, 14, 15, 16 -->
+                    <div class="matatu-staff-row back-row">
+                        {% for seat_num in ['13', '14', '15', '16'] %}
+                            {% set seat_data = seat_layout | selectattr('seat', 'equalto', seat_num) | first %}
+                            {% if seat_data %}
+                                {% set code = seat_data['seat'] %}
+                                {% set b = seat_to_booking.get(code) %}
+                                {% set color = 'danger' %}
+                                {% set is_available = not b %}
+                                {% if b %}
+                                    {% if b.status in ['checked_in', 'completed'] %}
+                                        {% set color = 'success' %}
+                                    {% else %}
+                                        {% set color = 'primary' %}
+                                    {% endif %}
+                                {% endif %}
+                                <div class="seat-box bg-{{ color }} text-white rounded p-2 text-center seat-badge {% if is_available %}seat-available{% endif %}" 
+                                     data-seat="{{ code }}" data-available="{{ 'true' if is_available else 'false' }}">
+                                    <div class="fw-bold">{{ code }}</div>
+                                    {% if b %}
+                                        <small class="d-block" style="font-size: 0.65rem;">{{ b.passenger_name[:10] }}{% if b.passenger_name|length > 10 %}...{% endif %}</small>
+                                        {% if b.status not in ['checked_in', 'completed'] %}
+                                        <form method="post" action="{{ url_for('staff.trip_seat_checkin', trip_id=trip.id, seat=code) }}" class="mt-1">
+                                            <button class="btn btn-xs btn-light" type="submit" style="font-size: 0.65rem; padding: 2px 6px;">Check In</button>
+                                        </form>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="d-block" style="font-size: 0.65rem;"><i class="fas fa-plus-circle"></i> Book</small>
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
                 </div>
             </div>
         </div>
@@ -282,12 +486,146 @@
 </div>
 
 <style>
-    .seat-available:hover {
-        transform: scale(1.1);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    /* Matatu Staff Layout */
+    .matatu-staff-layout {
+        background: linear-gradient(180deg, #e9ecef 0%, #f8f9fa 100%);
+        border-radius: 20px 20px 10px 10px;
+        max-width: 420px;
+        margin: 0 auto;
+        padding: 20px 15px;
+        border: 3px solid #dee2e6;
+        position: relative;
     }
+    
+    .matatu-staff-layout::before {
+        content: '';
+        position: absolute;
+        top: -8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 16px;
+        background: linear-gradient(180deg, #6c757d 0%, #adb5bd 100%);
+        border-radius: 10px 10px 0 0;
+    }
+    
+    .matatu-staff-row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    
+    .matatu-staff-row.front-row {
+        background: rgba(108, 117, 125, 0.15);
+        padding: 12px;
+        border-radius: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .matatu-staff-row.back-row {
+        background: rgba(108, 117, 125, 0.15);
+        padding: 12px;
+        border-radius: 10px;
+        margin-top: 10px;
+    }
+    
+    .matatu-staff-row.with-door {
+        position: relative;
+        padding-left: 50px;
+    }
+    
+    .matatu-staff-row.aisle-row {
+        justify-content: flex-start;
+        padding-left: 15px;
+    }
+    
+    .driver-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 70px;
+        height: 80px;
+        background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+        color: white;
+        border-radius: 8px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+    
+    .driver-box i {
+        font-size: 1.3rem;
+        margin-bottom: 4px;
+    }
+    
+    .door-label {
+        position: absolute;
+        left: 5px;
+        font-size: 0.6rem;
+        color: #6c757d;
+        text-align: center;
+        font-weight: 600;
+    }
+    
+    .aisle-gap {
+        width: 50px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .aisle-gap::before {
+        content: '';
+        width: 2px;
+        height: 40px;
+        background: repeating-linear-gradient(
+            to bottom,
+            #dee2e6 0px,
+            #dee2e6 5px,
+            transparent 5px,
+            transparent 10px
+        );
+    }
+    
     .seat-box {
+        min-width: 70px;
+        height: 80px;
+        cursor: pointer;
+        transition: all 0.2s ease;
         user-select: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .seat-available:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+    }
+    
+    @media (max-width: 576px) {
+        .matatu-staff-layout {
+            max-width: 340px;
+            padding: 15px 10px;
+        }
+        
+        .seat-box {
+            min-width: 60px;
+            height: 70px;
+        }
+        
+        .driver-box {
+            min-width: 60px;
+            height: 70px;
+        }
+        
+        .aisle-gap {
+            width: 40px;
+        }
     }
 </style>
 {% endblock %}

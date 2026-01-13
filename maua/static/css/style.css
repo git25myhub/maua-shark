@@ -992,7 +992,20 @@ footer hr {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* ===== BUS SEAT LAYOUTS ===== */
+/* ===== MATATU SEAT LAYOUTS ===== */
+/* 16-Seater Matatu Configuration */
+
+.matatu-container {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Steering wheel icon (fallback for Font Awesome) */
+.fa-steering-wheel::before {
+    content: "\f1b9";
+}
+
+/* Legacy bus layout support */
 .bus-layout-kenya {
     max-width: 540px;
     margin: 0 auto;
