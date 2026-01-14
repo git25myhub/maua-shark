@@ -29,37 +29,35 @@ def index():
 
 @parcels_bp.route('/track')
 def track():
-    """Public parcel tracking by reference code.
-    Example: /parcels/track?ref=P123456789
+    """Public parcel tracking by tracking key or reference code.
+    Example: /parcels/track?key=abc123... or /parcels/track?ref=P123456789
     
-    Customers track parcels here. Parcel creation is done by staff at depots.
+    Customers track parcels here using the unique tracking key provided.
+    Parcel creation is done by staff at depots.
     """
+    tracking_key = request.args.get('key', type=str)
     ref = request.args.get('ref', type=str)
-    phone = request.args.get('phone', type=str)  # Optional: track by phone number
     parcel = None
-    parcels_list = []
     
-    if ref:
+    if tracking_key:
+        # Primary method: track by unique tracking key
+        try:
+            parcel = Parcel.query.filter_by(tracking_key=tracking_key.strip()).first()
+        except Exception:
+            parcel = None
+    elif ref:
+        # Fallback: track by reference code (for backward compatibility)
         try:
             parcel = Parcel.query.filter_by(ref_code=ref.strip()).first()
         except Exception:
             parcel = None
-    elif phone:
-        # Allow tracking by sender or receiver phone
-        try:
-            parcels_list = Parcel.query.filter(
-                (Parcel.sender_phone == phone.strip()) | 
-                (Parcel.receiver_phone == phone.strip())
-            ).order_by(Parcel.created_at.desc()).limit(20).all()
-        except Exception:
-            parcels_list = []
     
-    not_found = bool((ref and not parcel) or (phone and not parcels_list))
+    not_found = bool((tracking_key and not parcel) or (ref and not parcel))
     return render_template('parcels/track.html', 
                           parcel=parcel, 
-                          parcels_list=parcels_list,
+                          parcels_list=[],  # No longer showing list by phone
                           ref=ref or '', 
-                          phone=phone or '',
+                          key=tracking_key or '',
                           not_found=not_found)
 
 

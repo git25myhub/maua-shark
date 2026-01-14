@@ -6,6 +6,7 @@ class Parcel(db.Model):
     __tablename__ = "parcels"
     id = db.Column(db.Integer, primary_key=True)
     ref_code = db.Column(db.String(20), unique=True, nullable=False)
+    tracking_key = db.Column(db.String(32), unique=True, nullable=False)  # Unique key for tracking without login
     sender_name = db.Column(db.String(120), nullable=False)
     sender_phone = db.Column(db.String(30), nullable=False)
     sender_email = db.Column(db.String(120), nullable=True)  # Optional email for notifications

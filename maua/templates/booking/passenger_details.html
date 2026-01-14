@@ -66,6 +66,17 @@
                                 </div>
                             </div>
 
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    {{ form.email.label(class="form-label") }}
+                                    {{ form.email(class="form-control" + (' is-invalid' if form.email.errors else ''), placeholder="e.g. passenger@example.com", type="email") }}
+                                    <small class="form-text text-muted">Required for booking confirmations and notifications</small>
+                                    {% for error in form.email.errors %}
+                                        <div class="invalid-feedback">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
                             <div class="col-md-6">
                                 <div class="form-group">
                                     {{ form.id_number.label(class="form-label") }}

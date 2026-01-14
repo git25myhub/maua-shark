@@ -7,7 +7,7 @@ class Booking(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     trip_id = db.Column(db.Integer, db.ForeignKey("trips.id"), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)  # Made nullable - no login required
     seat_number = db.Column(db.String(5), nullable=False)
     status = db.Column(db.String(20), default="reserved")
     fare = db.Column(db.Numeric(10,2), nullable=False)
@@ -20,6 +20,7 @@ class Booking(db.Model):
     passenger_sex = db.Column(db.String(10), nullable=False, default='other')  # 'male', 'female', 'other'
     passenger_age = db.Column(db.Integer, nullable=False, default=18)
     passenger_phone = db.Column(db.String(20), nullable=False, default='N/A')
+    passenger_email = db.Column(db.String(120), nullable=False)  # Email for notifications
     # National ID Number
     passenger_id_number = db.Column(db.String(30), nullable=False, default='N/A')
     # Optional pickup location (if passenger will be fetched on the way)
@@ -47,6 +48,7 @@ class Booking(db.Model):
             'passenger_sex': self.passenger_sex,
             'passenger_age': self.passenger_age,
             'passenger_phone': self.passenger_phone,
+            'passenger_email': self.passenger_email,
             'passenger_id_number': self.passenger_id_number,
             'pickup_location': self.pickup_location,
             'created_at': self.created_at.isoformat() if self.created_at else None

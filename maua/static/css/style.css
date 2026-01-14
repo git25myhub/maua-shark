@@ -1011,16 +1011,136 @@ footer hr {
     margin: 0 auto;
 }
 
+/* Mini bus layout for trip detail page */
+.bus-layout-kenya-mini {
+    max-width: 500px;
+    margin: 1.5rem auto;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+    border-radius: var(--radius-xl);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 2px solid var(--gray-200);
+    position: relative;
+}
+
+.bus-layout-kenya-mini::before {
+    content: '🚌';
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2rem;
+    background: var(--surface-card);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-full);
+    box-shadow: var(--shadow-sm);
+    border: 2px solid var(--gray-200);
+}
+
 .bus-row {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
 }
 
 .bus-row .aisle {
-    width: 2rem;
+    width: 2.5rem;
+    height: 1px;
+    background: transparent;
+}
+
+.bus-row.back-row {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 2px dashed var(--gray-300);
+}
+
+/* Mini seat styling - modern and styled */
+.mini-seat {
+    width: 65px;
+    height: 65px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-lg);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #fff;
+    transition: all var(--transition-base);
+    border: 3px solid transparent;
+    box-shadow: var(--shadow-md);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.mini-seat::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+    border-radius: var(--radius-lg);
+}
+
+.mini-seat::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.3s ease, height 0.3s ease;
+}
+
+.mini-seat:hover::after {
+    width: 100%;
+    height: 100%;
+}
+
+.mini-seat.bg-success {
+    background: linear-gradient(135deg, var(--brand-success) 0%, #047857 100%);
+    border-color: rgba(5, 150, 105, 0.5);
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mini-seat.bg-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(5, 150, 105, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.mini-seat.bg-primary {
+    background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-primary-dark) 100%);
+    border-color: rgba(30, 64, 175, 0.5);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.mini-seat.bg-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(30, 64, 175, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.mini-seat.bg-danger {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    border-color: rgba(220, 38, 38, 0.5);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+}
+
+.mini-seat.bg-danger:hover {
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-color: rgba(185, 28, 28, 0.8);
+    background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
 }
 
 .seat-label {

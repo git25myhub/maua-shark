@@ -58,19 +58,19 @@ SMS_TEMPLATES = {
     'parcel_created': (
         "MAUA SHARK: Parcel {ref_code} registered! From: {origin} to {destination}. "
         "Receiver: {receiver_name}. Amount: KES {price}. "
-        "Track your parcel at our website using ref: {ref_code}"
+        "Track your parcel at our website using tracking key: {tracking_key} or ref: {ref_code}"
     ),
     
     'parcel_receiver_notification': (
         "MAUA SHARK: Hello {receiver_name}! A parcel {ref_code} is being sent to you by {sender_name}. "
         "From: {origin} to {destination}. "
-        "Track status at our website using ref: {ref_code}"
+        "Track status at our website using tracking key: {tracking_key} or ref: {ref_code}"
     ),
     
     'parcel_payment_confirmed': (
         "MAUA SHARK: Payment of KES {price} confirmed for parcel {ref_code}. "
         "Your parcel from {origin} to {destination} will be dispatched soon. "
-        "Track at our website with ref: {ref_code}"
+        "Track at our website with tracking key: {tracking_key} or ref: {ref_code}"
     ),
     
     'parcel_in_transit': (
@@ -470,7 +470,8 @@ EMAIL_TEMPLATES = {
             <div class="track-info">
                 <p><strong>🔍 Track Your Parcel</strong></p>
                 <p>Visit: <strong>maua-shark.onrender.com/parcels/track</strong></p>
-                <p>Enter reference: <strong>{{ ref_code }}</strong></p>
+                <p>Use tracking key: <strong>{{ tracking_key }}</strong></p>
+                <p style="margin-top: 5px; font-size: 0.9em;">Or reference code: <strong>{{ ref_code }}</strong></p>
             </div>
             
             <p style="text-align: center; color: #64748b;">
@@ -642,22 +643,24 @@ class NotificationService:
             
             # Send SMS
             sms_message = SMS_TEMPLATES['booking_confirmed'].format(**data)
+            # Use passenger_email from booking (no login required)
+            passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.passenger.email if booking.passenger else None
+                user_email=passenger_email
             )
             
-            # Send Email if user has email
-            if booking.passenger and booking.passenger.email:
+            # Send Email using passenger_email from booking
+            if passenger_email:
                 html = render_template_string(EMAIL_TEMPLATES['booking_confirmation'], **data)
                 results['email'] = cls.send_email(
-                    booking.passenger.email,
+                    passenger_email,
                     "Booking Confirmed!",
                     html
                 )
             
-            # Create bell notification for customer
+            # Create bell notification for customer (only if they have an account)
             if booking.user_id:
                 cls.create_bell_notification_for_customer(
                     user_id=booking.user_id,
@@ -671,6 +674,7 @@ class NotificationService:
                     trip_id=booking.trip_id
                 )
                 results['bell'] = True
+            # Note: Customers without accounts will receive SMS/Email only
             
             # Create bell notification for staff (new online booking)
             cls.create_bell_notification_for_staff(
@@ -684,7 +688,7 @@ class NotificationService:
                 trip_id=booking.trip_id
             )
             
-            # Check if first-time customer
+            # Check if first-time customer (only for logged-in users)
             if booking.passenger:
                 from maua.booking.models import Booking
                 booking_count = Booking.query.filter_by(user_id=booking.passenger.id).count()
@@ -693,16 +697,18 @@ class NotificationService:
                     welcome_msg = SMS_TEMPLATES['thank_you_first_booking'].format(
                         passenger_name=booking.passenger_name
                     )
+                    passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
                     cls.send_sms(booking.passenger_phone, welcome_msg,
-                                user_email=booking.passenger.email if booking.passenger else None)
+                                user_email=passenger_email)
                 elif booking_count % 5 == 0:
                     # Loyalty appreciation every 5 bookings
                     loyalty_msg = SMS_TEMPLATES['loyalty_appreciation'].format(
                         passenger_name=booking.passenger_name,
                         booking_count=booking_count
                     )
+                    passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
                     cls.send_sms(booking.passenger_phone, loyalty_msg,
-                                user_email=booking.passenger.email if booking.passenger else None)
+                                user_email=passenger_email)
             
             logger.info(f"Booking confirmation sent for {booking.reference}")
             
@@ -728,10 +734,11 @@ class NotificationService:
             }
             
             sms_message = SMS_TEMPLATES['booking_payment_received'].format(**data)
+            passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.passenger.email if booking.passenger else None
+                user_email=passenger_email
             )
             
         except Exception as e:
@@ -753,10 +760,11 @@ class NotificationService:
             }
             
             sms_message = SMS_TEMPLATES['booking_checked_in'].format(**data)
+            passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.passenger.email if booking.passenger else None
+                user_email=passenger_email
             )
             
             # Create bell notification for customer
@@ -794,17 +802,18 @@ class NotificationService:
             
             # SMS
             sms_message = SMS_TEMPLATES['booking_completed'].format(**data)
+            passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.passenger.email if booking.passenger else None
+                user_email=passenger_email
             )
             
             # Email
-            if booking.passenger and booking.passenger.email:
+            if passenger_email:
                 html = render_template_string(EMAIL_TEMPLATES['thank_you'], **data)
                 results['email'] = cls.send_email(
-                    booking.passenger.email,
+                    passenger_email,
                     "Thank You for Traveling with Us!",
                     html
                 )
@@ -840,10 +849,11 @@ class NotificationService:
             }
             
             sms_message = SMS_TEMPLATES['booking_cancelled'].format(**data)
+            passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.passenger.email if booking.passenger else None
+                user_email=passenger_email
             )
             
         except Exception as e:
@@ -870,17 +880,18 @@ class NotificationService:
             
             # SMS
             sms_message = SMS_TEMPLATES['booking_reminder'].format(**data)
+            passenger_email = getattr(booking, 'passenger_email', None) or (booking.passenger.email if booking.passenger else None)
             results['sms'] = cls.send_sms(
                 booking.passenger_phone, 
                 sms_message,
-                user_email=booking.passenger.email if booking.passenger else None
+                user_email=passenger_email
             )
             
             # Email
-            if booking.passenger and booking.passenger.email:
+            if passenger_email:
                 html = render_template_string(EMAIL_TEMPLATES['trip_reminder'], **data)
                 results['email'] = cls.send_email(
-                    booking.passenger.email,
+                    passenger_email,
                     "Trip Reminder - Tomorrow!",
                     html
                 )
@@ -917,8 +928,10 @@ class NotificationService:
             results['bell'] = True
             
             # Basic data for SMS
+            tracking_key = getattr(parcel, 'tracking_key', None) or parcel.ref_code  # Fallback to ref_code if tracking_key not set
             sms_data = {
                 'ref_code': parcel.ref_code,
+                'tracking_key': tracking_key,
                 'origin': parcel.origin_name,
                 'destination': parcel.destination_name,
                 'sender_name': parcel.sender_name,
@@ -938,8 +951,10 @@ class NotificationService:
             results['receiver_sms'] = cls.send_sms(parcel.receiver_phone, receiver_msg, user_email=receiver_email)
             
             # Full receipt data for email
+            tracking_key = getattr(parcel, 'tracking_key', None) or parcel.ref_code  # Fallback to ref_code if tracking_key not set
             receipt_data = {
                 'ref_code': parcel.ref_code,
+                'tracking_key': tracking_key,
                 'origin': parcel.origin_name,
                 'destination': parcel.destination_name,
                 'sender_name': parcel.sender_name,
@@ -1000,8 +1015,10 @@ class NotificationService:
             results['sms'] = cls.send_sms(parcel.sender_phone, sms_message, user_email=sender_email)
             
             # Full receipt data for email
+            tracking_key = getattr(parcel, 'tracking_key', None) or parcel.ref_code  # Fallback to ref_code if tracking_key not set
             receipt_data = {
                 'ref_code': parcel.ref_code,
+                'tracking_key': tracking_key,
                 'origin': parcel.origin_name,
                 'destination': parcel.destination_name,
                 'sender_name': parcel.sender_name,

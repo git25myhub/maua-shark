@@ -36,11 +36,12 @@ def initiate_payment():
             }), 400
             
         # Create a new payment record
+        # user_id is optional - no login required
         payment = Payment(
             amount=amount,
             payment_method='pending',  # Will be updated after payment method selection
             status='pending',
-            user_id=current_user.id,
+            user_id=current_user.id if current_user.is_authenticated else None,  # Optional
             booking_id=reference_id if payment_type == 'booking' else None,
             parcel_id=reference_id if payment_type == 'parcel' else None
         )
@@ -205,18 +206,12 @@ def mpesa_callback():
         return jsonify({'ResultCode': 1, 'ResultDesc': 'Error'}), 500
 
 @payment_bp.route('/status/<int:payment_id>', methods=['GET'])
-@login_required
 def check_payment_status(payment_id):
-    """Check payment status"""
+    """Check payment status - no login required"""
     try:
         payment = Payment.query.get_or_404(payment_id)
         
-        # Ensure the user has permission to view this payment
-        if payment.user_id != current_user.id and not current_user.is_admin:
-            return jsonify({
-                'status': 'error',
-                'message': 'Unauthorized'
-            }), 403
+        # No authentication check - anyone with payment_id can check status
         
         # If payment is still pending and using STK push, check status
         if payment.status == 'pending' and payment.payment_method == 'mpesa_stk':
@@ -384,17 +379,11 @@ def check_payment_status(payment_id):
         }), 500
 
 @payment_bp.route('/<int:payment_id>', methods=['GET'])
-@login_required
 def get_payment(payment_id):
-    """Get payment details"""
+    """Get payment details - no login required"""
     payment = Payment.query.get_or_404(payment_id)
     
-    # Ensure the user has permission to view this payment
-    if payment.user_id != current_user.id and not current_user.is_admin:
-        return jsonify({
-            'status': 'error',
-            'message': 'Unauthorized'
-        }), 403
+    # No authentication check - anyone with payment_id can view details
     
     return jsonify({
         'status': 'success',

@@ -13,14 +13,12 @@ import uuid
 booking_bp = Blueprint('booking', __name__)
 
 @booking_bp.route('/')
-@login_required
 def index():
-    # List all bookings for the current user
-    bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
-    return render_template('booking/index.html', bookings=bookings)
+    # Redirect to catalog - customers no longer need to login to view bookings
+    # They can track by reference instead
+    return redirect(url_for('catalog.routes'))
 
 @booking_bp.route('/book/<int:trip_id>', methods=['GET', 'POST'])
-@login_required
 def book(trip_id):
     trip = Trip.query.get_or_404(trip_id)
     
@@ -88,7 +86,6 @@ def stream_trip_seats(trip_id: int):
     return Response(stream_with_context(event_stream()), mimetype='text/event-stream', headers=headers)
 
 @booking_bp.route('/book/<int:trip_id>/passenger', methods=['GET', 'POST'])
-@login_required
 def passenger_details(trip_id):
     seat_number = request.args.get('seat_number')
     if not seat_number:
@@ -131,9 +128,10 @@ def passenger_details(trip_id):
             return redirect(url_for('booking.book', trip_id=trip_id))
 
         # Create booking with pending status (requires payment)
+        # No login required - user_id is optional
         booking = Booking(
             trip_id=trip_id,
-            user_id=current_user.id,
+            user_id=None,  # No login required for customers
             seat_number=seat_number,
             status='pending_payment',  # Changed from 'confirmed' to 'pending_payment'
             fare=trip.base_fare,
@@ -143,6 +141,7 @@ def passenger_details(trip_id):
             passenger_sex=form.sex.data,
             passenger_age=form.age.data,
             passenger_phone=form.phone.data,
+            passenger_email=form.email.data,  # Store email for notifications
             passenger_id_number=form.id_number.data,
             pickup_location=form.pickup_location.data or None
         )
@@ -156,7 +155,7 @@ def passenger_details(trip_id):
                 amount=trip.base_fare,
                 payment_method='pending',
                 status='pending',
-                user_id=current_user.id,
+                user_id=None,  # No login required - user_id is optional
                 booking_id=booking.id
             )
             db.session.add(payment)
@@ -176,15 +175,11 @@ def passenger_details(trip_id):
                          seat_number=seat_number)
 
 @booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
-@login_required
 def payment(booking_id):
-    """Handle payment for booking"""
+    """Handle payment for booking - no login required"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Ensure user owns this booking
-    if booking.user_id != current_user.id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('booking.index'))
+    # No authentication check - anyone with booking_id can access payment
     
     # Check if booking is in pending payment status
     if booking.status != 'pending_payment':
@@ -245,15 +240,11 @@ def payment(booking_id):
                          trip=booking.trip)
 
 @booking_bp.route('/payment/status/<int:booking_id>')
-@login_required
 def payment_status(booking_id):
-    """Check payment status"""
+    """Check payment status - no login required"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Ensure user owns this booking
-    if booking.user_id != current_user.id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('booking.index'))
+    # No authentication check - anyone with booking_id can check status
     
     # Get the payment record
     payment = booking.payment
@@ -274,25 +265,20 @@ def payment_status(booking_id):
                          failure_message=failure_message)
 
 @booking_bp.route('/confirmation/<int:booking_id>')
-@login_required
 def booking_confirmation(booking_id):
+    """View booking confirmation - no login required"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Ensure the current user owns this booking
-    if booking.user_id != current_user.id and not current_user.is_admin:
-        flash('You are not authorized to view this booking.', 'danger')
-        return redirect(url_for('main.index'))
+    # No authentication check - anyone with booking_id can view confirmation
     
     return render_template('booking/booking_confirmation.html', booking=booking)
 
 
 @booking_bp.route('/receipt/<int:booking_id>.pdf')
-@login_required
 def download_receipt(booking_id: int):
+    """Download booking receipt - no login required"""
     booking = Booking.query.get_or_404(booking_id)
-    if booking.user_id != current_user.id and not current_user.is_admin:
-        flash('You are not authorized to download this receipt.', 'danger')
-        return redirect(url_for('booking.index'))
+    # No authentication check - anyone with booking_id can download receipt
 
     # Generate PDF in-memory
     from io import BytesIO
@@ -370,14 +356,11 @@ def download_receipt(booking_id: int):
     return send_file(buffer, as_attachment=True, download_name=filename, mimetype='application/pdf')
 
 @booking_bp.route('/cancel/<int:booking_id>', methods=['POST'])
-@login_required
 def cancel(booking_id):
+    """Cancel booking - no login required"""
     booking = Booking.query.get_or_404(booking_id)
     
-    # Ensure the current user owns this booking
-    if booking.user_id != current_user.id:
-        flash('You are not authorized to cancel this booking.', 'danger')
-        return redirect(url_for('booking.index'))
+    # No authentication check - anyone with booking_id can cancel (if status allows)
     
     try:
         booking.status = 'cancelled'

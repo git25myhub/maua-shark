@@ -37,6 +37,11 @@
                     <div class="col-6">
                         <p class="mb-1 text-muted small">REFERENCE CODE</p>
                         <h4 class="text-primary fw-bold">{{ parcel.ref_code }}</h4>
+                        {% if parcel.tracking_key %}
+                        <p class="mb-1 text-muted small mt-2">TRACKING KEY</p>
+                        <p class="text-success fw-bold small">{{ parcel.tracking_key }}</p>
+                        <small class="text-muted">Use this key to track the parcel</small>
+                        {% endif %}
                     </div>
                     <div class="col-6 text-end">
                         <p class="mb-1 text-muted small">DATE</p>

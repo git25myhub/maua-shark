@@ -18,7 +18,7 @@ class Payment(db.Model):
     parcel_id = db.Column(db.Integer, db.ForeignKey('parcels.id'), nullable=True)
     # Relationship with Parcel is handled by backref in Parcel model
     
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Made nullable - no login required
     # Relationship with User is handled by backref 'user_payments' in User model
     
     def __repr__(self):

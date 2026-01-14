@@ -9,13 +9,14 @@
           <h5 class="mb-0"><i class="fas fa-search me-2"></i>Track Your Parcel</h5>
         </div>
         <div class="card-body">
-          <p class="text-muted mb-3">Enter your parcel reference code to track its status.</p>
+          <p class="text-muted mb-3">Enter your unique tracking key or reference code to track your parcel status.</p>
           
           <form method="get" class="row g-3 mb-2">
             <div class="col-md-8">
-              <label for="ref" class="form-label">Reference Code</label>
-              <input type="text" class="form-control form-control-lg" id="ref" name="ref" 
-                     value="{{ ref }}" placeholder="e.g. P1757066066" />
+              <label for="key" class="form-label">Tracking Key <small class="text-muted">(Recommended)</small></label>
+              <input type="text" class="form-control form-control-lg" id="key" name="key" 
+                     value="{{ key }}" placeholder="Enter your unique tracking key" />
+              <div class="form-text">Use the unique tracking key provided when the parcel was created</div>
             </div>
             <div class="col-md-4 d-flex align-items-end">
               <button class="btn btn-primary btn-lg w-100" type="submit">
@@ -24,21 +25,21 @@
             </div>
           </form>
           
-          <!-- Alternative: Track by Phone -->
+          <!-- Alternative: Track by Reference Code -->
           <div class="text-center my-3">
             <span class="text-muted">— or —</span>
           </div>
           
           <form method="get" class="row g-3">
             <div class="col-md-8">
-              <label for="phone" class="form-label">Phone Number</label>
-              <input type="tel" class="form-control" id="phone" name="phone" 
-                     value="{{ phone }}" placeholder="e.g. 0712345678" />
-              <div class="form-text">Track all parcels associated with your phone number</div>
+              <label for="ref" class="form-label">Reference Code</label>
+              <input type="text" class="form-control" id="ref" name="ref" 
+                     value="{{ ref }}" placeholder="e.g. P1757066066" />
+              <div class="form-text">Alternative method using reference code</div>
             </div>
             <div class="col-md-4 d-flex align-items-end">
               <button class="btn btn-outline-primary w-100" type="submit">
-                <i class="fas fa-phone me-2"></i>Find
+                <i class="fas fa-search me-2"></i>Track
               </button>
             </div>
           </form>
@@ -46,10 +47,10 @@
           {% if not_found %}
             <div class="alert alert-warning mt-4 mb-0">
               <i class="fas fa-exclamation-triangle me-2"></i>
-              {% if ref %}
+              {% if key %}
+              No parcel found with tracking key <strong>{{ key }}</strong>.
+              {% elif ref %}
               No parcel found with reference code <strong>{{ ref }}</strong>.
-              {% elif phone %}
-              No parcels found for phone number <strong>{{ phone }}</strong>.
               {% else %}
               No parcels found.
               {% endif %}
@@ -94,6 +95,13 @@
               <div class="text-muted small">Reference Code</div>
               <div class="fs-5 fw-bold text-primary">{{ parcel.ref_code }}</div>
             </div>
+            <div class="col-md-6">
+              <div class="text-muted small">Tracking Key</div>
+              <div class="fs-6 fw-bold text-success">{{ parcel.tracking_key }}</div>
+              <small class="text-muted">Save this key to track your parcel</small>
+            </div>
+          </div>
+          <div class="row g-3 mt-2">
             <div class="col-md-6">
               <div class="text-muted small">Created</div>
               <div>{{ parcel.created_at.strftime('%B %d, %Y at %I:%M %p') if parcel.created_at }}</div>
@@ -156,54 +164,6 @@
       </div>
       {% endif %}
 
-      <!-- Multiple Parcels Result (by phone) -->
-      {% if parcels_list %}
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0"><i class="fas fa-list me-2"></i>Your Parcels ({{ parcels_list|length }})</h5>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Reference</th>
-                  <th>Route</th>
-                  <th>Status</th>
-                  <th>Date</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for p in parcels_list %}
-                <tr>
-                  <td><strong>{{ p.ref_code }}</strong></td>
-                  <td>{{ p.origin_name }} → {{ p.destination_name }}</td>
-                  <td>
-                    {% set status_colors = {
-                      'pending': 'warning',
-                      'in_transit': 'info',
-                      'delivered': 'success',
-                      'cancelled': 'danger'
-                    } %}
-                    <span class="badge bg-{{ status_colors.get(p.status, 'secondary') }}">
-                      {{ p.status.replace('_', ' ').title() }}
-                    </span>
-                  </td>
-                  <td>{{ p.created_at.strftime('%b %d, %Y') if p.created_at }}</td>
-                  <td>
-                    <a href="{{ url_for('parcels.track', ref=p.ref_code) }}" class="btn btn-sm btn-outline-primary">
-                      View
-                    </a>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      {% endif %}
 
       <!-- How to Send a Parcel -->
       <div class="card shadow-sm border-info">

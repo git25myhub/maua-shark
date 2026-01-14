@@ -143,6 +143,13 @@
                         <span class="detail-value">{{ parcel.ref_code }}</span>
                     </div>
                     
+                    {% if parcel.tracking_key %}
+                    <div class="detail-row">
+                        <span class="detail-label">Tracking Key:</span>
+                        <span class="detail-value text-success fw-bold">{{ parcel.tracking_key }}</span>
+                    </div>
+                    {% endif %}
+                    
                     <div class="detail-row">
                         <span class="detail-label">Status:</span>
                         <span class="detail-value">

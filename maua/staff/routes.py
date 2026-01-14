@@ -739,9 +739,14 @@ def parcels_create():
 
         ref_code = f"P{int(datetime.utcnow().timestamp())}"
         
+        # Generate unique tracking key for sender and receiver to track without login
+        import secrets
+        tracking_key = secrets.token_urlsafe(24)  # 32 characters, URL-safe
+        
         # Staff creates parcel - can mark as paid immediately for cash payments
         parcel = Parcel(
             ref_code=ref_code,
+            tracking_key=tracking_key,
             sender_name=sender_name,
             sender_phone=sender_phone,
             sender_email=sender_email,
