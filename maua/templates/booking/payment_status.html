@@ -16,7 +16,11 @@
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Reference:</strong> {{ booking.reference }}</p>
                                 <p class="mb-1"><strong>Passenger:</strong> {{ booking.passenger_name }}</p>
-                                <p class="mb-1"><strong>Seat:</strong> <span class="badge bg-primary">{{ booking.seat_number }}</span></p>
+                                <p class="mb-1"><strong>Seat{% if booking.seat_count > 1 %}s{% endif %}:</strong> 
+                                    {% for seat in booking.seats %}
+                                        <span class="badge bg-primary me-1">{{ seat }}</span>
+                                    {% endfor %}
+                                </p>
                             </div>
                             <div class="col-md-6">
                                 <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>

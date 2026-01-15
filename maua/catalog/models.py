@@ -80,9 +80,18 @@ class Trip(db.Model):
         if not self.vehicle or not self.vehicle.seat_layout:
             return []
         from datetime import datetime
+        from maua.booking.models import BookingSeat
         now = datetime.utcnow()
-        booked_seats = {booking.seat_number for booking in self.bookings 
-                       if booking.status in ['confirmed', 'reserved', 'checked_in'] and (not getattr(booking, 'hold_expires_at', None) or booking.hold_expires_at > now)}
+        booked_seats = set()
+        for booking in self.bookings:
+            if booking.status in ['confirmed', 'reserved', 'checked_in', 'pending_payment'] and (not getattr(booking, 'hold_expires_at', None) or booking.hold_expires_at > now):
+                # Check new format (BookingSeat)
+                if booking.booking_seats:
+                    for bs in booking.booking_seats:
+                        booked_seats.add(bs.seat_number)
+                # Check old format (backward compatibility)
+                elif booking.seat_number:
+                    booked_seats.add(booking.seat_number)
         
         return [seat['seat'] for seat in self.vehicle.seat_layout 
                if seat['seat'] not in booked_seats]

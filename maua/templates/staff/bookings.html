@@ -76,7 +76,13 @@ Manage passenger bookings
                             <div class="text-muted">ID: {{ b.passenger_id_number }}</div>
                         </td>
                         <td>
-                            <span class="badge bg-dark fs-6">{{ b.seat_number }}</span>
+                            {% if b.seats %}
+                                {% for seat in b.seats %}
+                                    <span class="badge bg-dark fs-6 me-1">{{ seat }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="badge bg-dark fs-6">{{ b.seat_number or 'N/A' }}</span>
+                            {% endif %}
                         </td>
                         <td>
                             <span class="fw-bold">{{ b.fare }}</span> KES

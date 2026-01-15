@@ -474,9 +474,16 @@ def trip_seat_map(trip_id: int):
     trip = Trip.query.get_or_404(trip_id)
     seat_layout = trip.vehicle.seat_layout or []
     seat_to_booking = {}
+    from maua.booking.models import BookingSeat
     for b in trip.bookings:
-        if b.status in ['confirmed', 'reserved', 'checked_in', 'completed']:
-            seat_to_booking[b.seat_number] = b
+        if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']:
+            # Handle new format (BookingSeat)
+            if b.booking_seats:
+                for bs in b.booking_seats:
+                    seat_to_booking[bs.seat_number] = b
+            # Handle old format (backward compatibility)
+            elif b.seat_number:
+                seat_to_booking[b.seat_number] = b
     return render_template('staff/trip_seats.html', trip=trip, seat_layout=seat_layout, seat_to_booking=seat_to_booking)
 
 
@@ -516,9 +523,24 @@ def trip_mark_full(trip_id: int):
             seat_layout = trip.vehicle.seat_layout or []
             all_seats = {s['seat'] for s in seat_layout}
             
-            # Get currently booked seats
-            booked_seats = {b.seat_number for b in trip.bookings 
-                          if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']}
+            # Get currently booked seats from both old format (seat_number) and new format (BookingSeat)
+            booked_seats = set()
+            from maua.booking.models import BookingSeat
+            for b in trip.bookings:
+                if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']:
+                    # Check new format (BookingSeat)
+                    if b.booking_seats:
+                        for bs in b.booking_seats:
+                            booked_seats.add(bs.seat_number)
+                    # Check old format (backward compatibility)
+                    elif b.seat_number:
+                        booked_seats.add(b.seat_number)
+            
+            # Also check BookingSeat directly
+            for bs in BookingSeat.query.filter_by(trip_id=trip_id).all():
+                booking = Booking.query.get(bs.booking_id)
+                if booking and booking.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']:
+                    booked_seats.add(bs.seat_number)
             
             # Find empty seats
             empty_seats = all_seats - booked_seats
@@ -689,7 +711,16 @@ def bookings_quick():
     for trip in trips:
         seat_layout = trip.vehicle.seat_layout or []
         total_seats = len(seat_layout)
-        booked_seats = len([b for b in trip.bookings if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']])
+        # Count booked seats (handling both old and new format)
+        from maua.booking.models import BookingSeat
+        booked_seats_count = 0
+        for b in trip.bookings:
+            if b.status in ['confirmed', 'reserved', 'checked_in', 'completed', 'pending_payment']:
+                if b.booking_seats:
+                    booked_seats_count += len(b.booking_seats)
+                elif b.seat_number:
+                    booked_seats_count += 1
+        booked_seats = booked_seats_count
         available = total_seats - booked_seats
         
         trip_data.append({

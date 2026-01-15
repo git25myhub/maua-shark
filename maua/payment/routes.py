@@ -193,7 +193,9 @@ def mpesa_callback():
                         if booking and booking.status == 'pending_payment':
                             booking.status = 'cancelled'
                             try:
-                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                                # Publish cancellation events for all seats
+                                for seat_num in booking.seats:
+                                    broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": seat_num, "status": "available"})
                             except Exception:
                                 pass
                     db.session.commit()
@@ -286,7 +288,9 @@ def check_payment_status(payment_id):
                         if booking and booking.status == 'pending_payment':
                             booking.status = 'cancelled'
                             try:
-                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                                # Publish cancellation events for all seats
+                                for seat_num in booking.seats:
+                                    broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": seat_num, "status": "available"})
                             except Exception:
                                 pass
                     db.session.commit()
@@ -310,7 +314,9 @@ def check_payment_status(payment_id):
                         if booking and booking.status == 'pending_payment':
                             booking.status = 'cancelled'
                             try:
-                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                                # Publish cancellation events for all seats
+                                for seat_num in booking.seats:
+                                    broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": seat_num, "status": "available"})
                             except Exception:
                                 pass
                     db.session.commit()
@@ -333,7 +339,9 @@ def check_payment_status(payment_id):
                         if booking and booking.status == 'pending_payment':
                             booking.status = 'cancelled'
                             try:
-                                broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+                                # Publish cancellation events for all seats
+                                for seat_num in booking.seats:
+                                    broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": seat_num, "status": "available"})
                             except Exception:
                                 pass
                     db.session.commit()

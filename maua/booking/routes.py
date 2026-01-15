@@ -3,7 +3,7 @@ from flask_login import login_required, current_user
 from maua.extensions import db
 from maua.notifications.sms import send_sms
 from maua.payment.cache import PaymentStatusCache
-from .models import Booking, Ticket
+from .models import Booking, BookingSeat, Ticket
 from .services import broker
 from .forms import PassengerDetailsForm
 from maua.catalog.models import Trip
@@ -32,30 +32,64 @@ def book(trip_id):
         return redirect(url_for('catalog.routes'))
     
     if request.method == 'POST':
-        # Process seat selection
-        seat_number = request.form.get('seat_number')
-        if not seat_number:
-            flash('Please select a seat.', 'warning')
+        # Process seat selection - support multiple seats
+        seat_numbers = request.form.getlist('seat_number')  # Get list of selected seats
+        if not seat_numbers:
+            flash('Please select at least one seat.', 'warning')
             return redirect(url_for('booking.book', trip_id=trip_id))
         
-        # Check if seat is available (any active booking blocks selection)
+        # Remove duplicates and validate
+        seat_numbers = list(set(seat_numbers))
+        
+        # Check if all seats are available
         now = datetime.utcnow()
-        booked_seats = {b.seat_number for b in trip.bookings 
-                       if b.status in ['pending_payment', 'confirmed', 'checked_in']}
+        # Get booked seats from both old format (seat_number) and new format (BookingSeat)
+        booked_seats = set()
+        for b in trip.bookings:
+            if b.status in ['pending_payment', 'confirmed', 'checked_in']:
+                # Check old format
+                if b.seat_number:
+                    booked_seats.add(b.seat_number)
+                # Check new format (BookingSeat)
+                for bs in b.booking_seats:
+                    booked_seats.add(bs.seat_number)
         
-        if seat_number in booked_seats:
-            flash('This seat is already taken. Please select another seat.', 'danger')
+        # Also check BookingSeat directly (in case of orphaned records)
+        for bs in BookingSeat.query.filter_by(trip_id=trip_id).all():
+            booking = Booking.query.get(bs.booking_id)
+            if booking and booking.status in ['pending_payment', 'confirmed', 'checked_in']:
+                booked_seats.add(bs.seat_number)
+        
+        unavailable = [seat for seat in seat_numbers if seat in booked_seats]
+        if unavailable:
+            flash(f'Seat(s) {", ".join(unavailable)} are already taken. Please select other seats.', 'danger')
             return redirect(url_for('booking.book', trip_id=trip_id))
         
-        # Redirect to passenger details with seat number
+        # Redirect to passenger details with seat numbers (comma-separated)
+        seat_numbers_str = ','.join(seat_numbers)
         return redirect(url_for('booking.passenger_details', 
                              trip_id=trip_id, 
-                             seat_number=seat_number))
+                             seat_numbers=seat_numbers_str))
     
     # For GET request, show seat selection
     now = datetime.utcnow()
-    booked_seats = {b.seat_number for b in trip.bookings 
-                   if b.status in ['pending_payment', 'confirmed', 'checked_in']}
+    # Get booked seats from both old format (seat_number) and new format (BookingSeat)
+    booked_seats = set()
+    for b in trip.bookings:
+        if b.status in ['pending_payment', 'confirmed', 'checked_in']:
+            # Check old format
+            if b.seat_number:
+                booked_seats.add(b.seat_number)
+            # Check new format (BookingSeat)
+            for bs in b.booking_seats:
+                booked_seats.add(bs.seat_number)
+    
+    # Also check BookingSeat directly
+    for bs in BookingSeat.query.filter_by(trip_id=trip_id).all():
+        booking = Booking.query.get(bs.booking_id)
+        if booking and booking.status in ['pending_payment', 'confirmed', 'checked_in']:
+            booked_seats.add(bs.seat_number)
+    
     seat_layout = trip.vehicle.seat_layout or []
     
     form = PassengerDetailsForm()
@@ -87,24 +121,39 @@ def stream_trip_seats(trip_id: int):
 
 @booking_bp.route('/book/<int:trip_id>/passenger', methods=['GET', 'POST'])
 def passenger_details(trip_id):
-    seat_number = request.args.get('seat_number')
-    if not seat_number:
-        flash('Please select a seat first.', 'warning')
+    seat_numbers_str = request.args.get('seat_numbers') or request.args.get('seat_number')  # Support both formats
+    if not seat_numbers_str:
+        flash('Please select at least one seat first.', 'warning')
+        return redirect(url_for('booking.book', trip_id=trip_id))
+    
+    # Parse seat numbers (comma-separated or single)
+    seat_numbers = [s.strip() for s in seat_numbers_str.split(',') if s.strip()]
+    if not seat_numbers:
+        flash('Please select at least one seat first.', 'warning')
         return redirect(url_for('booking.book', trip_id=trip_id))
     
     trip = Trip.query.get_or_404(trip_id)
     form = PassengerDetailsForm()
     
-    # Check if seat is still available (no holds logic)
+    # Check if all seats are still available
     now = datetime.utcnow()
-    booked_seats = {b.seat_number for b in trip.bookings 
-                   if b.status in ['pending_payment', 'confirmed', 'checked_in']}
+    booked_seats = set()
+    for b in trip.bookings:
+        if b.status in ['pending_payment', 'confirmed', 'checked_in']:
+            if b.seat_number:
+                booked_seats.add(b.seat_number)
+            for bs in b.booking_seats:
+                booked_seats.add(bs.seat_number)
     
-    if seat_number in booked_seats:
-        flash('This seat is no longer available. Please select another seat.', 'danger')
+    for bs in BookingSeat.query.filter_by(trip_id=trip_id).all():
+        booking = Booking.query.get(bs.booking_id)
+        if booking and booking.status in ['pending_payment', 'confirmed', 'checked_in']:
+            booked_seats.add(bs.seat_number)
+    
+    unavailable = [seat for seat in seat_numbers if seat in booked_seats]
+    if unavailable:
+        flash(f'Seat(s) {", ".join(unavailable)} are no longer available. Please select other seats.', 'danger')
         return redirect(url_for('booking.book', trip_id=trip_id))
-    
-    # No hold logic: just render form on GET; on POST, attempt to create confirmed booking
 
     if form.validate_on_submit():
         # Clean up expired pending_payment bookings (older than 10 minutes)
@@ -114,27 +163,41 @@ def passenger_details(trip_id):
             Booking.created_at < expired_cutoff
         ).all()
         for booking in expired_bookings:
+            # Also delete associated BookingSeat records
+            BookingSeat.query.filter_by(booking_id=booking.id).delete()
             db.session.delete(booking)
         db.session.commit()
         
         # Final seat availability check just before confirmation
-        exists = Booking.query.filter(
-            Booking.trip_id == trip_id,
-            Booking.seat_number == seat_number,
-            Booking.status.in_(['pending_payment', 'confirmed', 'checked_in'])
-        ).first()
-        if exists:
-            flash('This seat has just been taken. Please select another.', 'danger')
+        booked_seats_final = set()
+        for b in trip.bookings:
+            if b.status in ['pending_payment', 'confirmed', 'checked_in']:
+                if b.seat_number:
+                    booked_seats_final.add(b.seat_number)
+                for bs in b.booking_seats:
+                    booked_seats_final.add(bs.seat_number)
+        
+        for bs in BookingSeat.query.filter_by(trip_id=trip_id).all():
+            booking = Booking.query.get(bs.booking_id)
+            if booking and booking.status in ['pending_payment', 'confirmed', 'checked_in']:
+                booked_seats_final.add(bs.seat_number)
+        
+        unavailable_final = [seat for seat in seat_numbers if seat in booked_seats_final]
+        if unavailable_final:
+            flash(f'Seat(s) {", ".join(unavailable_final)} have just been taken. Please select other seats.', 'danger')
             return redirect(url_for('booking.book', trip_id=trip_id))
+
+        # Calculate total fare
+        total_fare = trip.base_fare * len(seat_numbers)
 
         # Create booking with pending status (requires payment)
         # No login required - user_id is optional
         booking = Booking(
             trip_id=trip_id,
             user_id=None,  # No login required for customers
-            seat_number=seat_number,
-            status='pending_payment',  # Changed from 'confirmed' to 'pending_payment'
-            fare=trip.base_fare,
+            seat_number=None,  # No longer used for multi-seat bookings
+            status='pending_payment',
+            fare=total_fare,  # Total fare for all seats
             reference=f"BK-{uuid.uuid4().hex[:8].upper()}",
             hold_expires_at=None,
             passenger_name=form.name.data,
@@ -147,12 +210,23 @@ def passenger_details(trip_id):
         )
         try:
             db.session.add(booking)
+            db.session.flush()  # Get booking.id
+            
+            # Create BookingSeat records for each selected seat
+            for seat_num in seat_numbers:
+                booking_seat = BookingSeat(
+                    booking_id=booking.id,
+                    trip_id=trip_id,
+                    seat_number=seat_num
+                )
+                db.session.add(booking_seat)
+            
             db.session.commit()
             
             # Create payment record
             from maua.payment.models import Payment
             payment = Payment(
-                amount=trip.base_fare,
+                amount=total_fare,
                 payment_method='pending',
                 status='pending',
                 user_id=None,  # No login required - user_id is optional
@@ -160,6 +234,10 @@ def passenger_details(trip_id):
             )
             db.session.add(payment)
             db.session.commit()
+            
+            # Publish seat events for each seat
+            for seat_num in seat_numbers:
+                broker.publish(trip_id, {"type": "seat_confirmed", "seat": seat_num, "status": "booked"})
             
             # Redirect to payment page
             return redirect(url_for('booking.payment', booking_id=booking.id))
@@ -172,7 +250,8 @@ def passenger_details(trip_id):
     return render_template('booking/passenger_details.html',
                          form=form,
                          trip=trip,
-                         seat_number=seat_number)
+                         seat_numbers=seat_numbers,
+                         seat_number=', '.join(seat_numbers))  # For backward compatibility in template
 
 @booking_bp.route('/payment/<int:booking_id>', methods=['GET', 'POST'])
 def payment(booking_id):
@@ -329,7 +408,8 @@ def download_receipt(booking_id: int):
     y -= 5*mm
     c.drawString(22*mm, y, f"Departure: {booking.trip.depart_at.strftime('%Y-%m-%d %H:%M')}")
     y -= 5*mm
-    c.drawString(22*mm, y, f"Vehicle: {getattr(booking.trip.vehicle, 'plate_no', 'N/A')}  Seat: {booking.seat_number}")
+    seats_str = ', '.join(booking.seats) if booking.seats else (booking.seat_number or 'N/A')
+    c.drawString(22*mm, y, f"Vehicle: {getattr(booking.trip.vehicle, 'plate_no', 'N/A')}  Seat{'s' if booking.seat_count > 1 else ''}: {seats_str}")
     y -= 8*mm
 
     # Fare
@@ -365,7 +445,9 @@ def cancel(booking_id):
     try:
         booking.status = 'cancelled'
         db.session.commit()
-        broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": booking.seat_number, "status": "available"})
+        # Publish cancellation events for all seats
+        for seat_num in booking.seats:
+            broker.publish(booking.trip_id, {"type": "seat_cancelled", "seat": seat_num, "status": "available"})
         
         # Send cancellation notification
         try:

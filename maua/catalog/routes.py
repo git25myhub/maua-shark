@@ -75,8 +75,20 @@ def trip_detail(trip_id: int):
     # Mark booked seats, respecting hold expiry
     for booking in trip.bookings:
         if booking.status in ['checked_in', 'completed']:
-            seat_status[booking.seat_number] = 'green'  # passenger on board
-        elif booking.status in ['confirmed']:
-            seat_status[booking.seat_number] = 'blue'  # booked
+            # Handle new format (BookingSeat)
+            if booking.booking_seats:
+                for bs in booking.booking_seats:
+                    seat_status[bs.seat_number] = 'green'  # passenger on board
+            # Handle old format (backward compatibility)
+            elif booking.seat_number:
+                seat_status[booking.seat_number] = 'green'  # passenger on board
+        elif booking.status in ['confirmed', 'reserved', 'pending_payment']:
+            # Handle new format (BookingSeat)
+            if booking.booking_seats:
+                for bs in booking.booking_seats:
+                    seat_status[bs.seat_number] = 'blue'  # booked
+            # Handle old format (backward compatibility)
+            elif booking.seat_number:
+                seat_status[booking.seat_number] = 'blue'  # booked
 
     return render_template('catalog/trip_detail.html', trip=trip, seat_layout=seat_layout, seat_status=seat_status)

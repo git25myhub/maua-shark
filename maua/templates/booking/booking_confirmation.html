@@ -61,8 +61,10 @@
                                 {{ booking.trip.depart_at.strftime('%I:%M %p') }}
                             </p>
                             <p class="mb-2">
-                                <strong><i class="fas fa-chair me-2"></i>Seat Number:</strong> 
-                                <span class="badge bg-primary">{{ booking.seat_number }}</span>
+                                <strong><i class="fas fa-chair me-2"></i>Seat{% if booking.seat_count > 1 %}s{% endif %}:</strong> 
+                                {% for seat in booking.seats %}
+                                    <span class="badge bg-primary me-1">{{ seat }}</span>
+                                {% endfor %}
                             </p>
                             <p class="mb-2">
                                 <strong><i class="fas fa-bus me-2"></i>Vehicle:</strong>
@@ -88,9 +90,14 @@
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
+                            {% if booking.seat_count > 1 %}
                             <p class="mb-2">
-                                <strong>Base Fare:</strong> KES {{ "%0.2f"|format(booking.fare) }}
+                                <strong>Fare per Seat:</strong> KES {{ "%0.2f"|format(booking.trip.base_fare) }}
                             </p>
+                            <p class="mb-2">
+                                <strong>Number of Seats:</strong> {{ booking.seat_count }}
+                            </p>
+                            {% endif %}
                             <p class="mb-0">
                                 <strong>Status:</strong> 
                                 <span class="badge bg-success">{{ booking.status|title }}</span>

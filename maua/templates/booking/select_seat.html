@@ -19,7 +19,7 @@
           
                               <form method="post" id="seatForm" class="mb-4">
                         {{ form.hidden_tag() }}
-                        <input type="hidden" name="seat_number" id="selectedSeat">
+                        <!-- Multiple seats can be selected -->
                         
                         <div class="matatu-layout p-4 border rounded">
                             <!-- Matatu 16-Seater Layout -->
@@ -33,7 +33,7 @@
                                             {% set code = seat_data['seat'] %}
                                             {% set is_taken = code in taken %}
                                             <div class="seat-container">
-                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <input type="checkbox" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-checkbox" {% if is_taken %}disabled{% endif %}>
                                                 <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
                                                     <span class="seat-number">{{ code }}</span>
                                                     {% if is_taken %}
@@ -63,7 +63,7 @@
                                             {% set code = seat_data['seat'] %}
                                             {% set is_taken = code in taken %}
                                             <div class="seat-container">
-                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <input type="checkbox" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-checkbox" {% if is_taken %}disabled{% endif %}>
                                                 <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
                                                     <span class="seat-number">{{ code }}</span>
                                                     {% if is_taken %}
@@ -102,7 +102,7 @@
                                             {% set code = seat_data['seat'] %}
                                             {% set is_taken = code in taken %}
                                             <div class="seat-container">
-                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <input type="checkbox" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-checkbox" {% if is_taken %}disabled{% endif %}>
                                                 <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
                                                     <span class="seat-number">{{ code }}</span>
                                                     {% if is_taken %}
@@ -141,7 +141,7 @@
                                             {% set code = seat_data['seat'] %}
                                             {% set is_taken = code in taken %}
                                             <div class="seat-container">
-                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <input type="checkbox" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-checkbox" {% if is_taken %}disabled{% endif %}>
                                                 <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
                                                     <span class="seat-number">{{ code }}</span>
                                                     {% if is_taken %}
@@ -163,7 +163,7 @@
                                             {% set code = seat_data['seat'] %}
                                             {% set is_taken = code in taken %}
                                             <div class="seat-container">
-                                                <input type="radio" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-radio" {% if is_taken %}disabled{% endif %}>
+                                                <input type="checkbox" name="seat_number" value="{{ code }}" id="seat-{{ code }}" class="seat-checkbox" {% if is_taken %}disabled{% endif %}>
                                                 <label for="seat-{{ code }}" class="seat-label {% if is_taken %}taken{% else %}available{% endif %}" data-seat="{{ code }}" aria-label="Seat {{ code }} {% if is_taken %}booked{% else %}available{% endif %}">
                                                     <span class="seat-number">{{ code }}</span>
                                                     {% if is_taken %}
@@ -203,8 +203,15 @@
                             
                             <div class="selected-seat-info text-center p-3 bg-light rounded">
                                 <h5 class="mb-2">Your Selection</h5>
-                                <div id="selectedSeatDisplay" class="display-4 fw-bold text-primary mb-2">-</div>
-                                <small class="text-muted d-block mb-3">Click on an available seat to select</small>
+                                <div id="selectedSeatDisplay" class="mb-2">
+                                    <div class="d-flex flex-wrap gap-2 justify-content-center" id="selectedSeatsList">
+                                        <span class="text-muted">No seats selected</span>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Total Seats:</strong> <span id="seatCount" class="badge bg-primary">0</span>
+                                </div>
+                                <small class="text-muted d-block mb-3">Click on available seats to select multiple</small>
                                 
                                 <button type="submit" form="seatForm" class="btn btn-primary btn-lg w-100" id="confirmBtn" disabled>
                                     <i class="fas fa-arrow-right me-2"></i>Continue to Passenger Details
@@ -412,7 +419,7 @@
     outline-offset: 2px;
 }
 
-.seat-radio {
+.seat-checkbox {
     position: absolute;
     opacity: 0;
     width: 0;
@@ -480,16 +487,25 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const radios = document.querySelectorAll('.seat-radio');
+  const checkboxes = document.querySelectorAll('.seat-checkbox');
   const confirmBtn = document.getElementById('confirmBtn');
-  const selectedSeatInput = document.getElementById('selectedSeat');
-  const selectedSeatDisplay = document.getElementById('selectedSeatDisplay');
+  const selectedSeatsList = document.getElementById('selectedSeatsList');
+  const seatCount = document.getElementById('seatCount');
   const tripId = {{ trip.id }};
 
-  function updateSelectionUI(selectedValue) {
-    // toggle selected class on labels
+  function updateSelectionUI() {
+    const selectedSeats = Array.from(checkboxes)
+      .filter(cb => cb.checked && !cb.disabled)
+      .map(cb => cb.value)
+      .sort();
+
+    // Update seat labels
     document.querySelectorAll('.seat-label').forEach(label => {
-      if (label.dataset.seat === selectedValue) {
+      const seatCode = label.dataset.seat;
+      const checkbox = document.getElementById(`seat-${seatCode}`);
+      if (!checkbox) return;
+      
+      if (checkbox.checked && !checkbox.disabled) {
         label.classList.add('selected');
         label.classList.remove('available');
       } else if (!label.classList.contains('taken')) {
@@ -498,43 +514,52 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
 
-    // update hidden input and display
-    selectedSeatInput.value = selectedValue || '';
-    selectedSeatDisplay.textContent = selectedValue || '-';
-    confirmBtn.disabled = !selectedValue;
+    // Update display
+    if (selectedSeats.length === 0) {
+      selectedSeatsList.innerHTML = '<span class="text-muted">No seats selected</span>';
+      seatCount.textContent = '0';
+      confirmBtn.disabled = true;
+    } else {
+      selectedSeatsList.innerHTML = selectedSeats.map(seat => 
+        `<span class="badge bg-primary me-1">${seat}</span>`
+      ).join('');
+      seatCount.textContent = selectedSeats.length;
+      confirmBtn.disabled = false;
+    }
   }
 
-  radios.forEach(radio => {
-    radio.addEventListener('change', function() {
-      updateSelectionUI(this.checked ? this.value : '');
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', function() {
+      updateSelectionUI();
     });
   });
 
   // Initialize form submission validation
   const form = document.getElementById('seatForm');
   form.addEventListener('submit', function(e) {
-    // Prefer actual radio selection for submission
-    const anyChecked = Array.from(radios).some(r => r.checked);
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked && !cb.disabled);
     if (!anyChecked) {
       e.preventDefault();
-      alert('Please select a seat');
+      alert('Please select at least one seat');
     }
   });
 
   // Live updates via SSE
   function setSeatTaken(seatCode, taken) {
-    const radio = document.getElementById(`seat-${seatCode}`);
+    const checkbox = document.getElementById(`seat-${seatCode}`);
     const label = document.querySelector(`label[for="seat-${seatCode}"]`);
-    if (!radio || !label) return;
+    if (!checkbox || !label) return;
     if (taken) {
-      radio.disabled = true;
+      checkbox.disabled = true;
+      checkbox.checked = false;
       label.classList.remove('available', 'selected');
       label.classList.add('taken');
     } else {
-      radio.disabled = false;
+      checkbox.disabled = false;
       label.classList.remove('taken', 'selected');
       label.classList.add('available');
     }
+    updateSelectionUI(); // Refresh display after seat status change
   }
 
   try {
@@ -551,6 +576,9 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch (e) {
     console.warn('SSE not available', e);
   }
+  
+  // Initialize UI
+  updateSelectionUI();
 });
 </script>
 {% endblock %}

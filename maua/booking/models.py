@@ -2,15 +2,42 @@ from datetime import datetime, time
 from maua.extensions import db
 from maua.catalog.models import Trip
 
+class BookingSeat(db.Model):
+    """Represents a seat within a booking. A booking can have multiple seats."""
+    __tablename__ = "booking_seats"
+    
+    id = db.Column(db.Integer, primary_key=True)
+    booking_id = db.Column(db.Integer, db.ForeignKey("bookings.id"), nullable=False)
+    trip_id = db.Column(db.Integer, db.ForeignKey("trips.id"), nullable=False)
+    seat_number = db.Column(db.String(5), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Relationships
+    booking = db.relationship('Booking', backref='booking_seats', lazy=True)
+    trip = db.relationship('Trip', backref='booking_seats', lazy=True)
+    
+    __table_args__ = (
+        db.UniqueConstraint("trip_id", "seat_number", name="uq_trip_seat_booking"),
+    )
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'booking_id': self.booking_id,
+            'trip_id': self.trip_id,
+            'seat_number': self.seat_number,
+            'created_at': self.created_at.isoformat() if self.created_at else None
+        }
+
 class Booking(db.Model):
     __tablename__ = "bookings"
     
     id = db.Column(db.Integer, primary_key=True)
     trip_id = db.Column(db.Integer, db.ForeignKey("trips.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)  # Made nullable - no login required
-    seat_number = db.Column(db.String(5), nullable=False)
+    seat_number = db.Column(db.String(5), nullable=True)  # Made nullable - use BookingSeat for multi-seat bookings
     status = db.Column(db.String(20), default="reserved")
-    fare = db.Column(db.Numeric(10,2), nullable=False)
+    fare = db.Column(db.Numeric(10,2), nullable=False)  # Total fare for all seats
     reference = db.Column(db.String(30), unique=True, nullable=False)
     hold_expires_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -30,16 +57,36 @@ class Booking(db.Model):
     ticket = db.relationship('Ticket', backref='booking', uselist=False, lazy=True)
     payment = db.relationship('Payment', backref=db.backref('booking', uselist=False), uselist=False)
     
-    __table_args__ = (
-        db.UniqueConstraint("trip_id", "seat_number", name="uq_trip_seat"),
-    )
+    # Note: Removed unique constraint on (trip_id, seat_number) as we now use BookingSeat
+    # Old constraint kept for backward compatibility but seat_number is now nullable
+    
+    @property
+    def seats(self):
+        """Get all seats for this booking. Returns list of seat numbers."""
+        if self.booking_seats:
+            return [bs.seat_number for bs in self.booking_seats]
+        elif self.seat_number:
+            # Backward compatibility: return single seat if using old format
+            return [self.seat_number]
+        return []
+    
+    @property
+    def seat_count(self):
+        """Get the number of seats in this booking."""
+        if self.booking_seats:
+            return len(self.booking_seats)
+        elif self.seat_number:
+            return 1
+        return 0
     
     def to_dict(self):
         return {
             'id': self.id,
             'trip_id': self.trip_id,
             'user_id': self.user_id,
-            'seat_number': self.seat_number,
+            'seat_number': self.seat_number,  # For backward compatibility
+            'seats': self.seats,  # List of all seats
+            'seat_count': self.seat_count,
             'status': self.status,
             'fare': float(self.fare) if self.fare else None,
             'reference': self.reference,

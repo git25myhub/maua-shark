@@ -13,7 +13,11 @@
                         <div>
                             <h5 class="alert-heading">Trip Details</h5>
                             <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} - {{ trip.route.destination.town }}</p>
-                            <p class="mb-1"><strong>Seat:</strong> {{ seat_number }}</p>
+                            <p class="mb-1"><strong>Seat{% if seat_numbers|length > 1 %}s{% endif %}:</strong> 
+                                {% for seat in seat_numbers %}
+                                    <span class="badge bg-primary me-1">{{ seat }}</span>
+                                {% endfor %}
+                            </p>
                             <p class="mb-1"><strong>Date:</strong> {{ trip.depart_at.strftime('%A, %B %d, %Y') }}</p>
                             <p class="mb-0"><strong>Time:</strong> {{ trip.depart_at.strftime('%I:%M %p') }}</p>
                             <hr class="my-2">
@@ -117,8 +121,13 @@
                         <div class="card-body">
                             <p class="mb-1"><strong>Passenger:</strong> {{ form.name.data or '—' }}</p>
                             <p class="mb-1"><strong>National ID:</strong> {{ form.id_number.data or '—' }}</p>
-                            <p class="mb-1"><strong>Seat:</strong> <span class="badge bg-primary">{{ seat_number }}</span></p>
-                            <p class="mb-1"><strong>Fare:</strong> KES {{ "%0.2f"|format(trip.base_fare) }}</p>
+                            <p class="mb-1"><strong>Seat{% if seat_numbers|length > 1 %}s{% endif %}:</strong> 
+                                {% for seat in seat_numbers %}
+                                    <span class="badge bg-primary me-1">{{ seat }}</span>
+                                {% endfor %}
+                            </p>
+                            <p class="mb-1"><strong>Fare per Seat:</strong> KES {{ "%0.2f"|format(trip.base_fare) }}</p>
+                            <p class="mb-1"><strong>Total Fare:</strong> <strong class="text-primary">KES {{ "%0.2f"|format(trip.base_fare * seat_numbers|length) }}</strong></p>
                             <p class="mb-1"><strong>Pickup:</strong> {{ form.pickup_location.data or '—' }}</p>
                             <hr>
                             <p class="mb-1"><strong>Route:</strong> {{ trip.route.origin.town }} → {{ trip.route.destination.town }}</p>
