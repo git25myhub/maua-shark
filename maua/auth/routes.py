@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from maua import db, bcrypt
-from maua.auth.forms import LoginForm, RegistrationForm, ForgotPasswordForm, ResetPasswordForm
+from maua.auth.forms import LoginForm, ForgotPasswordForm, ResetPasswordForm
 from maua.auth.models import User, PasswordResetToken
 
 auth_bp = Blueprint('auth', __name__)
@@ -65,45 +65,14 @@ def logout():
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
-    """Public registration - creates customer accounts only"""
-    if current_user.is_authenticated:
-        return redirect(url_for('main.home'))
-    
-    form = RegistrationForm()
-    if form.validate_on_submit():
-        # Check if username exists
-        if User.query.filter_by(username=form.username.data).first():
-            flash('Username already taken. Please choose a different one.', 'danger')
-            return render_template('auth/register.html', title='Register', form=form)
-        
-        # Check if email exists
-        if User.query.filter_by(email=form.email.data).first():
-            flash('Email already registered. Please use a different email or login.', 'danger')
-            return render_template('auth/register.html', title='Register', form=form)
-        
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(
-            username=form.username.data,
-            email=form.email.data,
-            phone=form.phone.data,
-            password_hash=hashed_password,
-            date_joined=datetime.utcnow(),
-            is_admin=False,  # Public registration creates customers only
-            is_staff=False,
-            is_active=True
-        )
-        db.session.add(user)
-        db.session.commit()
-        
-        flash('Your account has been created! You can now log in.', 'success')
-        return redirect(url_for('auth.login'))
-    
-    return render_template('auth/register.html', title='Register', form=form)
+    """Registration disabled - Admin creates staff accounts"""
+    flash('Registration is not available. Staff accounts are created by administrators. Please contact your administrator for access.', 'info')
+    return redirect(url_for('auth.login'))
 
 
 @auth_bp.route('/forgot-password', methods=['GET', 'POST'])
 def forgot_password():
-    """Handle forgot password request - for customers only"""
+    """Handle forgot password request - Note: Admin/Staff should contact administrator"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     
@@ -122,10 +91,11 @@ def forgot_password():
             )
             return render_template('auth/forgot_password.html', title='Forgot Password', form=form)
         
-        # Always show the same message to prevent email enumeration (for customers)
+        # Always show the same message to prevent email enumeration
         success_message = (
-            'If a customer account with that email exists, you will receive a password reset link shortly. '
-            'Please check your email inbox and spam folder.'
+            'If an account with that email exists, you will receive a password reset link shortly. '
+            'Please check your email inbox and spam folder. '
+            'Note: Staff and Admin accounts must contact the administrator for password resets.'
         )
         
         if user:
@@ -154,7 +124,7 @@ def forgot_password():
 
 @auth_bp.route('/reset-password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    """Handle password reset with token - for customers only"""
+    """Handle password reset with token - Note: Admin/Staff should contact administrator"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     

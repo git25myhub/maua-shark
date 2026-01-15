@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - MAUA SHARK EXPRESS</title>
+    <title>Admin/Staff Login - MAUA SHARK EXPRESS</title>
     <meta name="theme-color" content="#1e40af">
     <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%231e40af' rx='20'/><path d='M25 65h50v8H25zM30 35h40v25H30zm5 5v15h10V40zm15 0v15h10V40zm15 0v15h10V40z' fill='white'/></svg>">
@@ -59,8 +59,8 @@
                     <div class="card auth-card border-0">
                         <div class="card-body p-4 p-md-5">
                             <div class="text-center mb-4">
-                                <h1 class="h3 fw-bold mb-2">Welcome Back!</h1>
-                                <p class="text-muted mb-0">Sign in to continue to your account</p>
+                                <h1 class="h3 fw-bold mb-2">Admin/Staff Login</h1>
+                                <p class="text-muted mb-0">Sign in to access your admin or staff account</p>
                             </div>
                             
                             <!-- Flash Messages -->
@@ -130,11 +130,9 @@
                                     {{ form.submit(class="btn btn-primary btn-lg fw-bold") }}
                                 </div>
                                 
-                                <div class="text-center">
-                                    <span class="text-muted">Don't have an account?</span>
-                                    <a class="auth-link ms-1" href="{{ url_for('auth.register') }}">
-                                        Create Account <i class="fas fa-arrow-right ms-1"></i>
-                                    </a>
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <small>Staff accounts are created by administrators. Contact your administrator for access.</small>
                                 </div>
                             </form>
                         </div>
@@ -147,12 +145,9 @@
                         </a>
                     </div>
                     
-                    <!-- Role Info (Optional) -->
+                    <!-- Role Info -->
                     <div class="text-center mt-4">
                         <div class="d-inline-flex flex-wrap gap-3 justify-content-center">
-                            <span class="badge bg-light text-dark">
-                                <i class="fas fa-user me-1"></i> Customer
-                            </span>
                             <span class="badge bg-light text-dark">
                                 <i class="fas fa-tools me-1"></i> Staff
                             </span>
@@ -161,7 +156,7 @@
                             </span>
                         </div>
                         <p class="text-white-50 small mt-2 mb-0">
-                            All roles use this login page
+                            For staff and admin accounts only
                         </p>
                     </div>
                     
